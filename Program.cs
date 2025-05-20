@@ -2,7 +2,7 @@
 using Microsoft.Win32;
 
 
-string SETTINGS_REG_PATH = "HKEY_CURRENT_USER\\Software\\Ivan_Bogdanov\\Backup_Scans";
+string SETTINGS_REG_KEY = "Software\\Ivan_Bogdanov\\Backup_Scans";
 
 string SOURCE_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\сканы";
 
@@ -11,7 +11,7 @@ string DESTINATION_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\result_test";
 //WorkPath source = new() { Name = SOURCE_DIR };
 //Console.WriteLine(source.state);
 
-DirectoryCheck directoryCheck = new(SETTINGS_REG_PATH);
+SettingsCheck directoryCheck = new(SETTINGS_REG_PATH);
 directoryCheck.Validate();
 
 
@@ -28,8 +28,8 @@ namespace DrivesControl
 
     struct WorkPath
     {
-        public string name;         // null ???
-        public PathState state;
+        private string name;         // null ???
+        public PathState status;
 
         public string Name
         {
@@ -38,12 +38,12 @@ namespace DrivesControl
                 if (Directory.Exists(value))
                 {
                     name = value;
-                    state = PathState.INSTALLED;
+                    status = PathState.INSTALLED;
                     Console.WriteLine("Dir set OK !");
                 }
                 else
                 {
-                    state = PathState.DOES_NOT_EXIST;
+                    status = PathState.DOES_NOT_EXIST;
                     Console.WriteLine("Dir not exist !");
                 }
             }
@@ -51,22 +51,21 @@ namespace DrivesControl
         }
     }
 
-    class DirectoryCheck(string? registry_path)
+    class SettingsCheck(string? path)
     {
-        private string? registry_path = registry_path;
+        //RegistryKey set_key = Registry.CurrentUser.CreateSubKey(path);
+
         private static string[] drive_keys = ["source", "destination"];
         //Range drives_range = 0..drive_keys.Length;
         private string default_drive = "None Path";
-
-        //public WorkPath source = new();
-        //public WorkPath destination = new();
+                
         public WorkPath[] drives = new WorkPath[drive_keys.Length];
 
-        public void Validate()
+        public void Validate()   // refactor name ????
         {
             for (int i = 0; i < drive_keys.Length; i++)
             {
-                string? dir_name = (string?)Registry.GetValue(registry_path, drive_keys[i], default_drive);
+                string? dir_name = (string?)Registry.GetValue(path, drive_keys[i], default_drive);
 
                 if (dir_name != null)
                 {
