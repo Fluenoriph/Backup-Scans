@@ -1,20 +1,35 @@
-﻿using DrivesControl;
+﻿using System.Text.RegularExpressions;
+using BackupBlock;
+using DrivesControl;
 using Microsoft.Win32;
 
 
 const string SETTINGS_FULL_KEY = "HKEY_CURRENT_USER\\Software\\Ivan_Bogdanov\\Backup_Scans";
+
+string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
 
 //const string SOURCE_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\сканы";
 //const string DESTINATION_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\result_test";
 
 
 SettingsInWinRegistry x = new(SETTINGS_FULL_KEY);
-x.GetSettings();
+var dirs = x.GetSettings();
 
-foreach (var Drive in x.Drives)
+BackupItem y = new(simple_file_pattern);
+
+FileInfo[] mass_files = y.GetBackupingItems("Январь", dirs[0]);
+
+foreach (FileInfo file in mass_files)
 {
-    Console.WriteLine(Drive.Name);
+    Console.WriteLine(file.FullName);
 }
+
+Console.WriteLine(y.Items_count);
+
+ProtocolTypes z = new(mass_files);
+//z.CalcProtocolTypes();
+
+//Console.WriteLine();
 
 
 namespace DrivesControl
@@ -109,15 +124,11 @@ namespace DrivesControl
 
 namespace BackupBlock
 {
-    abstract class BackupItem(string rgx_pattern)
-    {
-        DateOnly current_date;
-        public string item_type = "*.pdf"; 
-        public string Rgx_pattern {  get; set; } = rgx_pattern;         
-        //time_span ???
-        public abstract int Items_count { get; set; }
+    struct MonthValues
+    {   
+        public Dictionary<string, string> Table { get; set; } = table;
 
-        public Dictionary<string, string> monthes_table = new()
+        private static readonly Dictionary<string, string> table = new() 
         {
             ["Январь"] = "01",
             ["Февраль"] = "02",
@@ -133,26 +144,90 @@ namespace BackupBlock
             ["Декабрь"] = "12"
         };
 
-        public object GetBackupingItems(string month, string path)
-        {
-            //string date_file_pattern = string.Concat("\\d{2}\\.", month, "\\.", current_date.Year, "\\.", item_type, "$");   // в запросе !!! другой паттерн
-            //string full_pattern = string.Concat(Rgx_pattern, date_file_pattern);
+        public MonthValues() {}
+    }
+
+
+    class BackupItem(string rgx_pattern)
+    {
+        private static DateTime current_date = DateTime.Now;
+        private static string Year = current_date.Year.ToString();
+        
+        public string Item_type { get; set; } = "*.pdf"; 
+        private string Rgx_pattern { get; set; } = rgx_pattern;         
+        public int Items_count { get; set; }
+
+        private static MonthValues monthes = new();
+
+        public FileInfo[] GetBackupingItems(string month, string path)
+        {                        
+            string date_file_pattern = string.Concat("\\d{2}\\.", monthes.Table[month], "\\.", Year, "\\.", Item_type, "$");   
+            string full_pattern = string.Concat(Rgx_pattern, date_file_pattern);
+
+            Regex rgx = new(full_pattern, RegexOptions.IgnoreCase);
 
             DirectoryInfo dir = new(path);
-            var file_list = dir.GetFiles(item_type);
+            var file_list = dir.GetFiles(Item_type);
 
+            var query = from file in file_list
+                        where rgx.IsMatch(file.Name)
+                        orderby(file.Name)
+                        select file;
 
+            var new_files = query.ToArray();
+            Items_count = new_files.Length;
 
+            return new_files;     // status ?  or null files !!!
+        }         
+    }
 
+    
+    class ProtocolTypes(FileInfo[] files)
+    {
+        private List<string> Files
+        {
+            set
+            {
+                foreach (FileInfo file in files)
+                {
+                    Files.Add(file.Name);
+                }
+            }
+            get { return Files; }
+        }
+              
+        private static string[] protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   // ключи которые без "а" считать в Уссурийск
 
+        public Dictionary<string, int> type_sums = [];
+        public List<string> missing_protocols = [];
+
+        TypePattern rgx_number = static (x) => new($"^(?<number>\\d+)-{x}-", RegexOptions.IgnoreCase);
+
+        public void CalcProtocolTypes()
+        {
+            foreach (string i in protocol_types)
+            {
+                Regex rgx = rgx_number(i);
+
+                var query = from file_name in Files
+                            where rgx.IsMatch(file_name)
+                            select file_name;
+
+                //Console.WriteLine(query.ToArray());
+                
+            }
         }
 
-        //delegate string MonthPattern()
+        delegate Regex TypePattern(string protocol_type);
     }
 
 
 
+}
 
+
+namespace Tracing
+{
 
 
 }
