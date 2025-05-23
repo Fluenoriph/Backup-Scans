@@ -27,9 +27,14 @@ foreach (FileInfo file in mass_files)
 Console.WriteLine(y.Items_count);
 
 ProtocolTypes z = new(mass_files);
-//z.CalcProtocolTypes();
+z.CalcProtocolTypes();
 
-//Console.WriteLine();
+foreach (KeyValuePair<string, int> kvp in z.type_sums)
+{
+    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+}
+
+//Console.WriteLine(z.type_sums.ToString());
 
 
 namespace DrivesControl
@@ -183,41 +188,52 @@ namespace BackupBlock
 
     
     class ProtocolTypes(FileInfo[] files)
-    {
-        private List<string> Files
-        {
-            set
-            {
-                foreach (FileInfo file in files)
-                {
-                    Files.Add(file.Name);
-                }
-            }
-            get { return Files; }
-        }
-              
+    {               
         private static string[] protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   // ключи которые без "а" считать в Уссурийск
+        private static string number_capture = "^(?<number>\\d+)-";
 
         public Dictionary<string, int> type_sums = [];
         public List<string> missing_protocols = [];
-
-        TypePattern rgx_number = static (x) => new($"^(?<number>\\d+)-{x}-", RegexOptions.IgnoreCase);
+                
+        TypePattern rgx_number = static (x) => new($"{number_capture}{x}-", RegexOptions.IgnoreCase);   // return ????
 
         public void CalcProtocolTypes()
         {
             foreach (string i in protocol_types)
             {
-                Regex rgx = rgx_number(i);
+                var query = from file in files
+                            where rgx_number(i).IsMatch(file.Name)
+                            select file.Name;
 
-                var query = from file_name in Files
-                            where rgx.IsMatch(file_name)
-                            select file_name;
+                var new_files = query.ToArray();
 
-                //Console.WriteLine(query.ToArray());
-                
+                type_sums.Add(i, new_files.Length);
+
+                List<int> y = []; /////// lambda ????
+
+                foreach (var str in new_files)
+                {
+                    Match m = Regex.Match(str, number_capture);
+                    if (m.Success)
+                    {
+                        //int n = Convert.ToInt32(str);
+                        y.Add(Convert.ToInt32(m.Groups["number"].Value));
+                        
+                    }
+                    
+
+                }
+
+
+                foreach (var num in y)
+                {
+                    Console.WriteLine(num);
+                }
+
+
             }
         }
-
+                
         delegate Regex TypePattern(string protocol_type);
     }
 
