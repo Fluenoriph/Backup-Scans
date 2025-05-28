@@ -5,7 +5,7 @@ namespace BackupBlock
 {
     struct MonthValues
     {
-        public Dictionary<string, string> Table { get; set; } = table;
+        public Dictionary<string, string> Table { get; } = table;
 
         private static readonly Dictionary<string, string> table = new()
         {
@@ -58,11 +58,10 @@ namespace BackupBlock
 
     class ProtocolTypes(List<FileInfo> files)
     {
-        private static string[] protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   // ключи которые без "а" считать в Уссурийск
+        private static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   // ключи которые без "а" считать в Уссурийск
         private static string number_capture = "^(?<number>\\d+)-";
-
-        public Dictionary<string, int> Type_Sums { get; set; } = [];
-        public static List<string> Missing_Protocols { get; set; } = [];
+        public Dictionary<string, int> Type_Sums { get; } = [];
+        public static List<string> Missing_Protocols { get; } = []; 
 
         private TypePattern rgx_number = static (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
 
@@ -75,18 +74,12 @@ namespace BackupBlock
                 if (match.Success) { numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); }
             }
 
-            //int last_item = numbers.Max() + 1;
-            //Range numbers_range = numbers.Min()..last_item;
-
-            numbers.Sort();  // test !!
-            int range_count = (numbers[-1] - numbers[0]) + 1;
-
-            foreach (int item in Enumerable.Range(numbers[0], range_count))   // запрос !!
-            {
-                if (!numbers.Contains(item)) { Missing_Protocols.Add(item.ToString()); }
-            }
+            List<int> numbers_range = [];
+            for (int i = numbers.Min(); i <= numbers.Max(); i++) { numbers_range.Add(i); }
+                        
+            return [.. numbers_range.Except(numbers)];
         };
-
+           
         public void CalcProtocolTypes()
         {
             foreach (string type_i in protocol_types)
@@ -98,26 +91,32 @@ namespace BackupBlock
                 List<string> types = [.. type_block];
                 Type_Sums.Add(type_i, types.Count);
 
-                none_numbers(types);
-
-
-
-
-
-
-
+                if (types.Count > 2) { foreach (int x in none_numbers(types)) { Missing_Protocols.Add($"{x}-{type_i}"); } }          
             }
         }
 
         delegate Regex TypePattern(string protocol_type);
-        delegate void MissingProtocolNumbers(List<string> protocol_names);
-
-
+        delegate List<int> MissingProtocolNumbers(List<string> protocol_names);
     }
 
 
     namespace Logging
     {
+        interface ISettings
+        {
+            int Value { get; set; }  // list ???? to types !!
+            string Config_File { get; set; }
+
+            void Read();
+            void Write();
+
+
+            // xml path file свойство
+            // max value of protocol type
+            // methods read write
+        }
+
+
 
         // xml config 'month max number'
 

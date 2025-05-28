@@ -13,9 +13,9 @@ namespace DrivesControl
     }
 
 
-    interface IDriveSettings
+    interface IDriveConfig
     {
-        static string[] drives = ["source", "destination"];
+        static List<string> drives = ["source", "destination"];
 
         List<string> GetSettings();
         void SetupDrive(string drive_type, string path);
@@ -49,7 +49,7 @@ namespace DrivesControl
     }
 
 
-    class SettingsInWinRegistry(string key_path) : IDriveSettings
+    class SettingsInWinRegistry(string key_path) : IDriveConfig
     {
         private string Key { get; set; } = key_path;
 
@@ -57,22 +57,22 @@ namespace DrivesControl
         {
             List<string> dirs = [];
 
-            for (int i = 0; i < IDriveSettings.drives.Length; i++)
+            for (int i = 0; i < IDriveConfig.drives.Count; i++)
             {
-                string? dir_name = (string?)Registry.GetValue(Key, IDriveSettings.drives[i], "None");
+                string? dir_name = (string?)Registry.GetValue(Key, IDriveConfig.drives[i], "None");
 
                 if (dir_name == null)
                 {
                     Console.WriteLine("Reg Key-Path Not Found !!!\n");
-                    Console.WriteLine($"Setup Reg Key >>> Set Drive {IDriveSettings.drives[i]} Data !");
+                    Console.WriteLine($"Setup Reg Key >>> Set Drive {IDriveConfig.drives[i]} Data !");
                     string? data = Console.ReadLine();
-                    SetupDrive(IDriveSettings.drives[i], data);
+                    SetupDrive(IDriveConfig.drives[i], data);
                 }
                 else if (dir_name == "None")
                 {
-                    Console.WriteLine($"None Key !!!\nSetup Drive {IDriveSettings.drives[i]} Value >>>");
+                    Console.WriteLine($"None Key !!!\nSetup Drive {IDriveConfig.drives[i]} Value >>>");
                     string? data = Console.ReadLine();
-                    SetupDrive(IDriveSettings.drives[i], data);
+                    SetupDrive(IDriveConfig.drives[i], data);
                 }
                 else
                 {

@@ -22,7 +22,7 @@ foreach (FileInfo file in mass_files)
     Console.WriteLine(file.FullName);
 }
 
-Console.WriteLine(y.Items_count);
+//Console.WriteLine(y.Items_count);
 
 ProtocolTypes z = new(mass_files);
 z.CalcProtocolTypes();
@@ -32,8 +32,12 @@ foreach (KeyValuePair<string, int> kvp in z.Type_Sums)
     Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
 }
 
-//Console.WriteLine(z.type_sums.ToString());
+foreach (var str in ProtocolTypes.Missing_Protocols)
+{
+    Console.WriteLine( str );
+}
 
+Console.WriteLine(ProtocolTypes.Missing_Protocols.Count);
 
 
 
