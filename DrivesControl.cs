@@ -16,72 +16,66 @@ namespace DrivesControl
     interface IDriveConfig
     {
         static List<string> drives = ["source", "destination"];
+        static List<bool> status = new(2);
 
-        List<string> GetSettings();
-        void SetupDrive(string drive_type, string path);
+        void GetSettings();
+        void SetupDrive(string drive_type, string new_path);
     }
 
 
-    struct WorkPath
+    struct Drive
     {
-        private string name;
-        private PathState status;
-
+        private string path;
         public PathState Status { get; set; }
-        public string Name
+        public string Path
         {
-            set   // доступ ????
+            set   
             {
-                if (Directory.Exists(value))      // Проверить также диск !!!!
+                if (Directory.Exists(value))      
                 {
-                    name = value;
+                    path = value;
                     Status = PathState.READY_TO_WORK;
-                    Console.WriteLine("Dir set OK !");
                 }
-                else
-                {
-                    Status = PathState.DOES_NOT_EXIST;
-                    Console.WriteLine("Dir not exist !");
-                }
+                else { Status = PathState.DOES_NOT_EXIST; }
             }
-            get { return name; }
-        }
+
+            get { return Path; }
+        }        
     }
 
 
     class SettingsInWinRegistry(string key_path) : IDriveConfig
     {
-        private string Key { get; set; } = key_path;
+        private string Key { get; set; } = key_path; // not property ??
+        public bool Key_Status { get; set; } = true;
+        public List<string> Dirs { get; set; } = []; 
 
-        public List<string> GetSettings()
+        public void GetSettings()
         {
-            List<string> dirs = [];
-
             for (int i = 0; i < IDriveConfig.drives.Count; i++)
             {
                 string? dir_name = (string?)Registry.GetValue(Key, IDriveConfig.drives[i], "None");
 
-                if (dir_name == null)
-                {
-                    Console.WriteLine("Reg Key-Path Not Found !!!\n");
-                    Console.WriteLine($"Setup Reg Key >>> Set Drive {IDriveConfig.drives[i]} Data !");
-                    string? data = Console.ReadLine();
-                    SetupDrive(IDriveConfig.drives[i], data);
-                }
-                else if (dir_name == "None")
-                {
-                    Console.WriteLine($"None Key !!!\nSetup Drive {IDriveConfig.drives[i]} Value >>>");
-                    string? data = Console.ReadLine();
-                    SetupDrive(IDriveConfig.drives[i], data);
-                }
-                else
-                {
-                    dirs.Add(dir_name);
+                if (dir_name == null) { Key_Status = false; }
+                
+                else if (dir_name == "None") { IDriveConfig.status[i] = false; }
+                
+                else 
+                { 
+                    Dirs.Add(dir_name);
+                    IDriveConfig.status[i] = true;
                 }
             }
-            return dirs;
         }
 
-        public void SetupDrive(string drive_type, string path) { Registry.SetValue(Key, drive_type, path, RegistryValueKind.String); }
+        public void SetupRegKey(string reg_key)
+        {
+            Key = reg_key;
+            Key_Status = true;
+        }
+
+        public void SetupDrive(string drive_type, string new_path) { 
+            Registry.SetValue(Key, drive_type, new_path, RegistryValueKind.String);   // exceptions ????
+        }
     }
 }

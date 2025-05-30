@@ -6,9 +6,7 @@ namespace BackupBlock
 {
     readonly struct MonthValues
     {
-        public Dictionary<string, int> Table { get; }
-
-        private static readonly Dictionary<string, int> table = new()
+        public Dictionary<string, int> Table { get; } = new Dictionary<string, int> 
         {
             ["Январь"] = 1,
             ["Февраль"] = 2,
@@ -23,36 +21,47 @@ namespace BackupBlock
             ["Ноябрь"] = 11,
             ["Декабрь"] = 12
         };
-
-        public MonthValues() { Table = table; }
+                        
+        public MonthValues() { }
     }
 
 
-    class BackupItem(string path, string rgx_pattern)
+    struct RgxPattern(string name_pattern, string month)
     {
-        private static DateTime current_date = DateTime.Now;   // static if to year ??
-        private static string Year = current_date.Year.ToString();
-        private static MonthValues monthes = new();
-        public string Item_type { get; set; } = "*.pdf";
-        public int Items_count { get; set; }
-
-        public List<FileInfo> GetBackupingItems(string month)
+        private static readonly DateTime current_date = DateTime.Now;
+        private static readonly MonthValues monthes = new();
+        public string Item_type { get; } = "*.pdf";
+        
+        public readonly Regex Full_Pattern()
         {
-            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{monthes.Table[month]}", "\\.", Year, "\\.", Item_type, "$"); 
-            string full_pattern = string.Concat(rgx_pattern, date_file_pattern);
-            Regex rgx = new(full_pattern, RegexOptions.IgnoreCase);
+            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{monthes.Table[month]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
+            string full_pattern = string.Concat(name_pattern, date_file_pattern);
+            
+            return new(full_pattern, RegexOptions.IgnoreCase);
+        }   
+    }
 
+
+    class BackupItem(string path, RgxPattern rgx_pattern)
+    {
+        public int? Items_count { get; set; }  
+        public List<FileInfo>? Result_Block { get; set; }
+
+        public void GetBackupingItems()
+        {
             DirectoryInfo dir = new(path);
-            FileInfo[] file_list = dir.GetFiles(Item_type);       // null compatible vars (?) ???
+            FileInfo[]? file_list = dir.GetFiles(rgx_pattern.Item_type);       
 
-            IEnumerable<FileInfo> backup_block = from file in file_list
-                                                 where rgx.IsMatch(file.Name)
-                                                 select file;
+            if (file_list is not null)
+            {
+                IEnumerable<FileInfo> backup_block = from file in file_list
+                                                     where rgx_pattern.Full_Pattern().IsMatch(file.Name)
+                                                     select file;
 
-            List<FileInfo> result_block = [.. backup_block];
-            Items_count = result_block.Count;
-
-            return result_block;     // status ?  or null files !!!
+                Result_Block = [.. backup_block];
+                Items_count = Result_Block.Count;
+            }
+            else { return; }                     
         }
     }
 
@@ -63,7 +72,7 @@ namespace BackupBlock
         private static string number_capture = "^(?<number>\\d+)-";
         private TypePattern rgx_number = static (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
 
-        public Dictionary<string, int> Type_Sums { get; } = [];
+        public Dictionary<string, int> Type_Sums { get; }
          
         public void Calculate()
         {
@@ -90,7 +99,7 @@ namespace BackupBlock
 
     class MissingNumbers
     {
-        public static List<string> Missing_Protocols { get; } = [];
+        public static List<string>? Missing_Protocols { get; }
 
         public Numbers get_type_numbers = static (x, y) =>
         {
@@ -103,7 +112,7 @@ namespace BackupBlock
             return numbers;
         };
 
-        public List<string> Calculate(List<string> protocol_type_names, string rgx_capture_pattern) // lambda
+        /*public List<string> Calculate(List<string> protocol_type_names, string rgx_capture_pattern) // lambda
         {
             
 
@@ -120,7 +129,7 @@ namespace BackupBlock
 
 
             return [.. numbers_range.Except(numbers)];
-        }
+        }*/
 
         public delegate List<int> Numbers(List<string> protocol_type_names, string rgx_capture_pattern);
     }
@@ -139,7 +148,7 @@ namespace BackupBlock
         {
             private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
             private static string Config_File { get; } = "config.xml";
-            public List<int> Values { get; private set; } = [];
+            public List<int>? Values { get; private set; }
 
             private XmlAccess get_config = (x) =>
             {
