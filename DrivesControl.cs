@@ -13,12 +13,21 @@ namespace DrivesControl
     }
 
 
+    enum SettingsStatus
+    {
+        ROOT_DOES_NOT_EXIST,
+        ROOT_OK,
+        DRIVE_ERROR,
+        DRIVE_RECEIVED
+    }
+
+
     interface IDriveConfig
     {
-        static List<string> drives = ["source", "destination"];
-        static List<bool> status = new(2);
+        static List<string> drives = ["SOURCE", "DESTINATION"];
+        static List<SettingsStatus> drive_status = new(2);
 
-        void GetSettings();
+        void CheckAndGetDrivesSettings();
         void SetupDrive(string drive_type, string new_path);
     }
 
@@ -44,26 +53,28 @@ namespace DrivesControl
     }
 
 
-    class SettingsInWinRegistry(string key_path) : IDriveConfig
+    class SettingsInWinRegistry(string reg_key) : IDriveConfig
     {
-        private string Key { get; set; } = key_path; // not property ??
-        public bool Key_Status { get; set; } = true;
-        public List<string> Dirs { get; set; } = []; 
+        private string Key { get; set; } = reg_key; // not property ??
+        public SettingsStatus Key_Status { get; set; } = SettingsStatus.ROOT_OK;
+        public List<string> Drives { get; set; } = IDriveConfig.drives;
+        public List<SettingsStatus> Drive_Status { get; set; } = IDriveConfig.drive_status;
+        public List<string> Dirs { get; set; } = new(2); 
 
-        public void GetSettings()
+        public void CheckAndGetDrivesSettings()
         {
-            for (int i = 0; i < IDriveConfig.drives.Count; i++)
+            for (int i = 0; i < Drives.Count; i++)
             {
-                string? dir_name = (string?)Registry.GetValue(Key, IDriveConfig.drives[i], "None");
+                string? dir_name = (string?)Registry.GetValue(Key, Drives[i], "None");
 
-                if (dir_name == null) { Key_Status = false; }
+                if (dir_name == null) { Key_Status = SettingsStatus.ROOT_DOES_NOT_EXIST; }
                 
-                else if (dir_name == "None") { IDriveConfig.status[i] = false; }
+                else if (dir_name == "None") { Drive_Status.Insert(i, SettingsStatus.DRIVE_ERROR); }
                 
                 else 
                 { 
                     Dirs.Add(dir_name);
-                    IDriveConfig.status[i] = true;
+                    Drive_Status.Insert(i, SettingsStatus.DRIVE_RECEIVED);
                 }
             }
         }
@@ -71,7 +82,7 @@ namespace DrivesControl
         public void SetupRegKey(string reg_key)
         {
             Key = reg_key;
-            Key_Status = true;
+            Key_Status = SettingsStatus.ROOT_OK;
         }
 
         public void SetupDrive(string drive_type, string new_path) { 
