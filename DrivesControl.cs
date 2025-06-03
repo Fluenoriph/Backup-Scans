@@ -53,19 +53,19 @@ namespace DrivesControl
     }
 
 
-    class SettingsInWinRegistry(string reg_key) : IDriveConfig
+    class SettingsInWinRegistry : IDriveConfig
     {
-        private string Key { get; set; } = reg_key; // not property ??
+        public string? Key { get; set; } // not property ??
         public SettingsStatus Key_Status { get; set; } = SettingsStatus.ROOT_OK;
-        public List<string> Drives { get; set; } = IDriveConfig.drives;
+        public List<string> Drives_names { get; set; } = IDriveConfig.drives;
         public List<SettingsStatus> Drive_Status { get; set; } = IDriveConfig.drive_status;
         public List<string> Dirs { get; set; } = new(2); 
 
         public void CheckAndGetDrivesSettings()
         {
-            for (int i = 0; i < Drives.Count; i++)
+            for (int i = 0; i < Drives_names.Count; i++)
             {
-                string? dir_name = (string?)Registry.GetValue(Key, Drives[i], "None");
+                string? dir_name = (string?)Registry.GetValue(Key, Drives_names[i], "None");
 
                 if (dir_name == null) { Key_Status = SettingsStatus.ROOT_DOES_NOT_EXIST; }
                 
@@ -79,11 +79,11 @@ namespace DrivesControl
             }
         }
 
-        public void SetupRegKey(string reg_key)
+        /*public void SetupRegKey(string reg_key)
         {
             Key = reg_key;
             Key_Status = SettingsStatus.ROOT_OK;
-        }
+        }*/
 
         public void SetupDrive(string drive_type, string new_path) { 
             Registry.SetValue(Key, drive_type, new_path, RegistryValueKind.String);   // exceptions ????

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
 	<internal_settings>
-		<reg_key_path> value="HKEY_CURRENT_USER\\Software\\Ivan_Bogdanov\\Backup_Scans"</reg_key_path>
+		<reg_key_path>HKEY_CURRENT_USER\Software\Ivan_Bogdanov\Backup_Scans</reg_key_path>
 	</internal_settings>
 		
 	<max_numbers>

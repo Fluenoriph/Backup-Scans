@@ -3,23 +3,23 @@
 
 namespace Logging
 {
-    struct ConfigFile
+    class ConfigFile
     {
-        public string Xml_file { get; } = "config.xml";
+        private readonly string xml_settings_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\config.xml";   // относительный ....
 
-        public ConfigFile () { }
+        public XDocument GetDoc() { return XDocument.Load(xml_settings_file); }
     }
 
 
     class MaxNumbersPerMonth(int month_value)
     {
         private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
-        private static ConfigFile ConfigFile { get; }
+        private static ConfigFile Config_File { get; }
         public List<int>? Values { get; private set; }
 
         private XmlAccess get_config = (x) =>
         {
-            XDocument xdoc = XDocument.Load(ConfigFile.Xml_file);
+            XDocument xdoc = Config_File.GetDoc();
 
             var max_numbers = xdoc.Element("configuration")?
                 .Elements("max_numbers")
@@ -59,20 +59,26 @@ namespace Logging
     }
 
 
-    class RegistryKey(string reg_key)
+    class RegKeyInXML
     {
-        public void Read()
+        private static ConfigFile Config_File = new();
+
+        public static string? GetPath()
         {
-            XDocument xdoc = XDocument.Load(reg_key);
-
-            var max_numbers = xdoc.Element("configuration")?
-                .Element("internal_settings")
-                .FirstAttribute(p => p.Attribute("month")?.Value == x);
-
-            return max_numbers;
+            XDocument xdoc = Config_File.GetDoc();
+            XElement? config = xdoc.Element("configuration");
+            XElement? x = config?.Element("internal_settings");
+            string? key = x?.Element("reg_key_path")?.Value;
+            Console.WriteLine(key);
+            
+            if ((config != null) & (x != null) & (key != null)) { return key; }
+            else { return null; } 
         }
 
-
+        public static void SetPath ()
+        {
+            ///////
+        }
     }
 
 }

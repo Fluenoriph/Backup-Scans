@@ -1,17 +1,36 @@
 ﻿using BackupBlock;
 using DrivesControl;
+using Logging;
 using Tracing;
 
 
-//const string SETTINGS_FULL_KEY = "HKEY_CURRENT_USER\\Software\\Ivan_Bogdanov\\Backup_Scans";
+BackupProcess backuping = new();
+backuping.PrepareToBackup();
 
-//const string SOURCE_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\сканы";
-//const string DESTINATION_DIR = "C:\\Users\\Asus machine\\Desktop\\Files\\result_test";
 
-BackupProcess x = new();
 
-x.PrepareToBackup();
 
+
+
+
+
+
+
+class IO_Console
+{
+    public Dictionary<string, string> Info { get; } = new Dictionary<string, string>
+    {
+        ["App_start_info"] = "\nNebula Test 2025\n",
+        ["Enter"] = "Введите значение:",
+        ["Error"] = "Ошибка!",
+        ["OK"] = "Успешно!"
+        //[""]
+    };
+
+    public static void Out_info(string info) { Console.WriteLine(info); }
+
+    public static string? Enter_value() { return Console.ReadLine(); }            
+}
 
 
 
