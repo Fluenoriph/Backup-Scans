@@ -6,7 +6,7 @@ namespace BackupBlock
 {
     readonly struct MonthValues
     {
-        public Dictionary<string, int> Table { get; } = new Dictionary<string, int>
+        public static Dictionary<string, int> Table { get; } = new Dictionary<string, int>
         {
             ["Январь"] = 1,
             ["Февраль"] = 2,
@@ -25,16 +25,15 @@ namespace BackupBlock
         public MonthValues() { }
     }
 
-
-    struct RgxPattern(string name_pattern, string month)
+        
+    struct RgxPattern(string name_pattern)
     {
         private static readonly DateTime current_date = DateTime.Now;
-        private static readonly MonthValues monthes = new();
         public string Item_type { get; } = "*.pdf";
 
         public readonly Regex Full_Pattern()
         {
-            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{monthes.Table[month]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
+            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[CurrentMonth.value]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
             string full_pattern = string.Concat(name_pattern, date_file_pattern);
 
             return new(full_pattern, RegexOptions.IgnoreCase);
@@ -42,26 +41,44 @@ namespace BackupBlock
     }
 
 
-    class BackupItem(string path, RgxPattern rgx_pattern)
+    enum FileBlockStatus
     {
-        public int? Items_count { get; set; }
-        public List<FileInfo>? Result_Block { get; set; } // no ??
+        CURRENT_TYPE_NOT_EXIST,
+        NONE_FILES_IN_CURRENT_PERIOD
+    }
+
+
+    class BackupItem(RgxPattern rgx_pattern, string path)
+    {
+        public int Items_count { get; set; } = 0;
+        public List<FileInfo> Result_Block { get; set; } = [];
+        public FileBlockStatus Status { get; set; }  // null or ok ???
+
+        private FileInfo[]? GetTypeFiles()
+        {
+            DirectoryInfo dir = new(path);
+            return dir.GetFiles(rgx_pattern.Item_type);
+        }
 
         public void GetBackupingItems()
         {
-            DirectoryInfo dir = new(path);
-            FileInfo[]? file_list = dir.GetFiles(rgx_pattern.Item_type);
+            FileInfo[]? file_list = GetTypeFiles();
 
             if (file_list is not null)
             {
-                IEnumerable<FileInfo> backup_block = from file in file_list
+                IEnumerable<FileInfo>? backup_block = from file in file_list
                                                      where rgx_pattern.Full_Pattern().IsMatch(file.Name)
                                                      select file;
 
-                Result_Block = [.. backup_block];
-                Items_count = Result_Block.Count;   // return list or null !
+                if (backup_block is not null)
+                {
+                    Result_Block = [.. backup_block];
+                    Items_count = Result_Block.Count;
+                }
+                else { Status = FileBlockStatus.NONE_FILES_IN_CURRENT_PERIOD; }
+                 
             }
-            else { return; }
+            else { Status = FileBlockStatus.CURRENT_TYPE_NOT_EXIST; }
         }
     }
 
@@ -76,20 +93,27 @@ namespace BackupBlock
 
         public void Calculate()
         {
-            foreach (string type_i in protocol_types)
+            foreach (string i in protocol_types)
             {
-                IEnumerable<string> type_block = from file in files
-                                                 where rgx_number(type_i).IsMatch(file.Name)
+                IEnumerable<string>? type_block = from file in files
+                                                 where rgx_number(i).IsMatch(file.Name)
                                                  select file.Name;
 
-                List<string> types = [.. type_block];
-                Type_Sums.Add(type_i, types.Count);
+                if (type_block is not null)
+                {
+                    List<string> types = [.. type_block];
+                    Type_Sums.Add(i, types.Count);
+
+
+                }
+                else { continue; }
+                
 
 
 
 
 
-                //if (types.Count > 2) { foreach (int x in none_numbers(types)) { Missing_Protocols.Add($"{x}-{type_i}"); } }          
+                //if (types.Count > 2) { foreach (int x in none_numbers(types)) { Missing_Protocols.Add($"{x}-{i}"); } }          
             }
         }
 

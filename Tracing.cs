@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using BackupBlock;
 using DrivesControl;
 using Logging;
 
@@ -7,16 +8,15 @@ namespace Tracing
 {
     struct RgxMaskConfiguration
     {
-        public const string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
-        public const string eias_file_pattern = "^\\d{5}-\\d{2}-\\d{2}-";
+        public static string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
+        public static string eias_file_pattern = "^\\d{5}-\\d{2}-\\d{2}-";
     }
     
 
     class BackupProcess
     {
-        //RegKeyInXML RegKey = new();
-        SettingsInWinRegistry Reg_settings = new();
-        List<Drive> Drives = new(2);
+        private readonly SettingsInWinRegistry Reg_settings = new();
+        readonly List<Drive> Drives = new(2);
                 
         public void PrepareToBackup()
         {
@@ -62,7 +62,7 @@ namespace Tracing
 
                     else 
                     {
-                        for (int i = 0; i < Reg_settings.Dirs.Count; i++) // recurse func
+                        for (int i = 0; i < Drives.Count; i++)
                         {
                             var d = Drives[i];
                             d.Path = Reg_settings.Dirs[i];
@@ -76,6 +76,7 @@ namespace Tracing
                                 continue;
                             }
                         }
+                        ready_status = true;
                     }
                 }
                 while (ready_status == false);
@@ -85,16 +86,22 @@ namespace Tracing
                 IO_Console.Out_info("\nОшибка чтения файла настроек!\n");
                 return;
             }
-
         }
 
         
+
+
                 
     }
 
 
     class BlockAnalysis
     {
+        private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
+        private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+
+        // dict ussur and ars counts
+
 
 
     }

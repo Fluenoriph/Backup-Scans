@@ -15,7 +15,7 @@ namespace DrivesControl
 
     enum SettingsStatus
     {
-        ROOT_DOES_NOT_EXIST,
+        ROOT_DOES_NOT_EXIST,  // reg key error
         ROOT_OK,
         DRIVE_ERROR,
         DRIVE_RECEIVED

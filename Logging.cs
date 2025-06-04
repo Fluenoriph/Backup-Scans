@@ -5,42 +5,77 @@ namespace Logging
 {
     class ConfigFile
     {
-        private readonly string xml_settings_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\config.xml";   // относительный ....
+        private static string xml_settings_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\config.xml";   // относительный ....
 
-        public XDocument GetDoc() { return XDocument.Load(xml_settings_file); }
+        public static XDocument GetDoc() { return XDocument.Load(xml_settings_file); }
     }
 
 
     class MaxNumbersPerMonth(int month_value)
     {
         private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
-        private static ConfigFile Config_File { get; }
-        public List<int>? Values { get; private set; }
+        public List<int> Values { get; private set; } = [];
 
-        private XmlAccess get_config = (x) =>
+        private static XElement? GetNumbersTree()
         {
-            XDocument xdoc = Config_File.GetDoc();
+            XDocument xdoc = ConfigFile.GetDoc();
 
-            var max_numbers = xdoc.Element("configuration")?
-                .Elements("max_numbers")
-                .FirstOrDefault(p => p.Attribute("month")?.Value == x);
+            XElement? config = xdoc.Element("configuration");
+            XElement? numbers = config?.Element("max_numbers");
 
-            return max_numbers;
-        };
+            if ((config is not null) & (numbers is not null)) 
+            {
+                Console.WriteLine("Tree OK");
+                return numbers; 
+            }
+            else 
+            {
+                Console.WriteLine("Tree Bad");
+                return null; 
+            }
+        }
 
-        void Read()
+        private void GetMaxNumbers(XElement month)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                XElement? number = month.Element(items[i]);
+                Values.Add(Convert.ToInt32(number?.Value));
+            }
+        }
+
+        public void Read()
         {
             if (month_value is not 1)
             {
-                var xvalue = get_config($"{month_value + 1}");
-                foreach (var item in items) { Values.Add(Convert.ToInt32(xvalue?.Attribute(item)?.Value)); }
+                XElement? xnumbers = GetNumbersTree();
+
+                if (xnumbers is not null)
+                {
+                    foreach (XElement month in xnumbers.Elements("month"))
+                    {
+                        XAttribute? month_number = month.Attribute("value");
+
+                        if (month_number?.Value == $"{month_value - 1}")
+                        {
+                            Console.WriteLine($"{month_number?.Value}");
+                            GetMaxNumbers(month);
+                        }
+                    }
+                }
+                else { Console.WriteLine("\nxml null\n"); }
+
             }
-            else { return; }
+            else 
+            {
+                Console.WriteLine("\nValue is January\n");
+                return; 
+            }
         }
 
-        void Write(List<int> max_numbers)
+        public void Write(List<int> max_numbers)
         {
-            var xvalue = get_config(month_value.ToString());
+            var xvalue = GetNumbersTree();
 
             for (int i = 0; i < items.Count; i++)
             {
@@ -53,19 +88,17 @@ namespace Logging
                 }
                 else { continue; }
             }
-        }
-
-        delegate XElement? XmlAccess(string month_value);
+        }        
     }
 
 
     class RegKeyInXML
     {
-        private static ConfigFile Config_File = new();
+        //private static ConfigFile Config_File = new();
 
         public static string? GetPath()
         {
-            XDocument xdoc = Config_File.GetDoc();
+            XDocument xdoc = ConfigFile.GetDoc();
             XElement? config = xdoc.Element("configuration");
             XElement? x = config?.Element("internal_settings");
             string? key = x?.Element("reg_key_path")?.Value;

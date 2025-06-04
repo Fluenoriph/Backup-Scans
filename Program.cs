@@ -4,9 +4,22 @@ using Logging;
 using Tracing;
 
 
+const string line = "- - - - - - - - - - - - - - -";
+
+IO_Console.Out_info($"{line}\n* Nebula 2.1 * / Test 2025\n{line}");
 BackupProcess backuping = new();
 backuping.PrepareToBackup();
 
+//MaxNumbersPerMonth x = new(CurrentMonth.value);
+
+//x.Read();
+//var z = x.GetNumbersTree("1");
+
+
+foreach (var y in x.Values)
+{
+    Console.WriteLine(y);
+}
 
 
 
@@ -14,21 +27,21 @@ backuping.PrepareToBackup();
 
 
 
+
+
+
+
+
+
+struct CurrentMonth
+{
+    public static readonly string value = "Февраль";
+}
 
 
 class IO_Console
-{
-    public Dictionary<string, string> Info { get; } = new Dictionary<string, string>
-    {
-        ["App_start_info"] = "\nNebula Test 2025\n",
-        ["Enter"] = "Введите значение:",
-        ["Error"] = "Ошибка!",
-        ["OK"] = "Успешно!"
-        //[""]
-    };
-
+{ 
     public static void Out_info(string info) { Console.WriteLine(info); }
-
     public static string? Enter_value() { return Console.ReadLine(); }            
 }
 

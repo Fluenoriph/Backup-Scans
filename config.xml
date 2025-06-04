@@ -3,14 +3,13 @@
 	<internal_settings>
 		<reg_key_path>HKEY_CURRENT_USER\Software\Ivan_Bogdanov\Backup_Scans</reg_key_path>
 	</internal_settings>
-		
 	<max_numbers>
 		<month value="1">
-			<F>0</F>
-			<FA>0</FA>
-			<R>0</R>
-			<RA>0</RA>
-			<M>0</M>
+			<F>25</F>
+			<FA>45</FA>
+			<R>14</R>
+			<RA>47</RA>
+			<M>4</M>
 			<MA>0</MA>
 		</month>
 		<month value="2">
