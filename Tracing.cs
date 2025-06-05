@@ -17,7 +17,10 @@ namespace Tracing
     {
         private readonly SettingsInWinRegistry Reg_settings = new();
         readonly List<Drive> Drives = new(2);
-                
+
+        private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
+        private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+
         public void PrepareToBackup()
         {
             Reg_settings.Key = RegKeyInXML.GetPath();
@@ -37,7 +40,7 @@ namespace Tracing
                         IO_Console.Out_info($"\n{Reg_settings.Key} - ключ реестра не существует!\nВведите верный путь:");
                         string? s = IO_Console.Enter_value();
                         //RegKeyInXML.SetPath();
-                        continue;
+                        //continue;
                     }
 
                     else if (Reg_settings.Drive_Status[0] == SettingsStatus.DRIVE_ERROR)
@@ -47,7 +50,7 @@ namespace Tracing
                         IO_Console.Out_info($"\nОшибка чтения настроек исходного диска!\nНастройте путь:");
                         string? s = IO_Console.Enter_value();
                         Reg_settings.SetupDrive(Reg_settings.Drives_names[0], s);
-                        continue;
+                        //continue;
                     }
 
                     else if (Reg_settings.Drive_Status[1] == SettingsStatus.DRIVE_ERROR)
@@ -57,25 +60,27 @@ namespace Tracing
                         IO_Console.Out_info($"\nОшибка чтения настроек резервного диска!\nНастройте путь:");
                         string? s = IO_Console.Enter_value();
                         Reg_settings.SetupDrive(Reg_settings.Drives_names[1], s);
-                        continue;
+                        //continue;
                     }
 
                     else 
                     {
-                        for (int i = 0; i < Drives.Count; i++)
+                        for (int i = 0; i < Reg_settings.Drives_names.Count; i++)
                         {
-                            var d = Drives[i];
-                            d.Path = Reg_settings.Dirs[i];
-
-                            if (d.Status == PathState.DOES_NOT_EXIST) 
-                            { 
-                                ready_status = false;
+                            Drive d = new()
+                            {
+                                Path = Reg_settings.Dirs[i]
+                            };
+                            Drives.Insert(i, d);
+                                                       
+                            if (Drives[i].Status == PathState.DOES_NOT_EXIST)  // Test !!
+                            {
                                 IO_Console.Out_info($"\nДиректория диска:{Reg_settings.Drives_names[i]} не существует! Настройте путь:");
                                 string? s = IO_Console.Enter_value();
                                 Reg_settings.SetupDrive(Reg_settings.Drives_names[i], s);
-                                continue;
                             }
                         }
+
                         ready_status = true;
                     }
                 }
@@ -88,7 +93,22 @@ namespace Tracing
             }
         }
 
-        
+        //public void 
+
+        public void Backup()
+        {
+            BackupItem simple_block = new(SimpleFileRgx, Drives[0].Path);
+            simple_block.GetBackupingItems();
+
+            ProtocolTypes protocols = new(simple_block.Result_Block);
+            protocols.Calc();
+
+            foreach (int i in protocols.Type_Sums)
+            {
+                Console.WriteLine(i);
+            }
+
+        }
 
 
                 
@@ -97,10 +117,13 @@ namespace Tracing
 
     class BlockAnalysis
     {
-        private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
-        private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+        
+        
+        public Dictionary<string, int> All_Sums_of_Protocols { get; } = [];
 
-        // dict ussur and ars counts
+        
+
+
 
 
 

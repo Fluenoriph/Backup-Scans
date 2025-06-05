@@ -33,7 +33,7 @@ namespace BackupBlock
 
         public readonly Regex Full_Pattern()
         {
-            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[CurrentMonth.value]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
+            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[CurrentMonth.Value]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
             string full_pattern = string.Concat(name_pattern, date_file_pattern);
 
             return new(full_pattern, RegexOptions.IgnoreCase);
@@ -85,37 +85,51 @@ namespace BackupBlock
 
     class ProtocolTypes(List<FileInfo> files)
     {
-        private static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   // ключи которые без "а" считать в Уссурийск
-        private static string number_capture = "^(?<number>\\d+)-";
-        private TypePattern rgx_number = static (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
+        private static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   
+        private static readonly string number_capture = "^(?<number>\\d+)-";
+        private readonly TypePattern rgx_number = (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
+        public List<int> Type_Sums { get; } = [];
+        public List<string> Missing_Protocols { get; } = [];
 
-        public Dictionary<string, int> Type_Sums { get; } = [];
-
-        public void Calculate()
+        public void Calc() // name ????
         {
-            foreach (string i in protocol_types)
+            for (int i = 0; i < protocol_types.Count; i++)
             {
                 IEnumerable<string>? type_block = from file in files
-                                                 where rgx_number(i).IsMatch(file.Name)
+                                                 where rgx_number(protocol_types[i]).IsMatch(file.Name)
                                                  select file.Name;
+                                
+                List<string> types = [.. type_block]; // null test '0' !!
+                Type_Sums.Add(types.Count);
 
-                if (type_block is not null)
-                {
-                    List<string> types = [.. type_block];
-                    Type_Sums.Add(i, types.Count);
-
-
-                }
-                else { continue; }
                 
-
-
-
-
-
-                //if (types.Count > 2) { foreach (int x in none_numbers(types)) { Missing_Protocols.Add($"{x}-{i}"); } }          
+                         
             }
         }
+
+        private static List<int>? GetTypeNumbers(List<string> protocol_type_names, string rgx_capture_pattern)
+        {
+            if (protocol_type_names.Count > 2)
+            {
+                List<int> numbers = [];
+                foreach (string s in protocol_type_names)
+                {
+                    Match match = Regex.Match(s, rgx_capture_pattern);
+                    if (match.Success) { numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); }
+                }
+                return numbers;
+            }
+
+            else { return null; } 
+        }
+
+        private void CalcMissingNumbers(List<int> numbers)
+        {
+
+
+        }
+
+        private 
 
         delegate Regex TypePattern(string protocol_type);
     }
@@ -123,18 +137,9 @@ namespace BackupBlock
 
     class MissingNumbers
     {
-        public static List<string>? Missing_Protocols { get; }
+        
 
-        public Numbers get_type_numbers = static (x, y) =>
-        {
-            List<int> numbers = [];
-            foreach (string s in x)
-            {
-                Match match = Regex.Match(s, y);
-                if (match.Success) { numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); }
-            }
-            return numbers;
-        };
+        
 
         /*public List<string> Calculate(List<string> protocol_type_names, string rgx_capture_pattern) // lambda
         {
@@ -155,6 +160,6 @@ namespace BackupBlock
             return [.. numbers_range.Except(numbers)];
         }*/
 
-        public delegate List<int> Numbers(List<string> protocol_type_names, string rgx_capture_pattern);
+        
     }
 }

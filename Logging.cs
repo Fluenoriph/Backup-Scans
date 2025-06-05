@@ -63,7 +63,7 @@ namespace Logging
                         }
                     }
                 }
-                else { Console.WriteLine("\nxml null\n"); }
+                else { Console.WriteLine("\nxml null\n"); }   // error type
 
             }
             else 

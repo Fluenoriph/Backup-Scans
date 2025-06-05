@@ -7,19 +7,24 @@ using Tracing;
 const string line = "- - - - - - - - - - - - - - -";
 
 IO_Console.Out_info($"{line}\n* Nebula 2.1 * / Test 2025\n{line}");
+
 BackupProcess backuping = new();
 backuping.PrepareToBackup();
 
-//MaxNumbersPerMonth x = new(CurrentMonth.value);
+IO_Console.Out_info("\nВыберите месяц !");
+CurrentMonth.Value = IO_Console.Enter_value();
 
-//x.Read();
-//var z = x.GetNumbersTree("1");
+backuping.Backup();
 
+
+/*MaxNumbersPerMonth x = new(CurrentMonth.value);
+x.Read();
+var z = x.GetNumbersTree("1");
 
 foreach (var y in x.Values)
 {
     Console.WriteLine(y);
-}
+}*/
 
 
 
@@ -35,7 +40,7 @@ foreach (var y in x.Values)
 
 struct CurrentMonth
 {
-    public static readonly string value = "Февраль";
+    public static string Value { get; set; } = "";
 }
 
 

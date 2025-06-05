@@ -38,9 +38,9 @@ namespace DrivesControl
         public PathState Status { get; set; }
         public string Path
         {
-            set   
+            set
             {
-                if (Directory.Exists(value))      
+                if (Directory.Exists(value))
                 {
                     path = value;
                     Status = PathState.READY_TO_WORK;
@@ -48,8 +48,8 @@ namespace DrivesControl
                 else { Status = PathState.DOES_NOT_EXIST; }
             }
 
-            get { return Path; }
-        }        
+            readonly get => path;
+        }
     }
 
 
