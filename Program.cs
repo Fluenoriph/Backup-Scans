@@ -14,7 +14,11 @@ backuping.PrepareToBackup();
 IO_Console.Out_info("\nВыберите месяц !");
 CurrentMonth.Value = IO_Console.Enter_value();
 
-backuping.Backup();
+//backuping.Backup();
+
+MaxNumbersPerMonth y = new(MonthValues.Table[CurrentMonth.Value]);
+y.Read();
+
 
 
 /*MaxNumbersPerMonth x = new(CurrentMonth.value);

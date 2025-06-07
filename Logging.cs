@@ -3,24 +3,30 @@
 
 namespace Logging
 {
-    class ConfigFile
+    struct ConfigFile
     {
         private static string xml_settings_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\config.xml";   // относительный ....
+        public enum ErrorCode
+        {
+            XML_CONFIG_FILE_ERROR,
+            VALUE_IS_JANUARY__NO_UPPER_NUMBERS
+        }
 
-        public static XDocument GetDoc() { return XDocument.Load(xml_settings_file); }
+        public static XDocument GetDocument() { return XDocument.Load(xml_settings_file); }
     }
 
 
     class MaxNumbersPerMonth(int month_value)
     {
         private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
+        public ConfigFile.ErrorCode ErrorStatus { get; set; }
         public List<int> Values { get; private set; } = [];
 
         private static XElement? GetNumbersTree()
         {
-            XDocument xdoc = ConfigFile.GetDoc();
+            XDocument xdoc = ConfigFile.GetDocument();
 
-            XElement? config = xdoc.Element("configuration");
+            XElement? config = xdoc.Element("configuration");     // bad tag name - exception !
             XElement? numbers = config?.Element("max_numbers");
 
             if ((config is not null) & (numbers is not null)) 
@@ -30,7 +36,7 @@ namespace Logging
             }
             else 
             {
-                Console.WriteLine("Tree Bad");
+                Console.WriteLine("Tree Bad");    // xml error
                 return null; 
             }
         }
@@ -63,14 +69,9 @@ namespace Logging
                         }
                     }
                 }
-                else { Console.WriteLine("\nxml null\n"); }   // error type
-
+                else { ErrorStatus = ConfigFile.ErrorCode.XML_CONFIG_FILE_ERROR; }   // xml error
             }
-            else 
-            {
-                Console.WriteLine("\nValue is January\n");
-                return; 
-            }
+            else { ErrorStatus = ConfigFile.ErrorCode.VALUE_IS_JANUARY__NO_UPPER_NUMBERS; }
         }
 
         public void Write(List<int> max_numbers)
@@ -94,17 +95,16 @@ namespace Logging
 
     class RegKeyInXML
     {
-        //private static ConfigFile Config_File = new();
-
         public static string? GetPath()
         {
-            XDocument xdoc = ConfigFile.GetDoc();
-            XElement? config = xdoc.Element("configuration");
-            XElement? x = config?.Element("internal_settings");
-            string? key = x?.Element("reg_key_path")?.Value;
+            XDocument xdoc = ConfigFile.GetDocument();
+            XElement? config = xdoc.Element("configuration");    // xml error
+            XElement? x = config?.Element("internal_settings");   // xml error
+            string? key = x?.Element("reg_key_path")?.Value;     //  xml error
             Console.WriteLine(key);
             
             if ((config != null) & (x != null) & (key != null)) { return key; }
+            
             else { return null; } 
         }
 
