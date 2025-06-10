@@ -91,7 +91,7 @@ namespace BackupBlock
         public List<int> Type_Sums { get; } = [];
         public List<string> Missing_Protocols { get; } = [];
 
-        public void Calc() // name ????
+        public void Calc() // directory ????
         {
             for (int i = 0; i < protocol_types.Count; i++)
             {

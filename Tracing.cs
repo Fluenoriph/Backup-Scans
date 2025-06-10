@@ -11,111 +11,35 @@ namespace Tracing
         public static string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
         public static string eias_file_pattern = "^\\d{5}-\\d{2}-\\d{2}-";
     }
-    
 
-    class BackupProcess
+
+
+    //private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
+    //private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+
+
+
+    /*public void Backup()
     {
-        private readonly SettingsInWinRegistry Reg_settings = new();
-        readonly List<Drive> Drives = new(2);
+        BackupItem simple_block = new(SimpleFileRgx, Drives[0].Directory);
+        simple_block.GetBackupingItems();
 
-        private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
-        private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+        ProtocolTypes protocols = new(simple_block.Result_Block);
+        protocols.Calc();
 
-        public void PrepareToBackup()
+        foreach (int i in protocols.Type_Sums)
         {
-            Reg_settings.Key = RegKeyInXML.GetPath();
-
-            if (Reg_settings.Key != null)
-            {
-                bool ready_status;
-
-                do
-                {
-                    Reg_settings.CheckAndGetDrivesSettings();
-
-                    if (Reg_settings.Key_Status == SettingsStatus.ROOT_DOES_NOT_EXIST)
-                    {
-                        ready_status = false;
-
-                        IO_Console.Out_info($"\n{Reg_settings.Key} - ключ реестра не существует!\nВведите верный путь:");
-                        string? s = IO_Console.Enter_value();
-                        //RegKeyInXML.SetPath();
-                        //continue;
-                    }
-
-                    else if (Reg_settings.Drive_Status[0] == SettingsStatus.DRIVE_ERROR)
-                    {
-                        ready_status= false;
-
-                        IO_Console.Out_info($"\nОшибка чтения настроек исходного диска!\nНастройте путь:");
-                        string? s = IO_Console.Enter_value();
-                        Reg_settings.SetupDrive(Reg_settings.Drives_names[0], s);
-                        //continue;
-                    }
-
-                    else if (Reg_settings.Drive_Status[1] == SettingsStatus.DRIVE_ERROR)
-                    {
-                        ready_status = false;
-
-                        IO_Console.Out_info($"\nОшибка чтения настроек резервного диска!\nНастройте путь:");
-                        string? s = IO_Console.Enter_value();
-                        Reg_settings.SetupDrive(Reg_settings.Drives_names[1], s);
-                        //continue;
-                    }
-
-                    else 
-                    {
-                        for (int i = 0; i < Reg_settings.Drives_names.Count; i++)
-                        {
-                            Drive d = new()
-                            {
-                                Path = Reg_settings.Dirs[i]
-                            };
-                            Drives.Insert(i, d);
-                                                       
-                            if (Drives[i].Status == PathState.DOES_NOT_EXIST)  // Test !!
-                            {
-                                IO_Console.Out_info($"\nДиректория диска:{Reg_settings.Drives_names[i]} не существует! Настройте путь:");
-                                string? s = IO_Console.Enter_value();
-                                Reg_settings.SetupDrive(Reg_settings.Drives_names[i], s);
-                            }
-                        }
-
-                        ready_status = true;
-                    }
-                }
-                while (ready_status == false);
-            }
-            else
-            {
-                IO_Console.Out_info("\nОшибка чтения файла настроек!\n");
-                return;
-            }
+            Console.WriteLine(i);
         }
 
-        //public void 
-
-        public void Backup()
-        {
-            BackupItem simple_block = new(SimpleFileRgx, Drives[0].Path);
-            simple_block.GetBackupingItems();
-
-            ProtocolTypes protocols = new(simple_block.Result_Block);
-            protocols.Calc();
-
-            foreach (int i in protocols.Type_Sums)
-            {
-                Console.WriteLine(i);
-            }
-
-        }
+    }*/
 
 
-                
-    }
+
+}
 
 
-    class BlockAnalysis
+class BlockAnalysis
     {
         
         

@@ -26,7 +26,7 @@ namespace Logging
         {
             XDocument xdoc = ConfigFile.GetDocument();
 
-            XElement? config = xdoc.Element("configuration");     // bad tag name - exception !
+            XElement? config = xdoc.Element("configuration");     // bad tag directory - exception !
             XElement? numbers = config?.Element("max_numbers");
 
             if ((config is not null) & (numbers is not null)) 
@@ -99,11 +99,12 @@ namespace Logging
         {
             XDocument xdoc = ConfigFile.GetDocument();
             XElement? config = xdoc.Element("configuration");    // xml error
-            XElement? x = config?.Element("internal_settings");   // xml error
-            string? key = x?.Element("reg_key_path")?.Value;     //  xml error
-            Console.WriteLine(key);
+            XElement? target_tree = config?.Element("internal_settings");   // xml error
+            string? key = target_tree?.Element("reg_key_path")?.Value;     //  xml error
             
-            if ((config != null) & (x != null) & (key != null)) { return key; }
+            Console.WriteLine(key); ///////
+            
+            if ((config != null) & (target_tree != null) & (key != null)) { return key; }
             
             else { return null; } 
         }
