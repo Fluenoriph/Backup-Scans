@@ -3,28 +3,42 @@
 
 namespace Logging
 {
-    struct ConfigFile
+    struct ConfigFiles
     {
-        private static string xml_settings_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\config.xml";   // относительный ....
-        public enum ErrorCode
+        private const string drives_config_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\drives_config.xml";   // относительный ....
+        private const string max_numbers_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\max_numbers.xml";
+
+        public static XDocument Xml_drives_config
+        {
+            private set => _ = XDocument.Load(drives_config_file);
+
+            get => Xml_drives_config;
+        }
+
+        public static XDocument Xml_max_numbers
+        {
+            private set => _ = XDocument.Load(max_numbers_file);
+
+            get => Xml_max_numbers;
+        }
+
+        internal enum ErrorCode
         {
             XML_CONFIG_FILE_ERROR,
             VALUE_IS_JANUARY__NO_UPPER_NUMBERS
         }
-
-        public static XDocument GetDocument() { return XDocument.Load(xml_settings_file); }
     }
 
 
     class MaxNumbersPerMonth(int month_value)
     {
         private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
-        public ConfigFile.ErrorCode ErrorStatus { get; set; }
+        public ConfigFiles.ErrorCode ErrorStatus { get; set; }
         public List<int> Values { get; private set; } = [];
 
         private static XElement? GetNumbersTree()
         {
-            XDocument xdoc = ConfigFile.GetDocument();
+            XDocument xdoc = ConfigFiles.GetDocument();
 
             XElement? config = xdoc.Element("configuration");     // bad tag directory - exception !
             XElement? numbers = config?.Element("max_numbers");
@@ -69,9 +83,9 @@ namespace Logging
                         }
                     }
                 }
-                else { ErrorStatus = ConfigFile.ErrorCode.XML_CONFIG_FILE_ERROR; }   // xml error
+                else { ErrorStatus = ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR; }   // xml error
             }
-            else { ErrorStatus = ConfigFile.ErrorCode.VALUE_IS_JANUARY__NO_UPPER_NUMBERS; }
+            else { ErrorStatus = ConfigFiles.ErrorCode.VALUE_IS_JANUARY__NO_UPPER_NUMBERS; }
         }
 
         public void Write(List<int> max_numbers)
@@ -93,27 +107,7 @@ namespace Logging
     }
 
 
-    class RegKeyInXML
-    {
-        public static string? GetPath()
-        {
-            XDocument xdoc = ConfigFile.GetDocument();
-            XElement? config = xdoc.Element("configuration");    // xml error
-            XElement? target_tree = config?.Element("internal_settings");   // xml error
-            string? key = target_tree?.Element("reg_key_path")?.Value;     //  xml error
-            
-            Console.WriteLine(key); ///////
-            
-            if ((config != null) & (target_tree != null) & (key != null)) { return key; }
-            
-            else { return null; } 
-        }
-
-        public static void SetPath ()
-        {
-            ///////
-        }
-    }
+    
 
 }
 

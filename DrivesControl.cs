@@ -1,4 +1,5 @@
-﻿using BackupBlock;
+﻿using System.Xml.Linq;
+using BackupBlock;
 using Logging;
 using Microsoft.Win32;
 using Tracing;
@@ -21,18 +22,19 @@ namespace DrivesControl
     interface IDrivesConfiguration
     {
         static List<string> drive_type = ["SOURCE", "DESTINATION"];
-        static List<SettingsStatus> drive_status = new(2);
+        static List<SettingsStatus> drive_status = new(2); // надо ли
 
-        void CheckAndGetDrivesSettings();
+        void GetDrivesSettings();
         void PrepareToBackup();
         void SetupDrive(string drive_type, string new_path);
     }
 
 
-    struct Drive
+    class Drive(string type)
     {
-        private string directory;
-        public SettingsStatus Dir_Status { get; set; }
+        public string Name { get; } = type;
+        private string directory;                 // nullable warning off ??
+        public SettingsStatus Directory_Status { get; set; }
         public string Directory
         {
             set
@@ -40,63 +42,128 @@ namespace DrivesControl
                 if (System.IO.Directory.Exists(value))
                 {
                     directory = value;
-                    Dir_Status = SettingsStatus.PATH_INSTALLED;
+                    Directory_Status = SettingsStatus.PATH_INSTALLED;
                 }
-                else { Dir_Status = SettingsStatus.PATH_DOES_NOT_EXIST; }
+
+                else { Directory_Status = SettingsStatus.PATH_DOES_NOT_EXIST; }
             }
 
-            readonly get => directory;
+            get => directory;
         }
     }
 
 
-    class ConfigurationInWinRegistry : IDrivesConfiguration
+    class XMLConfig : IDrivesConfiguration
     {
-        private string? Key { get; set; }
-        private SettingsStatus Key_Status { get; set; }
-
-
-
-        public List<Drive> Drives = new(2);
-
-
-
-
-        //public List<string> Drives_Names { get; set; } = IDrivesConfiguration.drive_type;
-        //public List<SettingsStatus> Drive_Status { get; set; } = IDrivesConfiguration.drive_status;
-        public List<string> Dirs { get; set; } = new(2); 
-
-        private void GetRegKey()
-        {
-            Key = RegKeyInXML.GetPath();
-
-            if (Key is not null) { Key_Status = SettingsStatus.ROOT_KEY_INSTALLED; }
-
-            else { Key_Status = SettingsStatus.ROOT_KEY_READ_FAILED; }
-        }
-
-
-        public void CheckAndGetDrivesSettings()
-        {
-            
-            
-            string none_drive_name = "NULL_DRIVE";
-
-            for (int i = 0; i < IDrivesConfiguration.drive_type.Count; i++)
+        private List<SettingsStatus> Drive_Status { get; set; } = [];
+        private readonly int drives_count = IDrivesConfiguration.drive_type.Count;
+        
+        public List<Drive> Drives 
+        {     
+            set
             {
-                string? dir_name = (string?)Registry.GetValue(Key, IDrivesConfiguration.drive_type[i], none_drive_name);
-
-                if (dir_name == null) { Key_Status = SettingsStatus.ROOT_KEY_DOES_NOT_EXIST; }
-                
-                else if (dir_name == none_drive_name) { Drive_Status.Insert(i, SettingsStatus.DRIVE_ERROR); }
-                
-                else 
-                { 
-                    Dirs.Add(dir_name);
-                    Drive_Status.Insert(i, SettingsStatus.DRIVE_RECEIVED);
+                for (int i = 0; i < drives_count; i++)
+                {
+                    Drive drive = new(IDrivesConfiguration.drive_type[i]);       
+                    value.Insert(i, drive);                    
                 }
             }
+
+            get { return Drives; }
         }
+                              
+        private void GetDrivesSettings()
+        {
+            XElement? config = ConfigFiles.Xml_drives_config.Element("configuration");    // xml error  test xml 
+            
+            
+            string? path = config?.Element("reg_key_path")?.Value;     // null ?. test
+
+            Console.WriteLine(path);
+                        
+            if (Key is not null) 
+            { 
+                Key_Status = SettingsStatus.ROOT_KEY_INSTALLED; 
+            }
+
+            else 
+            { 
+                Key_Status = SettingsStatus.ROOT_KEY_READ_FAILED;
+                
+                /// check !!!
+            }
+        }
+                
+               
+        
+        public void PrepareToBackup()
+        {
+            GetRegistryKeyIntoXML();
+
+            if (Key_Status == SettingsStatus.ROOT_KEY_INSTALLED)
+            {                
+                bool ready_status = false;
+
+                do
+                {
+                    GetDrivesSettings();
+
+                    if (Key_Status == SettingsStatus.ROOT_KEY_DOES_NOT_EXIST)
+                    {
+                        //ready_status = false;
+
+                        IO_Console.Out_info($"\n{Key} - ключ реестра не существует!\nВведите верный путь:");
+                        string? s = IO_Console.Enter_value();
+
+                        // setup new settings !!! method
+                        //RegKeyInXML.SetPath();
+                        //continue;
+                    }
+
+                    else
+                    {
+                        for (int i = 0; i < drives_count; i++)
+                        {
+                            if (Drive_Status[i] == SettingsStatus.DRIVE_ERROR)
+                            {
+                                //ready_status = false;
+                                Console.WriteLine($"\nОшибка чтения настроек диска {IDrivesConfiguration.drive_type[i]}\nНастройте директорию:");
+                                string? s = Console.ReadLine();
+                                SetupDrive(IDrivesConfiguration.drive_type[i], s);  // auto ??
+                            }
+                            
+                            else
+                            {
+                                if (Drives[i].Directory_Status == SettingsStatus.PATH_DOES_NOT_EXIST)
+                                {
+                                    Console.WriteLine($"\n{Drives[i].Name} диска путь не существует");
+                                }
+                                else
+                                {
+                                    ready_status = true;
+                                }
+                            }
+                        }
+
+                                                
+                    }
+                                    
+                }
+                while (ready_status == false);
+            }
+
+            else
+            {
+                IO_Console.Out_info("\nОшибка чтения файла настроек!\n");
+                return;
+            }
+        }
+
+
+
+
+
+
 
         public void SetupDrive(string drive_type, string new_path) { 
             Registry.SetValue(Key, drive_type, new_path, RegistryValueKind.String);   // exceptions ????
@@ -104,80 +171,8 @@ namespace DrivesControl
     }
 
 
-    class DrivesConfiguration
-    {
-        private readonly SettingsInWinRegistry Reg_settings = new();
+         
         
 
-        public void PrepareToBackup()
-        {
-            Reg_settings.Key = 
-
-            if (Reg_settings.Key != null)
-            {
-                bool ready_status;
-
-                do
-                {
-                    Reg_settings.CheckAndGetDrivesSettings();
-
-                    if (Reg_settings.Key_Status == SettingsStatus.ROOT_KEY_DOES_NOT_EXIST)
-                    {
-                        ready_status = false;
-
-                        IO_Console.Out_info($"\n{Reg_settings.Key} - ключ реестра не существует!\nВведите верный путь:");
-                        string? s = IO_Console.Enter_value();
-                        //RegKeyInXML.SetPath();
-                        //continue;
-                    }
-
-                    else if (Reg_settings.Drive_Status[0] == SettingsStatus.DRIVE_ERROR)
-                    {
-                        ready_status = false;
-
-                        IO_Console.Out_info($"\nОшибка чтения настроек исходного диска!\nНастройте путь:");
-                        string? s = IO_Console.Enter_value();
-                        Reg_settings.SetupDrive(Reg_settings.Drives_Names[0], s);
-                        //continue;
-                    }
-
-                    else if (Reg_settings.Drive_Status[1] == SettingsStatus.DRIVE_ERROR)
-                    {
-                        ready_status = false;
-
-                        IO_Console.Out_info($"\nОшибка чтения настроек резервного диска!\nНастройте путь:");
-                        string? s = IO_Console.Enter_value();
-                        Reg_settings.SetupDrive(Reg_settings.Drives_Names[1], s);
-                        //continue;
-                    }
-
-                    else
-                    {
-                        for (int i = 0; i < Reg_settings.Drives_Names.Count; i++)
-                        {
-                            Drive d = new()
-                            {
-                                Directory = Reg_settings.Dirs[i]
-                            };
-                            Drives.Insert(i, d);
-
-                            if (Drives[i].Status == PathState.DOES_NOT_EXIST)  // Test !!
-                            {
-                                IO_Console.Out_info($"\nДиректория диска:{Reg_settings.Drives_Names[i]} не существует! Настройте путь:");
-                                string? s = IO_Console.Enter_value();
-                                Reg_settings.SetupDrive(Reg_settings.Drives_Names[i], s);
-                            }
-                        }
-
-                        ready_status = true;
-                    }
-                }
-                while (ready_status == false);
-            }
-            else
-            {
-                IO_Console.Out_info("\nОшибка чтения файла настроек!\n");
-                return;
-            }
-        }
+        
     }

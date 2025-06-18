@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<max_numbers>
+	<month value="1">
+		<F>25</F>
+		<FA>45</FA>
+		<R>14</R>
+		<RA>47</RA>
+		<M>4</M>
+		<MA>0</MA>
+	</month>
+	<month value="2">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="3">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="4">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="5">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="6">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="7">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="8">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="9">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="10">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="11">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+	<month value="12">
+		<F>0</F>
+		<FA>0</FA>
+		<R>0</R>
+		<RA>0</RA>
+		<M>0</M>
+		<MA>0</MA>
+	</month>
+</max_numbers>
