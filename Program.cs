@@ -6,18 +6,36 @@ using Tracing;
 
 const string line = "- - - - - - - - - - - - - - -";
 
-IO_Console.Out_info($"{line}\n* Nebula 2.1 * / Test 2025\n{line}");
+IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}");
 
-BackupProcess backuping = new();
-backuping.PrepareToBackup();
+XMLConfig drives_config = new();
 
-IO_Console.Out_info("\nВыберите месяц !");
-CurrentMonth.Value = IO_Console.Enter_value();
+bool check_var;
 
-//backuping.Backup();
+do
+{
+    bool status = drives_config.GetSettings();
+    check_var = status;
+} while (check_var == false);
 
-MaxNumbersPerMonth y = new(MonthValues.Table[CurrentMonth.Value]);
-y.Read();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//MaxNumbersPerMonth y = new(MonthValues.Table[CurrentMonth.Value]);
+//y.Read();
 
 
 

@@ -3,30 +3,40 @@
 
 namespace Logging
 {
-    struct ConfigFiles
+    class ConfigFiles
     {
         private const string drives_config_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\drives_config.xml";   // относительный ....
         private const string max_numbers_file = "C:\\Users\\Asus machine\\source\\repos\\Backup Scans\\max_numbers.xml";
-
-        public static XDocument Xml_drives_config
-        {
-            private set => _ = XDocument.Load(drives_config_file);
-
-            get => Xml_drives_config;
-        }
-
-        public static XDocument Xml_max_numbers
-        {
-            private set => _ = XDocument.Load(max_numbers_file);
-
-            get => Xml_max_numbers;
-        }
-
         internal enum ErrorCode
         {
             XML_CONFIG_FILE_ERROR,
             VALUE_IS_JANUARY__NO_UPPER_NUMBERS
         }
+
+        public static XElement? GetDrivesConfig()
+        {
+            XDocument doc = XDocument.Load(drives_config_file);
+            return doc.Element("configuration");    // если повреждение тэга, то исключение, если просто другое имя то 'null'
+        }
+
+        public static void SetupDriveDirectory(string drive_name, string path)
+        {
+            XElement? xdoc = GetDrivesConfig();
+
+            if (xdoc != null)
+            {
+                XElement? dir = xdoc.Element(drive_name);
+
+                if (dir != null)
+                {
+                    dir.Value = path;
+                    xdoc.Save(drives_config_file);
+                }
+            }
+            Console.WriteLine(xdoc);
+        }
+
+        
     }
 
 
@@ -38,7 +48,7 @@ namespace Logging
 
         private static XElement? GetNumbersTree()
         {
-            XDocument xdoc = ConfigFiles.GetDocument();
+            XDocument xdoc = null;
 
             XElement? config = xdoc.Element("configuration");     // bad tag directory - exception !
             XElement? numbers = config?.Element("max_numbers");
