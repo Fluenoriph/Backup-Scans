@@ -1,42 +1,38 @@
 ﻿using System.Xml.Linq;
-using BackupBlock;
 using Logging;
-using Microsoft.Win32;
-using Tracing;
 
 
 namespace DrivesControl
 {
     enum SettingsStatus
     {
-        DRIVE_ERROR,
-        DRIVE_RECEIVED,
-
+        UNKNOWN,
+        DRIVE_CONFIG_ERROR,
         PATH_DOES_NOT_EXIST,
-        PATH_INSTALLED
+        PATH_INSTALLED,
+        DIRECTORY_ERROR,
+        DIRECTORY_INSTALLED
     }
 
 
     interface IDrivesConfiguration
     {
         static List<string> drive_type = ["SOURCE", "DESTINATION"];
-        static List<SettingsStatus> drive_status = new(2); // надо ли
 
-        bool GetSettings();
-        //bool CheckDrivesDirectories();
-        //void SetupDrive(string drive_type, string new_path);
+        SettingsStatus InstallDrive(string drive_name);
+        bool PrepareToBackup();
     }
 
 
-    class Drive(string type)
+    struct Drive(string type)
     {
         private string? directory;
         public string Name { get; } = type;           
         public SettingsStatus Directory_Status { get; private set; }
         public string Directory
         {
-            get => directory ?? "NULL_DIRECTORY";  // " "
-
+            readonly get => directory ?? "NULL_DIRECTORY";  // " "
+            // проверка директории на нулл или вообще нахождения
             set
             {
                 if (System.IO.Directory.Exists(value))
@@ -55,76 +51,89 @@ namespace DrivesControl
 
     class XMLConfig : IDrivesConfiguration
     {
-        private readonly int drives_count = IDrivesConfiguration.drive_type.Count;
-        public List<Drive> Drives { get; private set; } =                    
-        [
-            new(IDrivesConfiguration.drive_type[0]),
-            new(IDrivesConfiguration.drive_type[1])
-        ];
-            
-        public bool GetSettings()        // return error codes on upper level !!
+        public List<Drive> Drives { get; private set; } = [];               
+                    
+        private SettingsStatus InstallDrive(string drive_name)        
         {
+            // получаем конфигурацию
             XElement? config = ConfigFiles.GetDrivesConfig();
             
             if (config != null)
             {
-                for (int i = 0; i < drives_count; i++)
-                {
-                    
-                        string? path = config.Element(IDrivesConfiguration.drive_type[i])?.Value;
+                // получаем путь из диска
+                string? path = config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга)
                         
-                        if (path != null)
-                        {
-                            Console.WriteLine(path);
-
-                            Drives[i].Directory = path;
-                                                    
-                        if (Drives[i].Directory_Status == SettingsStatus.PATH_DOES_NOT_EXIST)
-                        {
-                                
-
-                                Console.WriteLine($"{Drives[i].Name} path not exist\nSetup Drive >>");
-                                string input_dir = Console.ReadLine();
-
-                            ConfigFiles.SetupDriveDirectory(IDrivesConfiguration.drive_type[i], input_dir);
-                            return false;
-                                
-                            }
-
-
-
-
-                        //Drives[i].Directory = path; 
-                        //Drive_Status[i] = SettingsStatus.DRIVE_RECEIVED;
-                        //Console.WriteLine("\nPath NULL !!!!");
-                        //C:\Users\Asus machine\Desktop\Files\сканы
-                        //C:\Users\Asus machine\Desktop\Files\result_test
+                if (path != null)
+                {
+                    Drive drive = new(drive_name)
+                    {
+                        Directory = path
+                    };
+                    // создание диска и проверка существования директории в системе
+                    if (drive.Directory_Status == SettingsStatus.PATH_DOES_NOT_EXIST)
+                    {
+                        return SettingsStatus.DIRECTORY_ERROR;
                     }
                     else
-                        {
-                            IDrivesConfiguration.drive_status.Insert(i, SettingsStatus.DRIVE_ERROR);
-                            Console.WriteLine($"\nError: {IDrivesConfiguration.drive_type[i]} ошибочен в файле конфигурации !! Exit >>>");
-                            
-                        return false;   // бесконечно
-                        }
-
-                    
-
-
+                    {
+                        Drives.Add(drive);
+                        return SettingsStatus.DIRECTORY_INSTALLED;
+                    }
                 }
-                return true;
+                else
+                {
+                    return SettingsStatus.DRIVE_CONFIG_ERROR;                      
+                }
             }
             else
             {
-                Console.WriteLine("\nXML config error !! Exit >>>");
-                return false;
+                return (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR;
             }
         }
-        
-        
 
+        SettingsStatus IDrivesConfiguration.InstallDrive(string drive_name)
+        {
+            return InstallDrive(drive_name);
+        }
 
+        public bool PrepareToBackup()
+        {
+            SettingsStatus status = SettingsStatus.UNKNOWN;
 
+            do
+            {
+                foreach (string drive in IDrivesConfiguration.drive_type)
+                {
+                    status = InstallDrive(drive);
+
+                    if (status == (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR)
+                    {
+                        Console.WriteLine("\nXML Error ! Exit >>");
+                        return false;
+                    }
+                    else if (status == SettingsStatus.DRIVE_CONFIG_ERROR)
+                    {
+                        Console.WriteLine($"\n{drive} - Drive Config Error ! Exit >>");
+                        return false;
+                    }
+                    else if (status == SettingsStatus.DIRECTORY_ERROR)
+                    {
+                        Console.WriteLine($"\n{drive}: Directory Error ! Setup New Dir ! >>>");
+                        
+                        string dir = Console.ReadLine();
+                        ConfigFiles.SetupDriveDirectory(drive, dir);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\n{drive} OK !!!");
+                        continue;
+                    }
+                }
+
+            } while (status == SettingsStatus.DIRECTORY_ERROR);
+            
+            return true;
+        }
     }
 
 

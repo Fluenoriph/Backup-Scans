@@ -10,17 +10,23 @@ IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}");
 
 XMLConfig drives_config = new();
 
-bool check_var;
-
-do
+if (drives_config.PrepareToBackup())
 {
-    bool status = drives_config.GetSettings();
-    check_var = status;
-} while (check_var == false);
+    Console.WriteLine("\nAll Ready !!");
+
+    CurrentMonth.Value = "Январь";
+
+
+}
+else
+{
+    Console.WriteLine("\nNot Ready. Exit >>>");
+}
 
 
 
-
+//C:\Users\Asus machine\Desktop\Files\сканы
+//C:\Users\Asus machine\Desktop\Files\result_test
 
 
 

@@ -26,7 +26,7 @@ namespace BackupBlock
     }
 
         
-    struct RgxPattern(string name_pattern)
+    struct RgxPattern(string name_pattern)   // parameter ????
     {
         private static readonly DateTime current_date = DateTime.Now;
         public string Item_type { get; } = "*.pdf";
@@ -43,85 +43,132 @@ namespace BackupBlock
 
     enum FileBlockStatus
     {
-        CURRENT_TYPE_NOT_EXIST,
-        NONE_FILES_IN_CURRENT_PERIOD
+        FILES_DO_NOT_EXIST,
+        NONE_FILES_IN_CURRENT_PERIOD,
+        FILES_FOUND
     }
 
 
     class BackupItem(RgxPattern rgx_pattern, string path)
     {
-        public int Items_count { get; set; } = 0;
         public List<FileInfo> Result_Block { get; set; } = [];
-        public FileBlockStatus Status { get; set; }  // null or ok ???
-
-        private FileInfo[]? GetTypeFiles()
+        public int Items_count { get; set; }
+                
+        private FileInfo[]? GetAllFilesToType()
         {
             DirectoryInfo dir = new(path);
             return dir.GetFiles(rgx_pattern.Item_type);
         }
 
-        public void GetBackupingItems()
+        public FileBlockStatus GetBackupingItems()
         {
-            FileInfo[]? file_list = GetTypeFiles();
+            FileInfo[]? file_list = GetAllFilesToType();
 
-            if (file_list is not null)
+            if (file_list != null)
             {
                 IEnumerable<FileInfo>? backup_block = from file in file_list
-                                                     where rgx_pattern.Full_Pattern().IsMatch(file.Name)
-                                                     select file;
+                                                      where rgx_pattern.Full_Pattern().IsMatch(file.Name)
+                                                      select file;
 
-                if (backup_block is not null)
+                if (backup_block != null)
                 {
                     Result_Block = [.. backup_block];
                     Items_count = Result_Block.Count;
+
+                    return FileBlockStatus.FILES_FOUND;
                 }
-                else { Status = FileBlockStatus.NONE_FILES_IN_CURRENT_PERIOD; }
-                 
+                else 
+                { 
+                    return FileBlockStatus.NONE_FILES_IN_CURRENT_PERIOD; 
+                }
             }
-            else { Status = FileBlockStatus.CURRENT_TYPE_NOT_EXIST; }
+            else 
+            { 
+                return FileBlockStatus.FILES_DO_NOT_EXIST; 
+            }
         }
     }
+
+
 
 
     class ProtocolTypes(List<FileInfo> files)
     {
         private static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   
-        private static readonly string number_capture = "^(?<number>\\d+)-";
-        private readonly TypePattern rgx_number = (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
-        public List<int> Type_Sums { get; } = [];
+        private const string number_capture = "^(?<number>\\d+)-";
+        private readonly TypePattern rgx_number_type = (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
+        
+        public List<int> Type_Sums { get; set; } = [];
         public List<string> Missing_Protocols { get; } = [];
 
-        public void Calc() // directory ????
+        public void Calc() // directory ????   func name ??
         {
             for (int i = 0; i < protocol_types.Count; i++)
             {
                 IEnumerable<string>? type_block = from file in files
-                                                 where rgx_number(protocol_types[i]).IsMatch(file.Name)
-                                                 select file.Name;
+                                                  where rgx_number_type(protocol_types[i]).IsMatch(file.Name)
+                                                  select file.Name;
                                 
-                List<string> types = [.. type_block]; // null test '0' !!
-                Type_Sums.Add(types.Count);
+                if (type_block != null)
+                {
+                    List<string> types = [.. type_block];
+                    Type_Sums.Add(types.Count);
+
+                    if (types.Count > 2)
+                    {
+                        List<int> numbers = GetNumbersAtType(types);
+
+
+
+
+
+                        /*foreach (int number in numbers)
+                        {
+                            Console.WriteLine(number);
+                        }*/
+                    }
+
+                }
+                else
+                {
+                    Type_Sums.Add(0);
+                }
+                
 
                 
                          
             }
         }
 
-        private static List<int>? GetTypeNumbers(List<string> protocol_type_names, string rgx_capture_pattern)
+        private static List<int> GetNumbersAtType(List<string> protocol_types)
         {
-            if (protocol_type_names.Count > 2)
-            {
-                List<int> numbers = [];
-                foreach (string s in protocol_type_names)
-                {
-                    Match match = Regex.Match(s, rgx_capture_pattern);
-                    if (match.Success) { numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); }
-                }
-                return numbers;
-            }
+            List<int> numbers = [];
 
-            else { return null; } 
+            foreach (string protocol in protocol_types)
+            {
+                Match match = Regex.Match(protocol, number_capture);
+
+                if (match.Success) 
+                { 
+                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); 
+                }
+                // else ???
+            }
+            
+            return numbers;
         }
+
+            
+        private List<int> CreateRange(int start, int end)
+        {
+
+        }
+        
+
+
+
+
+
 
         private void CalcMissingNumbers(List<int> numbers)
         {
@@ -129,37 +176,11 @@ namespace BackupBlock
 
         }
 
-        private 
+        
 
         delegate Regex TypePattern(string protocol_type);
     }
 
 
-    class MissingNumbers
-    {
-        
-
-        
-
-        /*public List<string> Calculate(List<string> protocol_type_names, string rgx_capture_pattern) // lambda
-        {
-            
-
-            int max_number = numbers.Max();
-
-
-
-            List<int> numbers_range = [];
-
-
-            for (int i = numbers.Min(); i <= max_number; i++) { numbers_range.Add(i); }  // 'min' read xml max values
-
-
-
-
-            return [.. numbers_range.Except(numbers)];
-        }*/
-
-        
-    }
+    
 }
