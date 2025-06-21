@@ -6,7 +6,7 @@ using Logging;
 
 namespace Tracing
 {
-    struct RgxMaskConfiguration
+    struct NamePatterns
     {
         public static string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
         public static string eias_file_pattern = "^\\d{5}-\\d{2}-\\d{2}-";
@@ -24,7 +24,7 @@ namespace Tracing
         BackupItem simple_block = new(SimpleFileRgx, Drives[0].Directory);
         simple_block.GetBackupingItems();
 
-        ProtocolTypes protocols = new(simple_block.Result_Block);
+        ProtocolTypes protocols = new(simple_block.Result_Files);
         protocols.Calc();
 
         foreach (int i in protocols.Type_Sums)

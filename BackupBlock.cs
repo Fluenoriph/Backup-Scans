@@ -25,16 +25,31 @@ namespace BackupBlock
         public MonthValues() { }
     }
 
-        
-    struct RgxPattern(string name_pattern)   // parameter ????
+
+    struct ProtocolTypes
+    {
+        public Dictionary<string, int> Table { get; set; } = new Dictionary<string, int>
+        {
+            ["ф"] = 0,
+            ["фа"] = 0,
+            ["р"] = 0,
+            ["ра"] = 0,
+            ["м"] = 0,
+            ["ма"] = 0
+        };
+
+        public ProtocolTypes() { }
+    }
+
+    struct RgxPattern(string current_month, string name_pattern)   
     {
         private static readonly DateTime current_date = DateTime.Now;
-        public string Item_type { get; } = "*.pdf";
+        public string File_Type { get; } = "*.pdf";
 
         public readonly Regex Full_Pattern()
         {
-            string date_file_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[CurrentMonth.Value]}", "\\.", current_date.Year.ToString(), "\\.", Item_type, "$");
-            string full_pattern = string.Concat(name_pattern, date_file_pattern);
+            string date_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[current_month]}", "\\.", current_date.Year.ToString(), "\\.", File_Type, "$");
+            string full_pattern = string.Concat(name_pattern, date_pattern);
 
             return new(full_pattern, RegexOptions.IgnoreCase);
         }
@@ -49,32 +64,30 @@ namespace BackupBlock
     }
 
 
-    class BackupItem(RgxPattern rgx_pattern, string path)
+    class BackupItem(RgxPattern rgx_pattern, string drive_directory)
     {
-        public List<FileInfo> Result_Block { get; set; } = [];
-        public int Items_count { get; set; }
-                
+        public List<FileInfo> Result_Files { get; set; } = [];
+                        
         private FileInfo[]? GetAllFilesToType()
         {
-            DirectoryInfo dir = new(path);
-            return dir.GetFiles(rgx_pattern.Item_type);
+            DirectoryInfo directory = new(drive_directory);
+            return directory.GetFiles(rgx_pattern.File_Type);
         }
 
         public FileBlockStatus GetBackupingItems()
         {
-            FileInfo[]? file_list = GetAllFilesToType();
+            FileInfo[]? files = GetAllFilesToType();
 
-            if (file_list != null)
+            if (files != null)
             {
-                IEnumerable<FileInfo>? backup_block = from file in file_list
+                IEnumerable<FileInfo>? backup_block = from file in files
                                                       where rgx_pattern.Full_Pattern().IsMatch(file.Name)
                                                       select file;
 
                 if (backup_block != null)
                 {
-                    Result_Block = [.. backup_block];
-                    Items_count = Result_Block.Count;
-
+                    Result_Files = [.. backup_block];
+                    
                     return FileBlockStatus.FILES_FOUND;
                 }
                 else 
@@ -90,11 +103,10 @@ namespace BackupBlock
     }
 
 
-
-
-    class ProtocolTypes(List<FileInfo> files)
+    class Protocols(List<FileInfo> backup_files)
     {
-        private static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];   
+        private static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
+        
         private const string number_capture = "^(?<number>\\d+)-";
         private readonly TypePattern rgx_number_type = (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
         
@@ -103,20 +115,23 @@ namespace BackupBlock
 
         public void Calc() // directory ????   func name ??
         {
-            for (int i = 0; i < protocol_types.Count; i++)
+            for (int type_index = 0; type_index < protocol_types.Count; type_index++)
             {
-                IEnumerable<string>? type_block = from file in files
-                                                  where rgx_number_type(protocol_types[i]).IsMatch(file.Name)
+                IEnumerable<string>? block_of_type = from file in backup_files
+                                                  where rgx_number_type(protocol_types[type_index]).IsMatch(file.Name)
                                                   select file.Name;
                                 
-                if (type_block != null)
+                if (block_of_type != null)
                 {
-                    List<string> types = [.. type_block];
-                    Type_Sums.Add(types.Count);
+                    List<string> type_list = [.. block_of_type];
 
-                    if (types.Count > 2)
+
+                    Type_Sums.Add(type_list.Count);
+
+
+                    if (type_list.Count > 2)
                     {
-                        List<int> numbers = GetNumbersAtType(types);
+                        List<int> numbers = GetNumbersAtType(type_list);
 
 
 

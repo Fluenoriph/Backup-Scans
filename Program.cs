@@ -57,21 +57,6 @@ foreach (var y in x.Values)
 
 
 
-
-
-
-
-
-
-
-
-
-struct CurrentMonth
-{
-    public static string Value { get; set; } = "";
-}
-
-
 class IO_Console
 { 
     public static void Out_info(string info) { Console.WriteLine(info); }
