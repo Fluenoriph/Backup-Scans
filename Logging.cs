@@ -31,6 +31,7 @@ namespace Logging
                 {
                     dir.Value = path;
                     xdoc.Save(drives_config_file);
+                    Console.WriteLine($"\n{drive_name} is installed !!");     // out OK !!
                 }
             }  // else ???
         }

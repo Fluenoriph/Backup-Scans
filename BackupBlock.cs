@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 
@@ -44,14 +45,19 @@ namespace BackupBlock
     struct RgxPattern(string current_month, string name_pattern)   
     {
         private static readonly DateTime current_date = DateTime.Now;
-        public string File_Type { get; } = "*.pdf";
+        private int month_value = 
+        public string File_Type { get; } = "*.pdf";   // set ??
+        public readonly Regex Full_Pattern
+        {
+            get => CreateFullPattern();
+        }
 
-        public readonly Regex Full_Pattern()
+        public readonly Regex CreateFullPattern()
         {
             string date_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[current_month]}", "\\.", current_date.Year.ToString(), "\\.", File_Type, "$");
             string full_pattern = string.Concat(name_pattern, date_pattern);
 
-            return new(full_pattern, RegexOptions.IgnoreCase);
+            return new(full_pattern, RegexOptions.IgnoreCase);  // print out test
         }
     }
 
@@ -67,21 +73,25 @@ namespace BackupBlock
     class BackupItem(RgxPattern rgx_pattern, string drive_directory)
     {
         public List<FileInfo> Result_Files { get; set; } = [];
-                        
+        public FileBlockStatus Search_Status
+        {
+            get => GetBackupingItems();
+        }
+
         private FileInfo[]? GetAllFilesToType()
         {
             DirectoryInfo directory = new(drive_directory);
             return directory.GetFiles(rgx_pattern.File_Type);
         }
 
-        public FileBlockStatus GetBackupingItems()
+        private FileBlockStatus GetBackupingItems()
         {
             FileInfo[]? files = GetAllFilesToType();
 
             if (files != null)
             {
                 IEnumerable<FileInfo>? backup_block = from file in files
-                                                      where rgx_pattern.Full_Pattern().IsMatch(file.Name)
+                                                      where rgx_pattern.Full_Pattern.IsMatch(file.Name)
                                                       select file;
 
                 if (backup_block != null)
@@ -102,100 +112,176 @@ namespace BackupBlock
         }
     }
 
-
+    // Базовый класс
     class Protocols(List<FileInfo> backup_files)
     {
-        private static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
-        
-        private const string number_capture = "^(?<number>\\d+)-";
-        private readonly TypePattern rgx_number_type = (type) => new($"{number_capture}{type}-", RegexOptions.IgnoreCase);
-        
-        public List<int> Type_Sums { get; set; } = [];
-        public List<string> Missing_Protocols { get; } = [];
+        private protected static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
+        private protected static int types_count = protocol_types.Count;
+        private const string number_capture_pattern = "^(?<number>\\d+)-";
+        private readonly Func<string, Regex> protocol_type_pattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
+        private protected List<List<int>> protocol_type_numbers = new(types_count);
 
-        public void Calc() // directory ????   func name ??
+        public List<List<int>> Protocol_type_numbers
         {
-            for (int type_index = 0; type_index < protocol_types.Count; type_index++)
-            {
-                IEnumerable<string>? block_of_type = from file in backup_files
-                                                  where rgx_number_type(protocol_types[type_index]).IsMatch(file.Name)
-                                                  select file.Name;
-                                
-                if (block_of_type != null)
-                {
-                    List<string> type_list = [.. block_of_type];
-
-
-                    Type_Sums.Add(type_list.Count);
-
-
-                    if (type_list.Count > 2)
-                    {
-                        List<int> numbers = GetNumbersAtType(type_list);
-
-
-
-
-
-                        /*foreach (int number in numbers)
-                        {
-                            Console.WriteLine(number);
-                        }*/
-                    }
-
-                }
-                else
-                {
-                    Type_Sums.Add(0);
-                }
-                
-
-                
-                         
-            }
+            get => GetProtocolTypeNumbers();
         }
 
-        private static List<int> GetNumbersAtType(List<string> protocol_types)
+        private List<List<int>> GetProtocolTypeNumbers() 
+        {
+            for (int type_index = 0; type_index < types_count; type_index++)
+            {
+                IEnumerable<string> block_of_type = from file in backup_files
+                                                  where protocol_type_pattern(protocol_types[type_index]).IsMatch(file.Name)
+                                                  select file.Name;
+                                
+                List<string> type_list = [.. block_of_type];            // может быть один протокол !!
+                    
+                if (type_list.Count != 0)
+                {
+                    List<int> numbers_of_type = GetNumbersAtType(type_list);
+
+                    if (type_list.Count == numbers_of_type.Count)           // дополнительная проверка количества номеров
+                    {
+                        protocol_type_numbers.InsertRange(type_index, numbers_of_type);
+                    }
+                    else { Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')"); }
+                }                    
+                else
+                {
+                    Console.WriteLine($"\nType {protocol_types[type_index]} none");
+                    List<int> none_type = [0];
+                    protocol_type_numbers.InsertRange(type_index, none_type);
+                }                
+            }
+
+            return protocol_type_numbers;
+        }
+
+        private static List<int> GetNumbersAtType(List<string> protocol_type_list)
         {
             List<int> numbers = [];
 
-            foreach (string protocol in protocol_types)
+            foreach (string protocol in protocol_type_list)              // если один протокол ??
             {
-                Match match = Regex.Match(protocol, number_capture);
+                Match match = Regex.Match(protocol, number_capture_pattern);
 
-                if (match.Success) 
-                { 
-                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); 
+                if (match.Success)
+                {
+                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value));
                 }
-                // else ???
+                else { Console.WriteLine("\nОшибка захвата номера протокола !"); }
             }
             
             return numbers;
         }
+         
+        private protected Dictionary<string, int> GetMaxNumbers()
+        {
+            ProtocolTypes max_numbers = new();
 
+            for (int type_index = 0; type_index < types_count; type_index++)
+            {
+                //int min = protocol_type_numbers[type_index].Min();
+                max_numbers.Table.Add(protocol_types[type_index], protocol_type_numbers[type_index].Max());      // если 0, то какое будет минимальное значение
+            }
+
+            return max_numbers.Table;
+        }       
+    }
+
+    // если январь то передать null
+    class MissingProtocols(List<FileInfo> backup_files, Dictionary<string, int>? max_numbers_previous_period) : Protocols(backup_files)
+    {
+        private readonly List<string> missing_protocols = [];
+        private readonly List<string> unknown_protocols = [];
+        private Dictionary<string, int> min_numbers = [];
+
+        public List<string> Missing_Protocols
+        {
+            get => GetMissingProtocols();
+        }
+        
+        public List<string>? Unknown_Protocols       // если январь то равно нулл
+        {
+            get => GetUnknownProtocols();
+        }
+
+        private Dictionary<string, int> GetMinNumbers()
+        {
+            ProtocolTypes min_numbers = new();
+
+            for (int type_index = 0; type_index < types_count; type_index++)
+            {
+                //int min = protocol_type_numbers[type_index].Min();
+                min_numbers.Table.Add(protocol_types[type_index], protocol_type_numbers[type_index].Min());      // если 0, то какое будет минимальное значение
+            }
+
+            return min_numbers.Table;
+        }
+
+        private static List<int> CreateRange(int start, int end)
+        {
+            List<int> range = [];
+
+            for (int i = start; i < end + 1; i++) range.Add(i);
             
-        private List<int> CreateRange(int start, int end)
-        {
-
-        }
-        
-
-
-
-
-
-
-        private void CalcMissingNumbers(List<int> numbers)
-        {
-
-
+            return range;
         }
 
-        
+        private List<string> GetMissingProtocols()
+        {
+            min_numbers = GetMinNumbers(); 
+            Dictionary<string, int> max_numbers = GetMaxNumbers();
 
-        delegate Regex TypePattern(string protocol_type);
+            for (int type_index = 0; type_index < types_count; type_index++)
+            {
+                string current_type = protocol_types[type_index];
+                List<int> current_protocols = protocol_type_numbers[type_index];
+
+                if (current_protocols.Count > 2)
+                {
+                    List<int> range = CreateRange(min_numbers[current_type], max_numbers[current_type]);
+
+                    List<int> missing_numbers = (List<int>)range.Except(current_protocols);
+
+                    foreach (int number in missing_numbers)
+                    {
+                        missing_protocols.Add($"{number}-{current_type}");
+                    }
+                }
+            }
+
+            return missing_protocols;
+        }
+
+        private List<string>? GetUnknownProtocols()
+        {
+            if (max_numbers_previous_period != null)
+            {
+                for (int type_index = 0; type_index < types_count; type_index++)
+                {
+                    string current_type = protocol_types[type_index];
+                    int current_min_number = min_numbers[current_type];
+                    int current_max_number = max_numbers_previous_period[current_type];
+
+                    if ((current_max_number < current_min_number) & ((current_min_number - 1) != current_max_number))
+                    {
+                        for (int start_num = current_max_number + 1; start_num < current_min_number; start_num++)     // если один протокол ??
+                        {
+                            unknown_protocols.Add($"{start_num}-{current_type}");
+                        }
+                    }
+                }
+
+                return unknown_protocols;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 
 
-    
+
 }

@@ -8,8 +8,6 @@ namespace DrivesControl
     {
         UNKNOWN,
         DRIVE_CONFIG_ERROR,
-        PATH_DOES_NOT_EXIST,
-        PATH_INSTALLED,
         DIRECTORY_ERROR,
         DIRECTORY_INSTALLED
     }
@@ -28,7 +26,7 @@ namespace DrivesControl
     {
         private string? directory;
         public string Name { get; } = type;           
-        public SettingsStatus Directory_Status { get; private set; }
+        public bool Directory_Ready { get; private set; }
         public string Directory
         {
             readonly get => directory ?? "NULL_DIRECTORY";  // " "
@@ -38,11 +36,11 @@ namespace DrivesControl
                 if (System.IO.Directory.Exists(value))
                 {
                     directory = value;
-                    Directory_Status = SettingsStatus.PATH_INSTALLED;
+                    Directory_Ready = true;
                 }
                 else 
                 { 
-                    Directory_Status = SettingsStatus.PATH_DOES_NOT_EXIST; 
+                    Directory_Ready = false; 
                 }
             }
         }
@@ -51,7 +49,11 @@ namespace DrivesControl
 
     class XMLConfig : IDrivesConfiguration
     {
-        public List<Drive> Drives { get; private set; } = [];               
+        public List<Drive> Drives { get; private set; } = [];
+        public bool Drives_Ready
+        {
+            get => PrepareToBackup();
+        }
                     
         private SettingsStatus InstallDrive(string drive_name)        
         {
@@ -70,7 +72,7 @@ namespace DrivesControl
                         Directory = directory
                     };
                     // создание диска и проверка существования директории в системе
-                    if (drive.Directory_Status == SettingsStatus.PATH_DOES_NOT_EXIST)
+                    if (drive.Directory_Ready == false)
                     {
                         return SettingsStatus.DIRECTORY_ERROR;
                     }
@@ -96,7 +98,7 @@ namespace DrivesControl
             return InstallDrive(drive_name);
         }
 
-        public bool PrepareToBackup()
+        private bool PrepareToBackup()
         {
             SettingsStatus config_status = SettingsStatus.UNKNOWN;
 
@@ -133,6 +135,11 @@ namespace DrivesControl
             } while (config_status == SettingsStatus.DIRECTORY_ERROR);
             
             return true;
+        }
+
+        bool IDrivesConfiguration.PrepareToBackup()
+        {
+            return PrepareToBackup();
         }
     }
 

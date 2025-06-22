@@ -13,44 +13,13 @@ namespace Tracing
     }
 
 
-
-    //private RgxPattern SimpleFileRgx = new(RgxMaskConfiguration.simple_file_pattern);
-    //private RgxPattern EiasFileRgx = new(RgxMaskConfiguration.eias_file_pattern);
+    // калькуляция всех сумм
 
 
 
-    /*public void Backup()
-    {
-        BackupItem simple_block = new(SimpleFileRgx, Drives[0].Directory);
-        simple_block.GetBackupingItems();
-
-        ProtocolTypes protocols = new(simple_block.Result_Files);
-        protocols.Calc();
-
-        foreach (int i in protocols.Type_Sums)
-        {
-            Console.WriteLine(i);
-        }
-
-    }*/
-
-
-
-}
-
-
-/*class BlockAnalysis
-    {
-        
-        
-        public Dictionary<string, int> All_Sums_of_Protocols { get; } = [];
-
-        
 
 
 
 
 
-    }
-
-}*/
+}
