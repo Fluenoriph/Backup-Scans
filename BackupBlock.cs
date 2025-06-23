@@ -42,11 +42,10 @@ namespace BackupBlock
         public ProtocolTypes() { }
     }
 
-    struct RgxPattern(string current_month, string name_pattern)   
+    struct RgxPattern(int month_value, string file_pattern)   
     {
         private static readonly DateTime current_date = DateTime.Now;
-        private int month_value = 
-        public string File_Type { get; } = "*.pdf";   // set ??
+        public string File_Type { get; set; } = "*.pdf";   
         public readonly Regex Full_Pattern
         {
             get => CreateFullPattern();
@@ -54,10 +53,9 @@ namespace BackupBlock
 
         public readonly Regex CreateFullPattern()
         {
-            string date_pattern = string.Concat("\\d{2}\\.", $"0{MonthValues.Table[current_month]}", "\\.", current_date.Year.ToString(), "\\.", File_Type, "$");
-            string full_pattern = string.Concat(name_pattern, date_pattern);
-
-            return new(full_pattern, RegexOptions.IgnoreCase);  // print out test
+            string full_pattern = string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", File_Type, "$");
+            
+            return new(full_pattern, RegexOptions.IgnoreCase);  
         }
     }
 
