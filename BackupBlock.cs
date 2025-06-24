@@ -7,7 +7,7 @@ namespace BackupBlock
 {
     readonly struct MonthValues
     {
-        public static Dictionary<string, int> Table { get; } = new Dictionary<string, int>
+        public static Dictionary<string, int> Table { get; } = new()
         {
             ["Январь"] = 1,
             ["Февраль"] = 2,
@@ -29,7 +29,7 @@ namespace BackupBlock
 
     struct ProtocolTypes
     {
-        public Dictionary<string, int> Table { get; set; } = new Dictionary<string, int>
+        public Dictionary<string, int> Table { get; set; } = new()
         {
             ["ф"] = 0,
             ["фа"] = 0,
@@ -42,10 +42,9 @@ namespace BackupBlock
         public ProtocolTypes() { }
     }
 
-    struct RgxPattern(int month_value, string file_pattern)   
+    struct RgxPattern(string file_pattern, int month_value, string file_type)   
     {
         private static readonly DateTime current_date = DateTime.Now;
-        public string File_Type { get; set; } = "*.pdf";   
         public readonly Regex Full_Pattern
         {
             get => CreateFullPattern();
@@ -53,59 +52,64 @@ namespace BackupBlock
 
         public readonly Regex CreateFullPattern()
         {
-            string full_pattern = string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", File_Type, "$");
+            string full_pattern = string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$");
             
             return new(full_pattern, RegexOptions.IgnoreCase);  
         }
     }
+        
 
-
-    enum FileBlockStatus
+    struct FilesAtType(string file_type, string drive_directory)
     {
-        FILES_DO_NOT_EXIST,
-        NONE_FILES_IN_CURRENT_PERIOD,
-        FILES_FOUND
+        public readonly FileInfo[]? Received_Files 
+        { 
+            get => GetAllFilesToType(); 
+        }
+
+        private readonly FileInfo[]? GetAllFilesToType()         
+        {
+            DirectoryInfo directory = new(drive_directory);
+            FileInfo[] files = directory.GetFiles(file_type);
+
+            if (files.Length == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return files;
+            }           
+        }
     }
 
 
-    class BackupItem(RgxPattern rgx_pattern, string drive_directory)
+    class BackupItem(RgxPattern rgx_pattern, FileInfo[] files_found)
     {
-        public List<FileInfo> Result_Files { get; set; } = [];
-        public FileBlockStatus Search_Status
+        public List<FileInfo>? Result_Files
         {
             get => GetBackupingItems();
         }
+        public bool Search_Status { get; private set; }
 
-        private FileInfo[]? GetAllFilesToType()
+        private List<FileInfo>? GetBackupingItems()
         {
-            DirectoryInfo directory = new(drive_directory);
-            return directory.GetFiles(rgx_pattern.File_Type);
-        }
+            IEnumerable<FileInfo> backup_block = from file in files_found
+                                                  where rgx_pattern.Full_Pattern.IsMatch(file.Name)
+                                                  select file;
 
-        private FileBlockStatus GetBackupingItems()
-        {
-            FileInfo[]? files = GetAllFilesToType();
+            List<FileInfo> result_files = [.. backup_block];
 
-            if (files != null)
+            if (result_files.Count != 0)
             {
-                IEnumerable<FileInfo>? backup_block = from file in files
-                                                      where rgx_pattern.Full_Pattern.IsMatch(file.Name)
-                                                      select file;
+                Search_Status = true;
 
-                if (backup_block != null)
-                {
-                    Result_Files = [.. backup_block];
-                    
-                    return FileBlockStatus.FILES_FOUND;
-                }
-                else 
-                { 
-                    return FileBlockStatus.NONE_FILES_IN_CURRENT_PERIOD; 
-                }
+                return result_files;
             }
             else 
             { 
-                return FileBlockStatus.FILES_DO_NOT_EXIST; 
+                Search_Status = false;
+                
+                return null;  // test realy null !!!
             }
         }
     }
@@ -117,23 +121,24 @@ namespace BackupBlock
         private protected static int types_count = protocol_types.Count;
         private const string number_capture_pattern = "^(?<number>\\d+)-";
         private readonly Func<string, Regex> protocol_type_pattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
-        private protected List<List<int>> protocol_type_numbers = new(types_count);
-
-        public List<List<int>> Protocol_type_numbers
+        
+        public List<List<int>> Protocol_Type_Numbers
         {
             get => GetProtocolTypeNumbers();
         }
 
         private List<List<int>> GetProtocolTypeNumbers() 
         {
+            List<List<int>> protocol_type_numbers = new(types_count);
+
             for (int type_index = 0; type_index < types_count; type_index++)
             {
                 IEnumerable<string> block_of_type = from file in backup_files
-                                                  where protocol_type_pattern(protocol_types[type_index]).IsMatch(file.Name)
-                                                  select file.Name;
+                                                    where protocol_type_pattern(protocol_types[type_index]).IsMatch(file.Name)
+                                                    select file.Name;
                                 
                 List<string> type_list = [.. block_of_type];            // может быть один протокол !!
-                    
+                
                 if (type_list.Count != 0)
                 {
                     List<int> numbers_of_type = GetNumbersAtType(type_list);
@@ -180,14 +185,14 @@ namespace BackupBlock
             for (int type_index = 0; type_index < types_count; type_index++)
             {
                 //int min = protocol_type_numbers[type_index].Min();
-                max_numbers.Table.Add(protocol_types[type_index], protocol_type_numbers[type_index].Max());      // если 0, то какое будет минимальное значение
+                max_numbers.Table.Add(protocol_types[type_index], Protocol_Type_Numbers[type_index].Max());      // если 0, то какое будет минимальное значение
             }
 
             return max_numbers.Table;
         }       
     }
 
-    // если январь то передать null
+    // если январь то передать null ****no
     class MissingProtocols(List<FileInfo> backup_files, Dictionary<string, int>? max_numbers_previous_period) : Protocols(backup_files)
     {
         private readonly List<string> missing_protocols = [];

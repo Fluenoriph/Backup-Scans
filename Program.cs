@@ -11,13 +11,21 @@ IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}");
 XMLConfig drives_config = new();
 const string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
 
-Console.WriteLine("\nВведите месяц:");
-string current_period = Console.ReadLine();
+//Console.WriteLine("\nВведите месяц:");
+//string current_period = Console.ReadLine();
 
-int previous_month_value = MonthValues.Table[current_period] - 1;
+FilesAtType pdf_files = new("*.pdf", "C:\\Users\\Asus machine\\Desktop\\Files\\audio-doktor 2");
 
+if (pdf_files.Received_Files != null)
+{
+    Console.WriteLine("Found PDF !");
+}
+else
+{
+    Console.WriteLine("PDF not found !");
+}
 
-RgxPattern simple_file_rgx = new(current_period, simple_file_pattern);
+/*RgxPattern simple_file_rgx = new(current_period, simple_file_pattern);
 
 if (drives_config.Drives_Ready)
 {
@@ -41,7 +49,7 @@ if (drives_config.Drives_Ready)
 
         Protocols protocols = new(backup_files.Result_Files);
 
-        foreach (var numbers in protocols.Protocol_type_numbers)
+        foreach (var numbers in protocols.Protocol_Type_Numbers)
         {
             foreach (var number in numbers)
             {  
@@ -61,7 +69,7 @@ if (drives_config.Drives_Ready)
 else
 {
     Console.WriteLine("\nNot Ready. Exit >>>");
-}
+}*/
 
 
 
