@@ -85,42 +85,63 @@ namespace BackupBlock
 
     class BackupItem(RgxPattern rgx_pattern, FileInfo[] files_found)
     {
-        public List<FileInfo>? Result_Files
-        {
-            get => GetBackupingItems();
+        public List<FileInfo>? Result_Files 
+        { 
+            get => GetBackupingItems(); 
         }
-        public bool Search_Status { get; private set; }
 
-        private List<FileInfo>? GetBackupingItems()
+        private protected IEnumerable<FileInfo> GetMatchedItems()
         {
             IEnumerable<FileInfo> backup_block = from file in files_found
-                                                  where rgx_pattern.Full_Pattern.IsMatch(file.Name)
-                                                  select file;
+                                                 where rgx_pattern.Full_Pattern.IsMatch(file.Name)
+                                                 select file;
+            return backup_block;
+        }
 
-            List<FileInfo> result_files = [.. backup_block];
+        private protected List<FileInfo>? GetBackupingItems()
+        {
+            List<FileInfo> result_files = [.. GetMatchedItems()];
 
             if (result_files.Count != 0)
             {
-                Search_Status = true;
-
                 return result_files;
             }
-            else 
-            { 
-                Search_Status = false;
-                
+            else
+            {
                 return null;  // test realy null !!!
             }
         }
     }
 
+
+    class BackupItemCalculated(RgxPattern rgx_pattern, FileInfo[] files_found) : BackupItem(rgx_pattern, files_found)
+    {
+        private int files_count;
+        public int Files_Count
+        {
+            get => files_count;
+
+            set
+            {
+                if (Result_Files != null)
+                {
+                    files_count = Result_Files.Count;
+                }
+                else
+                {
+                    files_count = 0;
+                }
+            }
+        }
+    }
+            
     // Базовый класс
     class Protocols(List<FileInfo> backup_files)
     {
         private protected static readonly List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
         private protected static int types_count = protocol_types.Count;
         private const string number_capture_pattern = "^(?<number>\\d+)-";
-        private readonly Func<string, Regex> protocol_type_pattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
+        private readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
         
         public List<List<int>> Protocol_Type_Numbers
         {
@@ -134,7 +155,7 @@ namespace BackupBlock
             for (int type_index = 0; type_index < types_count; type_index++)
             {
                 IEnumerable<string> block_of_type = from file in backup_files
-                                                    where protocol_type_pattern(protocol_types[type_index]).IsMatch(file.Name)
+                                                    where ProtocolTypePattern(protocol_types[type_index]).IsMatch(file.Name)
                                                     select file.Name;
                                 
                 List<string> type_list = [.. block_of_type];            // может быть один протокол !!
@@ -195,8 +216,6 @@ namespace BackupBlock
     // если январь то передать null ****no
     class MissingProtocols(List<FileInfo> backup_files, Dictionary<string, int>? max_numbers_previous_period) : Protocols(backup_files)
     {
-        private readonly List<string> missing_protocols = [];
-        private readonly List<string> unknown_protocols = [];
         private Dictionary<string, int> min_numbers = [];
 
         public List<string> Missing_Protocols
@@ -216,7 +235,7 @@ namespace BackupBlock
             for (int type_index = 0; type_index < types_count; type_index++)
             {
                 //int min = protocol_type_numbers[type_index].Min();
-                min_numbers.Table.Add(protocol_types[type_index], protocol_type_numbers[type_index].Min());      // если 0, то какое будет минимальное значение
+                min_numbers.Table.Add(protocol_types[type_index], Protocol_Type_Numbers[type_index].Min());      // если 0, то какое будет минимальное значение
             }
 
             return min_numbers.Table;
@@ -235,11 +254,12 @@ namespace BackupBlock
         {
             min_numbers = GetMinNumbers(); 
             Dictionary<string, int> max_numbers = GetMaxNumbers();
+            List<string> missing_protocols = [];
 
             for (int type_index = 0; type_index < types_count; type_index++)
             {
                 string current_type = protocol_types[type_index];
-                List<int> current_protocols = protocol_type_numbers[type_index];
+                List<int> current_protocols = Protocol_Type_Numbers[type_index];
 
                 if (current_protocols.Count > 2)
                 {
@@ -261,6 +281,7 @@ namespace BackupBlock
         {
             if (max_numbers_previous_period != null)
             {
+                List<string> unknown_protocols = [];
                 for (int type_index = 0; type_index < types_count; type_index++)
                 {
                     string current_type = protocol_types[type_index];
