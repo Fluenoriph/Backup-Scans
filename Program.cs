@@ -9,7 +9,7 @@ const string line = "- - - - - - - - - - - - - - -";
 IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}");
 
 XMLConfig drives_config = new();
-const string simple_file_pattern = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-";
+
 
 //Console.WriteLine("\nВведите месяц:");
 //string current_period = Console.ReadLine();
