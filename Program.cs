@@ -6,61 +6,52 @@ using Tracing;
 
 
 const string line = "- - - - - - - - - - - - - - -";
-IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}");
+IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}\n");
 
 XMLConfig drives_config = new();
 
 
-//Console.WriteLine("\nВведите месяц:");
-//string current_period = Console.ReadLine();
 
-FilesAtType pdf_files = new("*.pdf", "C:\\Users\\Asus machine\\Desktop\\Files\\audio-doktor 2");
-
-if (pdf_files.Received_Files != null)
-{
-    Console.WriteLine("Found PDF !");
-}
-else
-{
-    Console.WriteLine("PDF not found !");
-}
-
-/*RgxPattern simple_file_rgx = new(current_period, simple_file_pattern);
 
 if (drives_config.Drives_Ready)
 {
-    Console.WriteLine("\nAll Ready !!");
-
+    Console.WriteLine("\nВсе готово к копированию !");
+    
     string source_dir = drives_config.Drives[0].Directory;
 
-    BackupItem backup_files = new(simple_file_rgx, source_dir);
+    Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
+    string backup_items_type = Console.ReadLine();
 
-    if (backup_files.Search_Status == FileBlockStatus.FILES_DO_NOT_EXIST)
+    switch (backup_items_type)
     {
-        Console.WriteLine($"\nФайлов типа {simple_file_rgx.File_Type} не найдено !");
-    }
-    else if (backup_files.Search_Status == FileBlockStatus.NONE_FILES_IN_CURRENT_PERIOD)
-    {
-        Console.WriteLine($"\nЗа {current_period} протоколов не найдено !");
-    }
-    else
-    {
-        Console.WriteLine($"\nЗа {current_period} найдено {backup_files.Result_Files.Count} файлов !");
+        case "1":
+            FilesAtType pdf_files = new("*.pdf", source_dir);
 
-        Protocols protocols = new(backup_files.Result_Files);
+            if (pdf_files.Received_Files != null)
+            {
+                Console.WriteLine("\nВведите месяц, за который выполнить копирование:");
+                string current_period = Console.ReadLine();
 
-        foreach (var numbers in protocols.Protocol_Type_Numbers)
-        {
-            foreach (var number in numbers)
-            {  
-                Console.WriteLine(number); 
+                ProtocolsAnalysis block_analyzer = new(current_period, pdf_files.Received_Files);
+
+                if (block_analyzer.Result_Backup_Block != null)
+                {
+                    Console.WriteLine($"\nЗа {current_period} найдено {block_analyzer.Result_Backup_Block.Count} файлов. Можно отправлять !");
+                }
+                else
+                {
+                    Console.WriteLine($"\nЗа {current_period} ничего не найдено !");
+                }
             }
-        }
-
+            else
+            {
+                Console.WriteLine("\nНикаких файлов сканов не найдено !");
+            }
+            break;
     }
 
+    
 
-        
 
 
 
@@ -68,8 +59,8 @@ if (drives_config.Drives_Ready)
 }
 else
 {
-    Console.WriteLine("\nNot Ready. Exit >>>");
-}*/
+    Console.WriteLine("\nОшибка программы. Копирование невозможно ! Завершение работы >>");
+}
 
 
 

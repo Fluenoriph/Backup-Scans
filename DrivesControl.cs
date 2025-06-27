@@ -110,24 +110,24 @@ namespace DrivesControl
 
                     if (config_status == (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR)
                     {
-                        Console.WriteLine("\nXML Error ! Exit >>");
+                        Console.WriteLine("\nФайл настроек поврежден ! Завершение работы >>");
                         return false;
                     }
                     else if (config_status == SettingsStatus.DRIVE_CONFIG_ERROR)
                     {
-                        Console.WriteLine($"\n{drive} - Drive Config Error ! Exit >>");
+                        Console.WriteLine($"\n{drive} - ошибка конфигурации ! Завершение работы >>");
                         return false;
                     }
                     else if (config_status == SettingsStatus.DIRECTORY_ERROR)
                     {
-                        Console.WriteLine($"\n{drive}: Directory Error ! Setup New Dir ! >>>");
+                        Console.WriteLine($"\n{drive} - директория не существует ! Установите правильную >>");
                         
                         string new_path = Console.ReadLine();
                         ConfigFiles.SetupDriveDirectory(drive, new_path); // null !!
                     }
                     else
                     {
-                        Console.WriteLine($"\n{drive} OK !!!");
+                        //Console.WriteLine($"\n{drive} OK !!!");
                         continue;
                     }
                 }

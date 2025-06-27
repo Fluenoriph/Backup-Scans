@@ -175,9 +175,9 @@ namespace BackupBlock
             return numbers;
         }
 
-        public List<List<int>> GetNumbers()
+        public List<List<int>?> GetNumbers()
         {
-            List<List<int>> protocol_type_numbers = new(ISimpleProtocolTypes.types_count);
+            List<List<int>?> protocol_type_numbers = new(ISimpleProtocolTypes.types_count);
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
@@ -187,7 +187,7 @@ namespace BackupBlock
 
                 List<string> type_list = [.. type_block];            // может быть один протокол !!
 
-                if (type_list.Count != 0)
+                if (type_list.Count > 0)
                 {
                     List<int> numbers_of_type = GetNumbersType(type_list);
 
@@ -200,7 +200,8 @@ namespace BackupBlock
                 else
                 {
                     Console.WriteLine($"\nType {ISimpleProtocolTypes.protocol_types[type_index]} none");
-                    List<int> none_type = [0];
+
+                    List<int>? none_type = null;   // будет один элемент, лучше нулл
                     protocol_type_numbers.InsertRange(type_index, none_type);
                 }
             }
@@ -209,7 +210,7 @@ namespace BackupBlock
     }
 
 
-    class ExtremeNumbers(List<List<int>> protocol_type_numbers) : ISimpleProtocolTypes
+    class ExtremeNumbers(List<List<int>?> protocol_type_numbers) : ISimpleProtocolTypes
     {
         public Dictionary<string, int> GetMaxNumbers()
         {
@@ -217,8 +218,14 @@ namespace BackupBlock
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
-                //int min = protocol_type_numbers[type_index].Min();
-                max_numbers.Table.Add(ISimpleProtocolTypes.protocol_types[type_index], protocol_type_numbers[type_index].Max());      // если 0, то какое будет минимальное значение
+                if (protocol_type_numbers[type_index] != null)
+                {
+                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = protocol_type_numbers[type_index].Max();
+                }
+                else
+                {
+                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = 0;
+                }
             }
             return max_numbers.Table;
         }
@@ -229,8 +236,14 @@ namespace BackupBlock
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
-                //int min = protocol_type_numbers[type_index].Min();
-                min_numbers.Table.Add(ISimpleProtocolTypes.protocol_types[type_index], protocol_type_numbers[type_index].Min());      // если 0, то какое будет минимальное значение
+                if (protocol_type_numbers[type_index] != null)
+                {
+                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = protocol_type_numbers[type_index].Min();
+                }
+                else
+                {
+                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = 0;
+                }
             }
             return min_numbers.Table;
         }
