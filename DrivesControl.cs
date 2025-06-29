@@ -33,7 +33,7 @@ namespace DrivesControl
             // проверка директории на нулл или вообще существования
             set
             {
-                if (System.IO.Directory.Exists(value))
+                if (System.IO.Directory.Exists(value) == true)
                 {
                     directory = value;
                     Directory_Ready = true;
@@ -72,14 +72,14 @@ namespace DrivesControl
                         Directory = directory
                     };
                     // создание диска и проверка существования директории в системе
-                    if (drive.Directory_Ready == false)
-                    {
-                        return SettingsStatus.DIRECTORY_ERROR;
-                    }
-                    else
+                    if (drive.Directory_Ready == true)
                     {
                         Drives.Add(drive);
                         return SettingsStatus.DIRECTORY_INSTALLED;
+                    }
+                    else
+                    {
+                        return SettingsStatus.DIRECTORY_ERROR;
                     }
                 }
                 else
@@ -108,27 +108,30 @@ namespace DrivesControl
                 {
                     config_status = InstallDrive(drive);
 
-                    if (config_status == (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR)
+                    switch (config_status)
                     {
-                        Console.WriteLine("\nФайл настроек поврежден ! Завершение работы >>");
-                        return false;
-                    }
-                    else if (config_status == SettingsStatus.DRIVE_CONFIG_ERROR)
-                    {
-                        Console.WriteLine($"\n{drive} - ошибка конфигурации ! Завершение работы >>");
-                        return false;
-                    }
-                    else if (config_status == SettingsStatus.DIRECTORY_ERROR)
-                    {
-                        Console.WriteLine($"\n{drive} - директория не существует ! Установите правильную >>");
-                        
-                        string new_path = Console.ReadLine();
-                        ConfigFiles.SetupDriveDirectory(drive, new_path); // null !!
-                    }
-                    else
-                    {
-                        //Console.WriteLine($"\n{drive} OK !!!");
-                        continue;
+                        case SettingsStatus.DIRECTORY_INSTALLED:
+                            Console.WriteLine($"\nДиректория {drive} успешно установлена !");
+                            break;
+
+                        case SettingsStatus.DIRECTORY_ERROR:
+                            Console.WriteLine($"\n{drive} - директория не существует ! Установите правильную >>");
+
+                            string new_path = Console.ReadLine();
+                            ConfigFiles.SetupDriveDirectory(drive, new_path); // null !!
+                            break;
+
+                        case SettingsStatus.DRIVE_CONFIG_ERROR:
+                            Console.WriteLine($"\n{drive} - ошибка конфигурации ! Завершение работы >>");
+                            return false;
+
+                        case (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR:
+                            Console.WriteLine("\nФайл настроек поврежден ! Завершение работы >>");
+                            return false;
+
+                        default:
+                            Console.WriteLine("\nНеизвестная критическая ошибка !");
+                            return false;
                     }
                 }
 

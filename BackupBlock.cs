@@ -37,12 +37,10 @@ namespace BackupBlock
             ["Ноябрь"] = 11,
             ["Декабрь"] = 12
         };
-
-        public MonthValues() { }
     }
 
 
-    struct ProtocolTypes
+    struct ProtocolTypesSums
     {
         public Dictionary<string, int> Table { get; set; } = new()
         {
@@ -54,7 +52,21 @@ namespace BackupBlock
             ["ма"] = 0
         };
 
-        public ProtocolTypes() { }
+        public ProtocolTypesSums() { }
+    }
+
+
+    readonly struct ProtocolsFullNames
+    {
+        public static Dictionary<int, string> Table_Names { get; } = new()
+        {
+            [0] = "Физические факторы (Уссурийск)",
+            [1] = "Физические факторы (Арсеньев)",
+            [2] = "Радиационный контроль (Уссурийск)",
+            [3] = "Радиационный контроль (Арсеньев)",
+            [4] = "Измерения мебели (Уссурийск)",
+            [5] = "Измерения мебели (Арсеньев)"
+        };
     }
 
 
@@ -66,22 +78,23 @@ namespace BackupBlock
     }
 
 
-    struct ProtocolScan(string file_pattern, int month_value) : IRgxPattern
+    class ProtocolScanPattern(string file_pattern, int month_value) : IRgxPattern
     {
         private static readonly DateTime current_date = DateTime.Now;
         private static readonly string file_type = FileTypesPatterns.File_Types["PDF"];
-        public readonly Regex Full_Pattern
+        public Regex Full_Pattern
         {
             get => CreateFullPattern();
         }
 
-        private readonly Regex CreateFullPattern()
+        private Regex CreateFullPattern()
         {
             string full_pattern = string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$");
+            
             return new(full_pattern, RegexOptions.IgnoreCase);  
         }
 
-        readonly Regex IRgxPattern.CreateFullPattern()
+        Regex IRgxPattern.CreateFullPattern()
         {
             return CreateFullPattern();
         }
@@ -114,12 +127,11 @@ namespace BackupBlock
 
     class BackupItem(Regex pattern, FileInfo[] files_found)
     {
-        public int Files_Count { get; private set; }
         public List<FileInfo>? Result_Files 
         { 
             get => GetBackupingItems(); 
         }
-
+        
         private IEnumerable<FileInfo> GetMatchedItems()
         {
             IEnumerable<FileInfo> backup_block = from file in files_found
@@ -131,10 +143,8 @@ namespace BackupBlock
         private List<FileInfo>? GetBackupingItems()
         {
             List<FileInfo> result_files = [.. GetMatchedItems()];
-
-            Files_Count = result_files.Count;
-
-            if (Files_Count != 0)
+                        
+            if (result_files.Count != 0)
             {
                 return result_files;
             }
@@ -156,28 +166,32 @@ namespace BackupBlock
     class ProtocolTypeNumbers(List<FileInfo> backup_files) : ISimpleProtocolTypes
     {
         private const string number_capture_pattern = "^(?<number>\\d+)-";
+        private static Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
         private readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
                 
-        private static List<int> GetNumbersType(List<string> protocol_type_list)
+        private static List<int> ConvertToNumbers(List<string> protocol_type_list)
         {
             List<int> numbers = [];
 
             foreach (string protocol in protocol_type_list)              // если один протокол ??
             {
-                Match match = Regex.Match(protocol, number_capture_pattern);
+                Match match = number_capture.Match(protocol);
 
                 if (match.Success)
                 {
                     numbers.Add(Convert.ToInt32(match.Groups["number"].Value));
                 }
-                else { Console.WriteLine("\nОшибка захвата номера протокола !"); }
+                else 
+                { 
+                    Console.WriteLine("\nОшибка захвата номера протокола !"); 
+                }
             }
             return numbers;
         }
 
-        public List<List<int>?> GetNumbers()
+        public List<List<int>?> GetProtocolNumbers()
         {
-            List<List<int>?> protocol_type_numbers = new(ISimpleProtocolTypes.types_count);
+            List<List<int>?> protocol_type_numbers = [];
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
@@ -185,24 +199,27 @@ namespace BackupBlock
                                                     where ProtocolTypePattern(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
                                                     select file.Name;
 
-                List<string> type_list = [.. type_block];            // может быть один протокол !!
+                List<string> current_protocols = [.. type_block];            // может быть один протокол !!
 
-                if (type_list.Count > 0)
+                if (current_protocols.Count > 0)
                 {
-                    List<int> numbers_of_type = GetNumbersType(type_list);
+                    List<int> current_protocol_numbers = ConvertToNumbers(current_protocols);
 
-                    if (type_list.Count == numbers_of_type.Count)           // дополнительная проверка количества номеров
+                    if (current_protocols.Count == current_protocol_numbers.Count)           // дополнительная проверка количества номеров
                     {
-                        protocol_type_numbers.InsertRange(type_index, numbers_of_type);
+                        protocol_type_numbers.InsertRange(type_index, current_protocol_numbers);
                     }
-                    else { Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')"); }
+                    else 
+                    { 
+                        Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')"); 
+                    }
                 }
                 else
                 {
-                    Console.WriteLine($"\nType {ISimpleProtocolTypes.protocol_types[type_index]} none");
+                    Console.WriteLine($"\nТип {ISimpleProtocolTypes.protocol_types[type_index]} не найден");
 
-                    List<int>? none_type = null;   // будет один элемент, лучше нулл
-                    protocol_type_numbers.InsertRange(type_index, none_type);
+                    List<int>? none_protocols = null;   
+                    protocol_type_numbers.InsertRange(type_index, none_protocols);
                 }
             }
             return protocol_type_numbers;
@@ -214,13 +231,15 @@ namespace BackupBlock
     {
         public Dictionary<string, int> GetMaxNumbers()
         {
-            ProtocolTypes max_numbers = new();
+            ProtocolTypesSums max_numbers = new();
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
-                if (protocol_type_numbers[type_index] != null)
+                List<int>? current_numbers = protocol_type_numbers[type_index];
+
+                if (current_numbers != null)
                 {
-                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = protocol_type_numbers[type_index].Max();
+                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = current_numbers.Max();
                 }
                 else
                 {
@@ -232,13 +251,15 @@ namespace BackupBlock
 
         public Dictionary<string, int> GetMinNumbers()
         {
-            ProtocolTypes min_numbers = new();
+            ProtocolTypesSums min_numbers = new();
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
-                if (protocol_type_numbers[type_index] != null)
+                List<int>? current_numbers = protocol_type_numbers[type_index];
+
+                if (current_numbers != null)
                 {
-                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = protocol_type_numbers[type_index].Min();
+                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = current_numbers.Min();
                 }
                 else
                 {
@@ -247,9 +268,6 @@ namespace BackupBlock
             }
             return min_numbers.Table;
         }
-    }
-
-
-        
+    }   
 }
 

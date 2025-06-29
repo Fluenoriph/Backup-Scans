@@ -34,9 +34,23 @@ if (drives_config.Drives_Ready)
 
                 ProtocolsAnalysis block_analyzer = new(current_period, pdf_files.Received_Files);
 
-                if (block_analyzer.Result_Backup_Block != null)
+                List<FileInfo>? result_files = block_analyzer.Result_Backup_Block;
+
+                if (result_files != null)
                 {
-                    Console.WriteLine($"\nЗа {current_period} найдено {block_analyzer.Result_Backup_Block.Count} файлов. Можно отправлять !");
+                    Console.WriteLine($"\nЗа {current_period} найдено {result_files.Count} файлов. Можно отправлять !\n");
+
+                    foreach (var file in result_files)
+                    {
+                        Console.WriteLine(file.Name);
+                    }
+
+                    Console.WriteLine("\n");
+
+                    foreach (var sums in block_analyzer.Files_Sums)
+                    {
+                        Console.WriteLine($"{sums.Key} - {sums.Value}");
+                    }
                 }
                 else
                 {
