@@ -54,21 +54,7 @@ namespace BackupBlock
 
         public ProtocolTypesSums() { }
     }
-
-
-    readonly struct ProtocolsFullNames
-    {
-        public static Dictionary<int, string> Table_Names { get; } = new()
-        {
-            [0] = "Физические факторы (Уссурийск)",
-            [1] = "Физические факторы (Арсеньев)",
-            [2] = "Радиационный контроль (Уссурийск)",
-            [3] = "Радиационный контроль (Арсеньев)",
-            [4] = "Измерения мебели (Уссурийск)",
-            [5] = "Измерения мебели (Арсеньев)"
-        };
-    }
-
+         
 
     interface IRgxPattern
     {
@@ -237,7 +223,7 @@ namespace BackupBlock
             {
                 List<int>? current_numbers = protocol_type_numbers[type_index];
 
-                if (current_numbers != null)
+                if (current_numbers != null)      // если один протокол, то что мин и макс ?
                 {
                     max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = current_numbers.Max();
                 }
