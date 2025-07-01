@@ -25,7 +25,7 @@ if (drives_config.Drives_Ready)
     switch (backup_items_type)
     {
         case "1":
-            FilesAtType pdf_files = new("*.pdf", source_dir);
+            FilesOfType pdf_files = new("*.pdf", source_dir);
 
             var result_pdf_files = pdf_files.Received_Files;
 
@@ -38,7 +38,7 @@ if (drives_config.Drives_Ready)
 
                 if (current_month_value == 1)  // > 1
                 {
-                    ProtocolsAnalysis block_analyzer = new(current_month_value, result_pdf_files);
+                    SimpleProtocolsAnalysis block_analyzer = new(current_month_value, result_pdf_files);
                                         
                     List<FileInfo>? result_files = block_analyzer.Result_Backup_Block;
 
@@ -53,12 +53,12 @@ if (drives_config.Drives_Ready)
 
                         Console.WriteLine("\n");
 
-                        foreach (var sums in block_analyzer.Files_Sums)
+                        foreach (var sums in block_analyzer.Protocols_Sums)
                         {
                             Console.WriteLine($"{sums.Key} - {sums.Value}");
                         }
 
-                        MissingProtocols missing = new(block_analyzer.Protocol_Type_Numbers);
+                        /*MissingProtocols missing = new(block_analyzer.Protocol_Type_Numbers);
                         var missing_protocols = missing.Missing_Protocols;
 
                         if (missing_protocols != null)
@@ -68,7 +68,7 @@ if (drives_config.Drives_Ready)
                         else
                         {
                             Console.WriteLine("\nПропущенных нет !");
-                        }
+                        }*/
                         
                     }
                     else

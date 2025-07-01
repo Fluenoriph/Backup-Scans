@@ -50,11 +50,8 @@ namespace DrivesControl
     class XMLConfig : IDrivesConfiguration
     {
         public List<Drive> Drives { get; private set; } = [];
-        public bool Drives_Ready
-        {
-            get => PrepareToBackup();
-        }
-                    
+        public bool Drives_Ready { get => PrepareToBackup(); }
+                            
         private SettingsStatus InstallDrive(string drive_name)        
         {
             // получаем конфигурацию

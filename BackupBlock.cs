@@ -42,7 +42,7 @@ namespace BackupBlock
 
     struct ProtocolTypesSums
     {
-        public Dictionary<string, int> Table { get; set; } = new()
+        public Dictionary<string, int> Table { get; set; } = new() // не нужно !!
         {
             ["ф"] = 0,
             ["фа"] = 0,
@@ -56,11 +56,9 @@ namespace BackupBlock
     }
          
 
-    interface IRgxPattern
+    abstract class IRgxPattern
     {
-        Regex Full_Pattern { get; }
-
-        Regex CreateFullPattern();
+        public abstract Regex Full_Pattern { get; }        
     }
 
 
@@ -68,79 +66,77 @@ namespace BackupBlock
     {
         private static readonly DateTime current_date = DateTime.Now;
         private static readonly string file_type = FileTypesPatterns.File_Types["PDF"];
-        public Regex Full_Pattern
-        {
-            get => CreateFullPattern();
-        }
-
-        private Regex CreateFullPattern()
-        {
-            string full_pattern = string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$");
-            
-            return new(full_pattern, RegexOptions.IgnoreCase);  
-        }
-
-        Regex IRgxPattern.CreateFullPattern()
-        {
-            return CreateFullPattern();
-        }
+        
+        public override Regex Full_Pattern { get; } = new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);
     }
         
 
-    struct FilesAtType(string file_type, string drive_directory)
+    class FilesOfType(string file_type, string drive_directory)
     {
-        public readonly FileInfo[]? Received_Files 
+        public FileInfo[]? Received_Files 
         { 
-            get => GetAllFilesToType(); 
-        }
-
-        private readonly FileInfo[]? GetAllFilesToType()         
-        {
-            DirectoryInfo directory = new(drive_directory);
-            FileInfo[] files = directory.GetFiles(file_type);
-
-            if (files.Length != 0)
+            get
             {
-                return files;
+                DirectoryInfo directory = new(drive_directory);
+                FileInfo[] files = directory.GetFiles(file_type);
+
+                if (files.Length != 0)
+                {
+                    return files;
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
-            {
-                return null;
-            }           
+                
         }
     }
-
+                   
 
     class BackupItem(Regex pattern, FileInfo[] files_found)
     {
         public List<FileInfo>? Result_Files 
         { 
-            get => GetBackupingItems(); 
+            get
+            {
+                List<FileInfo> result_files = [.. GetMatchedItems()];
+
+                if (result_files.Count != 0)
+                {
+                    return result_files;
+                }
+                else
+                {
+                    return null;  // test realy null !!!
+                }
+            }  
         }
-        
+                
         private IEnumerable<FileInfo> GetMatchedItems()
         {
             IEnumerable<FileInfo> backup_block = from file in files_found
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
             return backup_block;
-        }
+        }        
+    }
 
-        private List<FileInfo>? GetBackupingItems()
+
+    class ProtocolScanGrabbing(string protocol_file_type, int month_value, FileInfo[] all_type_files)
+    {
+        public List<FileInfo>? Files
         {
-            List<FileInfo> result_files = [.. GetMatchedItems()];
-                        
-            if (result_files.Count != 0)
+            get
             {
-                return result_files;
-            }
-            else
-            {
-                return null;  // test realy null !!!
+                ProtocolScanPattern pattern = new(FileTypesPatterns.File_Patterns[protocol_file_type], month_value);
+                BackupItem backup_files = new(pattern.Full_Pattern, all_type_files);
+
+                return backup_files.Result_Files;
             }
         }
     }
-                      
+
 
     interface ISimpleProtocolTypes
     {
@@ -152,8 +148,8 @@ namespace BackupBlock
     class ProtocolTypeNumbers(List<FileInfo> backup_files) : ISimpleProtocolTypes
     {
         private const string number_capture_pattern = "^(?<number>\\d+)-";
-        private static Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
-        private readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
+        private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
+        private static readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
                 
         private static List<int> ConvertToNumbers(List<string> protocol_type_list)
         {
@@ -213,11 +209,17 @@ namespace BackupBlock
     }
 
 
-    class ExtremeNumbers(List<List<int>?> protocol_type_numbers) : ISimpleProtocolTypes
+    abstract class ExtremeNumbers : ISimpleProtocolTypes
     {
-        public Dictionary<string, int> GetMaxNumbers()
+        abstract public List<int> GetNumbers();
+    }
+
+
+    class MaximumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers
+    {
+        public override List<int> GetNumbers()
         {
-            ProtocolTypesSums max_numbers = new();
+            List<int> max_numbers = [];
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
@@ -225,35 +227,43 @@ namespace BackupBlock
 
                 if (current_numbers != null)      // если один протокол, то что мин и макс ?
                 {
-                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = current_numbers.Max();
+                    max_numbers[type_index] = current_numbers.Max();
                 }
                 else
                 {
-                    max_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = 0;
+                    max_numbers[type_index] = 0;
                 }
             }
-            return max_numbers.Table;
+            return max_numbers;
         }
+    }
 
-        public Dictionary<string, int> GetMinNumbers()
+
+    class MinimumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers
+    {
+        public override List<int> GetNumbers()
         {
-            ProtocolTypesSums min_numbers = new();
+            List<int> min_numbers = [];
 
             for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
             {
                 List<int>? current_numbers = protocol_type_numbers[type_index];
 
-                if (current_numbers != null)
+                if (current_numbers != null)      // если один протокол, то что мин и макс ?
                 {
-                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = current_numbers.Min();
+                    min_numbers[type_index] = current_numbers.Min();
                 }
                 else
                 {
-                    min_numbers.Table[ISimpleProtocolTypes.protocol_types[type_index]] = 0;
+                    min_numbers[type_index] = 0;
                 }
             }
-            return min_numbers.Table;
+            return min_numbers;
         }
-    }   
+    }
+
+
+
+
 }
 
