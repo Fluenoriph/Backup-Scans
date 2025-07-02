@@ -7,10 +7,12 @@ namespace BackupBlock
 {
     readonly struct FileTypesPatterns
     {
+        public static List<string> protocol_types = ["EIAS", "Simple"];
+
         public static Dictionary<string, string> File_Patterns { get; } = new()
         {
-            ["Simple"] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-",
-            ["EIAS"] = "^\\d{5}-\\d{2}-\\d{2}-"
+            [protocol_types[0]] = "^\\d{5}-\\d{2}-\\d{2}-",
+            [protocol_types[1]] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-"
         };
 
         public static Dictionary<string, string> File_Types { get; } = new()
@@ -89,7 +91,6 @@ namespace BackupBlock
                     return null;
                 }
             }
-                
         }
     }
                    
@@ -151,6 +152,45 @@ namespace BackupBlock
         private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
         private static readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
                 
+        public List<List<int>?> Numbers
+        {
+            get
+            {
+                List<List<int>?> protocol_type_numbers = [];
+
+                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
+                {
+                    IEnumerable<string> type_block = from file in backup_files
+                                                     where ProtocolTypePattern(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
+                                                     select file.Name;
+
+                    List<string> current_protocols = [.. type_block];            // может быть один протокол !!
+
+                    if (current_protocols.Count > 0)
+                    {
+                        List<int> current_protocol_numbers = ConvertToNumbers(current_protocols);
+
+                        if (current_protocols.Count == current_protocol_numbers.Count)           // дополнительная проверка количества номеров
+                        {
+                            protocol_type_numbers.InsertRange(type_index, current_protocol_numbers);
+                        }
+                        else
+                        {
+                            Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"\nТип {ISimpleProtocolTypes.protocol_types[type_index]} не найден");
+
+                        List<int>? none_protocols = null;
+                        protocol_type_numbers.InsertRange(type_index, none_protocols);
+                    }
+                }
+                return protocol_type_numbers;
+            }
+        }
+
         private static List<int> ConvertToNumbers(List<string> protocol_type_list)
         {
             List<int> numbers = [];
@@ -169,96 +209,66 @@ namespace BackupBlock
                 }
             }
             return numbers;
-        }
-
-        public List<List<int>?> GetProtocolNumbers()
-        {
-            List<List<int>?> protocol_type_numbers = [];
-
-            for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
-            {
-                IEnumerable<string> type_block = from file in backup_files
-                                                    where ProtocolTypePattern(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
-                                                    select file.Name;
-
-                List<string> current_protocols = [.. type_block];            // может быть один протокол !!
-
-                if (current_protocols.Count > 0)
-                {
-                    List<int> current_protocol_numbers = ConvertToNumbers(current_protocols);
-
-                    if (current_protocols.Count == current_protocol_numbers.Count)           // дополнительная проверка количества номеров
-                    {
-                        protocol_type_numbers.InsertRange(type_index, current_protocol_numbers);
-                    }
-                    else 
-                    { 
-                        Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')"); 
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"\nТип {ISimpleProtocolTypes.protocol_types[type_index]} не найден");
-
-                    List<int>? none_protocols = null;   
-                    protocol_type_numbers.InsertRange(type_index, none_protocols);
-                }
-            }
-            return protocol_type_numbers;
-        }
+        }        
     }
 
 
     abstract class ExtremeNumbers : ISimpleProtocolTypes
     {
-        abstract public List<int> GetNumbers();
+        abstract public List<int> Numbers { get; }
     }
 
 
     class MaximumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers
     {
-        public override List<int> GetNumbers()
-        {
-            List<int> max_numbers = [];
-
-            for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
+        public override List<int> Numbers
+        {  
+            get
             {
-                List<int>? current_numbers = protocol_type_numbers[type_index];
+                List<int> max_numbers = [];
 
-                if (current_numbers != null)      // если один протокол, то что мин и макс ?
+                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
                 {
-                    max_numbers[type_index] = current_numbers.Max();
+                    List<int>? current_numbers = protocol_type_numbers[type_index];
+
+                    if (current_numbers != null)      // если один протокол, то что мин и макс ?
+                    {
+                        max_numbers[type_index] = current_numbers.Max();
+                    }
+                    else
+                    {
+                        max_numbers[type_index] = 0;
+                    }
                 }
-                else
-                {
-                    max_numbers[type_index] = 0;
-                }
+                return max_numbers;
             }
-            return max_numbers;
-        }
+        }        
     }
 
 
     class MinimumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers
     {
-        public override List<int> GetNumbers()
+        public override List<int> Numbers
         {
-            List<int> min_numbers = [];
-
-            for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
+            get
             {
-                List<int>? current_numbers = protocol_type_numbers[type_index];
+                List<int> min_numbers = [];
 
-                if (current_numbers != null)      // если один протокол, то что мин и макс ?
+                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
                 {
-                    min_numbers[type_index] = current_numbers.Min();
+                    List<int>? current_numbers = protocol_type_numbers[type_index];
+
+                    if (current_numbers != null)      // если один протокол, то что мин и макс ?
+                    {
+                        min_numbers[type_index] = current_numbers.Min();
+                    }
+                    else
+                    {
+                        min_numbers[type_index] = 0;
+                    }
                 }
-                else
-                {
-                    min_numbers[type_index] = 0;
-                }
+                return min_numbers;
             }
-            return min_numbers;
         }
     }
 
