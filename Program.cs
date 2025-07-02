@@ -55,15 +55,16 @@ if (drives_config.Drives_Ready)
                     }
 
                     ProtocolTypeNumbers current_type_numbers = new(simple_files);
+                    var type_numb = current_type_numbers.Numbers;
 
-                    ProtocolsAnalysis analysis = new(current_type_numbers.Numbers);
+                    ProtocolsAnalysis analysis = new(type_numb);
 
                     foreach (var sums in analysis.Protocols_Sums)
                     {
                         Console.WriteLine($"{sums.Key} - {sums.Value}");
                     }
 
-                    MissingProtocols missing = new(current_type_numbers.Numbers);
+                    MissingProtocols missing = new(type_numb);
 
                     var missing_protocols = missing.Missing_Protocols;
 

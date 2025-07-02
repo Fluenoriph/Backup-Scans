@@ -233,11 +233,11 @@ namespace BackupBlock
 
                     if (current_numbers != null)      // если один протокол, то что мин и макс ?
                     {
-                        max_numbers[type_index] = current_numbers.Max();
+                        max_numbers.Insert(type_index, current_numbers.Max());
                     }
                     else
                     {
-                        max_numbers[type_index] = 0;
+                        max_numbers.Insert(type_index, 0);
                     }
                 }
                 return max_numbers;
@@ -260,11 +260,11 @@ namespace BackupBlock
 
                     if (current_numbers != null)      // если один протокол, то что мин и макс ?
                     {
-                        min_numbers[type_index] = current_numbers.Min();
+                        min_numbers.Insert(type_index, current_numbers.Min());
                     }
                     else
                     {
-                        min_numbers[type_index] = 0;
+                        min_numbers.Insert(type_index, 0);
                     }
                 }
                 return min_numbers;
