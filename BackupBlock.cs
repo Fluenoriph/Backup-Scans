@@ -7,12 +7,12 @@ namespace BackupBlock
 {
     readonly struct FileTypesPatterns
     {
-        public static List<string> protocol_types = ["EIAS", "Simple"];
+        public static List<string> protocol_file_type = ["EIAS", "Simple"];
 
         public static Dictionary<string, string> File_Patterns { get; } = new()
         {
-            [protocol_types[0]] = "^\\d{5}-\\d{2}-\\d{2}-",
-            [protocol_types[1]] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-"
+            [protocol_file_type[0]] = "^\\d{5}-\\d{2}-\\d{2}-",
+            [protocol_file_type[1]] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-"
         };
 
         public static Dictionary<string, string> File_Types { get; } = new()
@@ -24,21 +24,21 @@ namespace BackupBlock
 
     readonly struct MonthValues
     {
-        public static Dictionary<string, int> Table { get; } = new()
-        {
-            ["Январь"] = 1,
-            ["Февраль"] = 2,
-            ["Март"] = 3,
-            ["Апрель"] = 4,
-            ["Май"] = 5,
-            ["Июнь"] = 6,
-            ["Июль"] = 7,
-            ["Август"] = 8,
-            ["Сентябрь"] = 9,
-            ["Октябрь"] = 10,
-            ["Ноябрь"] = 11,
-            ["Декабрь"] = 12
-        };
+        public static List<string> month_names = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+        public static Dictionary<string, int> Table 
+        { 
+            get
+            {
+                Dictionary<string, int> table = [];
+
+                for (int value_index = 0; value_index < month_names.Count; value_index++)
+                {
+                    table.Add(month_names[value_index], value_index + 1);
+                }
+                return table;
+            }
+        }
     }
 
 
@@ -82,7 +82,7 @@ namespace BackupBlock
                 DirectoryInfo directory = new(drive_directory);
                 FileInfo[] files = directory.GetFiles(file_type);
 
-                if (files.Length != 0)
+                if (files.Length is not 0)
                 {
                     return files;
                 }
@@ -103,7 +103,7 @@ namespace BackupBlock
             {
                 List<FileInfo> result_files = [.. GetMatchedItems()];
 
-                if (result_files.Count != 0)
+                if (result_files.Count is not 0)
                 {
                     return result_files;
                 }
@@ -150,7 +150,7 @@ namespace BackupBlock
     {
         private const string number_capture_pattern = "^(?<number>\\d+)-";
         private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
-        private static readonly Func<string, Regex> ProtocolTypePattern = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
+        private static readonly Func<string, Regex> ProtocolTypeCapture = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
                 
         public List<List<int>?> Numbers
         {
@@ -161,7 +161,7 @@ namespace BackupBlock
                 for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
                 {
                     IEnumerable<string> type_block = from file in backup_files
-                                                     where ProtocolTypePattern(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
+                                                     where ProtocolTypeCapture(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
                                                      select file.Name;
 
                     List<string> current_protocols = [.. type_block];            // может быть один протокол !!

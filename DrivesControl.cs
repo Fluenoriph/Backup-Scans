@@ -33,7 +33,7 @@ namespace DrivesControl
             // проверка директории на нулл или вообще существования
             set
             {
-                if (System.IO.Directory.Exists(value) == true)
+                if (System.IO.Directory.Exists(value))
                 {
                     directory = value;
                     Directory_Ready = true;
@@ -57,12 +57,12 @@ namespace DrivesControl
             // получаем конфигурацию
             XElement? drives_config = ConfigFiles.GetDrivesConfig();
             
-            if (drives_config != null)
+            if (drives_config is not null)
             {
                 // получаем путь из диска
                 string? directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга)
                         
-                if (directory != null)
+                if (directory is not null)
                 {
                     Drive drive = new(drive_name)
                     {

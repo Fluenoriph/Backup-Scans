@@ -33,15 +33,21 @@ if (drives_config.Drives_Ready)
                 // должна быть проверка правильности ввода месяца
                 int current_month_value = MonthValues.Table[current_period];
 
+
+                // начало класса ////
                 // получаем еиас сканы
-                ProtocolScanGrabbing eias_capture = new(FileTypesPatterns.protocol_types[0], current_month_value, result_pdf_files);
+                ProtocolScanGrabbing eias_capture = new(FileTypesPatterns.protocol_file_type[0], current_month_value, result_pdf_files);
                 List<FileInfo>? eias_files = eias_capture.Files;
                 // получаем простые сканы
-                ProtocolScanGrabbing simple_capture = new(FileTypesPatterns.protocol_types[1], current_month_value, result_pdf_files);
+                ProtocolScanGrabbing simple_capture = new(FileTypesPatterns.protocol_file_type[1], current_month_value, result_pdf_files);
                 List<FileInfo>? simple_files = simple_capture.Files;
 
                 List<FileInfo> result_files = [];
 
+
+
+
+                // null result !!!
                 if (eias_files != null && simple_files != null)
                 {
                     IEnumerable<FileInfo> result = eias_files.Concat(simple_files);
@@ -76,10 +82,10 @@ if (drives_config.Drives_Ready)
                     {
                         Console.WriteLine("\nПропущенных нет !");
                     }
-                    
+                    // подкласс ??
                     if (current_month_value > 1)
                     {
-                        ProtocolScanGrabbing previous = new(FileTypesPatterns.protocol_types[1], current_month_value - 1, result_pdf_files);
+                        ProtocolScanGrabbing previous = new(FileTypesPatterns.protocol_file_type[1], current_month_value - 1, result_pdf_files);
                         
                         var previous_files = previous.Files;    
                         if (previous_files != null)

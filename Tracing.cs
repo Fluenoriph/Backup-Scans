@@ -7,9 +7,11 @@ using Logging;
 
 namespace Tracing
 {
-    readonly struct ProtocolTypeLocation
+    readonly struct ProtocolFullTypeLocation
     {
-        public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"]; // "Пропущенные в этом месяце", "Неизвестные"];
+        public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
+
+        public static List<string> not_found_sums = ["Пропущенные в этом месяце", "Неизвестные"];   //создать перед применением ??
 
         public static List<string> location_sums = ["Уссурийск всего", "Арсеньев всего"];
 
@@ -19,40 +21,93 @@ namespace Tracing
 
         public static List<string> type_full_sums = ["Физические факторы всего", "Радиационный контроль всего", "Измерения мебели всего"];
                 
-        public ProtocolTypeLocation() { }
+        public ProtocolFullTypeLocation() { }
     }
 
 
-    struct SimpleProtocolsCalculation
+    struct ProtocolsCalculation
     {
-        public Dictionary<string, int> Sums { get; set; } = new()
+        public Dictionary<string, int> Full_Sums { get; set; } = new()
         {
-            //[ProtocolTypeLocation.others_sums[0]] = 0,
-
-            //[ProtocolTypeLocation.others_sums[1]] = 0,
-            //[ProtocolTypeLocation.others_sums[2]] = 0,
-
-            //[ProtocolTypeLocation.others_sums[3]] = 0,
-            //[ProtocolTypeLocation.others_sums[4]] = 0,
-
-            [ProtocolTypeLocation.location_sums[0]] = 0,
-            [ProtocolTypeLocation.location_sums[1]] = 0,
-
-            [ProtocolTypeLocation.type_full_sums[0]] = 0,
-            [ProtocolTypeLocation.type_location_sums[0]] = 0,
-            [ProtocolTypeLocation.type_location_sums[1]] = 0,
-
-            [ProtocolTypeLocation.type_full_sums[1]] = 0,
-            [ProtocolTypeLocation.type_location_sums[2]] = 0,
-            [ProtocolTypeLocation.type_location_sums[3]] = 0,
-
-            [ProtocolTypeLocation.type_full_sums[2]] = 0,
-            [ProtocolTypeLocation.type_location_sums[4]] = 0,
-            [ProtocolTypeLocation.type_location_sums[5]] = 0
+            [ProtocolFullTypeLocation.others_sums[0]] = 0,
+            [ProtocolFullTypeLocation.others_sums[1]] = 0,
+            [ProtocolFullTypeLocation.others_sums[2]] = 0,
         };
 
-        public SimpleProtocolsCalculation() { }
+        public Dictionary<string, int> Simple_Protocols_Sums { get; set; } = new()
+        {
+            [ProtocolFullTypeLocation.location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[1]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[3]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[5]] = 0
+        };
+
+        public Dictionary<string, int> Unknown_Sums { get; set; } = new()
+        {
+            [ProtocolFullTypeLocation.others_sums[3]] = 0,
+            [ProtocolFullTypeLocation.others_sums[4]] = 0,
+        };
+
+        public ProtocolsCalculation() { }
     }
+
+
+    class BackupProcess(int month_value, FileInfo[] pdf_files)
+    {
+        private List<List<FileInfo>?> Backup_Files         // else null, then stop !!
+        {
+            get
+            {   // create a backup list [EIAS, Simple]
+                List<List<FileInfo>?> backup_files = [];
+
+                foreach (string protocol_file_type in FileTypesPatterns.protocol_file_type)
+                {
+                    ProtocolScanGrabbing protocol_file_type_capture = new(protocol_file_type, month_value, pdf_files);
+                    backup_files.AddRange(protocol_file_type_capture.Files);
+                }
+
+
+
+
+
+                return backup_files;
+            }
+        }
+
+        
+        // объект транспортировщик в бэкап ??
+
+
+        public Dictionary<string, int>? CalcSums()
+        {
+
+
+
+        }
+
+
+
+
+
+
+
+
+        
+
+    }
+
+
+
 
     // count control in backup directory
     class ProtocolsAnalysis(List<List<int>?> protocol_type_numbers) // только анализ простых
@@ -61,34 +116,33 @@ namespace Tracing
         {
             get
             {
-                SimpleProtocolsCalculation protocol_calculation = new();
                 // рассчет сумм типов протоколов и запись в словарь
+                ProtocolsCalculation protocol_calculation = new();
                 // >> рассчет всех типов и по району
-                for (int type_index = 0; type_index < ProtocolTypeLocation.type_location_sums.Count; type_index++)
+                for (int type_index = 0; type_index < ProtocolFullTypeLocation.type_location_sums.Count; type_index++)
                 {
-                    string current_protocol_type = ProtocolTypeLocation.type_location_sums[type_index];
+                    string current_protocol_type = ProtocolFullTypeLocation.type_location_sums[type_index];
                     List<int>? current_protocol_numbers = protocol_type_numbers[type_index];
 
                     if (current_protocol_numbers != null)
                     {
-                        protocol_calculation.Sums[current_protocol_type] = current_protocol_numbers.Count;
+                        protocol_calculation.Simple_Protocols_Sums[current_protocol_type] = current_protocol_numbers.Count;
                     }
                 }
-                // test !!!
                 // рассчет каждого типа всего
-                for (int type_index = 0, calc_index = 0; type_index < ProtocolTypeLocation.type_full_sums.Count; type_index++)
+                for (int type_index = 0, calc_index = 0; type_index < ProtocolFullTypeLocation.type_full_sums.Count; type_index++)
                 {
-                    protocol_calculation.Sums[ProtocolTypeLocation.type_full_sums[type_index]] = protocol_calculation.Sums[ProtocolTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Sums[ProtocolTypeLocation.type_location_sums[calc_index + 1]];
+                    protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_full_sums[type_index]] = protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 1]];
                     calc_index += 2;
                 }
                 // рассчет по району                            
-                for (int city_index = 0, calc_index = 0; city_index < ProtocolTypeLocation.location_sums.Count; city_index++)
+                for (int city_index = 0, calc_index = 0; city_index < ProtocolFullTypeLocation.location_sums.Count; city_index++)
                 {
-                    protocol_calculation.Sums[ProtocolTypeLocation.location_sums[city_index]] = protocol_calculation.Sums[ProtocolTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Sums[ProtocolTypeLocation.type_location_sums[calc_index + 2]] + protocol_calculation.Sums[ProtocolTypeLocation.type_location_sums[calc_index + 4]];
+                    protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.location_sums[city_index]] = protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 2]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 4]];
                     calc_index += 1;
                 }
 
-                return protocol_calculation.Sums;
+                return protocol_calculation.Simple_Protocols_Sums;
             }
         }
     }
