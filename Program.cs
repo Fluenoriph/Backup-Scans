@@ -26,7 +26,7 @@ if (drives_config.Drives_Ready)
 
             var result_pdf_files = pdf_files.Received_Files;
 
-            if (result_pdf_files != null)
+            /*if (result_pdf_files != null)
             {
                 Console.WriteLine("\nВведите месяц, за который выполнить копирование:");
                 string current_period = Console.ReadLine();
@@ -60,15 +60,22 @@ if (drives_config.Drives_Ready)
                         Console.WriteLine(file.Name);
                     }
 
+
+
+
                     ProtocolTypeNumbers current_type_numbers = new(simple_files);
                     var type_numb = current_type_numbers.Numbers;
 
                     ProtocolsAnalysis analysis = new(type_numb);
 
+
+
                     foreach (var sums in analysis.Protocols_Sums)
                     {
                         Console.WriteLine($"{sums.Key} - {sums.Value}");
                     }
+
+
 
                     MissingProtocols missing = new(type_numb);
 
@@ -82,6 +89,12 @@ if (drives_config.Drives_Ready)
                     {
                         Console.WriteLine("\nПропущенных нет !");
                     }
+
+
+
+
+
+
                     // подкласс ??
                     if (current_month_value > 1)
                     {
@@ -127,7 +140,7 @@ if (drives_config.Drives_Ready)
             else
             {
                 Console.WriteLine("\nНикаких файлов сканов не найдено !");
-            }
+            }*/
             break;
     }
 

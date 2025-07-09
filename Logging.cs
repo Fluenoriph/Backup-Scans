@@ -39,7 +39,7 @@ namespace Logging
         
     }
 
-
+    // no need ????
     class MaxNumbersPerMonth(int month_value)
     {
         private readonly List<string> items = ["F", "FA", "R", "RA", "M", "MA"];
@@ -50,7 +50,7 @@ namespace Logging
         {
             XDocument xdoc = null;
 
-            XElement? config = xdoc.Element("configuration");     // bad tag directory - exception !
+            XElement? config = xdoc.Element("configuration");     // bad tag Directory - exception !
             XElement? numbers = config?.Element("max_numbers");
 
             if ((config is not null) & (numbers is not null)) 

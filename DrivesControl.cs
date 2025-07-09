@@ -13,45 +13,95 @@ namespace DrivesControl
     }
 
 
-    interface IDrivesConfiguration
+    readonly struct DrivesConfiguration
     {
-        static List<string> drive_type = ["SOURCE", "DESTINATION"];
-
-        SettingsStatus InstallDrive(string drive_name);
-        bool PrepareToBackup();
+        public static readonly List<string> drive_type = ["SOURCE", "DESTINATION"];
     }
 
 
-    struct Drive(string type)
+    readonly struct Drive(string type, string dir)
     {
-        private string? directory;
-        public string Name { get; } = type;           
-        public bool Directory_Ready { get; private set; }
-        public string Directory
-        {
-            readonly get => directory ?? "NULL_DIRECTORY";  // " "
-            // проверка директории на нулл или вообще существования
-            set
-            {
-                if (System.IO.Directory.Exists(value))
+        public string Name { get; } = type;
+        public readonly string Directory { get; } = dir;       
+        public readonly bool Directory_Exist 
+        { 
+            get
+            {   // проверка существования директории в системе
+                if (System.IO.Directory.Exists(Directory))
                 {
-                    directory = value;
-                    Directory_Ready = true;
+                    return true;
                 }
-                else 
-                { 
-                    Directory_Ready = false; 
+                else
+                {
+                    return false;
                 }
             }
         }
     }
 
 
-    class XMLConfig : IDrivesConfiguration
+    class XMLConfig
     {
         public List<Drive> Drives { get; private set; } = [];
-        public bool Drives_Ready { get => PrepareToBackup(); }
-                            
+        public bool Drives_Ready { get; private set; }
+                         
+        public XMLConfig()
+        {
+            // получаем конфигурацию
+            XElement? drives_config = ConfigFiles.GetDrivesConfig();
+
+            if (drives_config is not null)
+            {
+                foreach (string drive in DrivesConfiguration.drive_type)
+                {
+                    SettingsStatus config_status = SettingsStatus.UNKNOWN;
+
+                    do
+                    {
+
+
+
+
+                    } while (config_status == SettingsStatus.DIRECTORY_ERROR);
+
+
+                }
+
+
+
+
+
+                // получаем путь из диска
+                string? directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга)
+
+                if (directory is not null)
+                {
+                    Drive drive = new(drive_name, directory);
+                    // создание диска и проверка существования директории в системе
+                    if (drive.Directory_Exist)
+                    {
+                        Drives.Add(drive);
+                        return SettingsStatus.DIRECTORY_INSTALLED;
+                    }
+                    else
+                    {
+                        return SettingsStatus.DIRECTORY_ERROR;
+                    }
+                }
+                else
+                {
+                    return SettingsStatus.DRIVE_CONFIG_ERROR;
+                }
+            }
+            else
+            {
+                return (SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR;
+            }
+
+
+        }
+
+
         private SettingsStatus InstallDrive(string drive_name)        
         {
             // получаем конфигурацию
@@ -64,12 +114,11 @@ namespace DrivesControl
                         
                 if (directory is not null)
                 {
-                    Drive drive = new(drive_name)
-                    {
-                        Directory = directory
-                    };
+
+                    // method
+                    Drive drive = new(drive_name, directory);   // проверить отдельно директорию
                     // создание диска и проверка существования директории в системе
-                    if (drive.Directory_Ready == true)
+                    if (drive.Directory_Exist)
                     {
                         Drives.Add(drive);
                         return SettingsStatus.DIRECTORY_INSTALLED;
@@ -90,10 +139,10 @@ namespace DrivesControl
             }
         }
 
-        SettingsStatus IDrivesConfiguration.InstallDrive(string drive_name)
-        {
-            return InstallDrive(drive_name);
-        }
+        
+
+
+
 
         private bool PrepareToBackup()
         {

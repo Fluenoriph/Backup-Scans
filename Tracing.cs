@@ -62,9 +62,21 @@ namespace Tracing
     }
 
 
+    class FileTransfer(List<FileInfo> backup_files, string backup_directory)
+    {
+
+
+
+
+
+    }
+
+
+
+
     class BackupProcess(int month_value, FileInfo[] pdf_files)
     {
-        private List<List<FileInfo>?> Backup_Files         // else null, then stop !!
+        private List<List<FileInfo>?>? Backup_Files         // else null, then stop !!
         {
             get
             {   // create a backup list [EIAS, Simple]
@@ -76,25 +88,27 @@ namespace Tracing
                     backup_files.AddRange(protocol_file_type_capture.Files);
                 }
 
-
-
-
-
-                return backup_files;
+                if ((backup_files[0] == null) && (backup_files[1] == null))
+                {
+                    return null; // ???
+                }
+                else
+                {
+                    return backup_files;
+                }  
             }
         }
+
+
+
+
+
 
         
         // объект транспортировщик в бэкап ??
 
 
-        public Dictionary<string, int>? CalcSums()
-        {
-
-
-
-        }
-
+        
 
 
 
@@ -109,7 +123,7 @@ namespace Tracing
 
 
 
-    // count control in backup directory
+    // count control in backup Directory
     class ProtocolsAnalysis(List<List<int>?> protocol_type_numbers) // только анализ простых
     {
         public Dictionary<string, int> Protocols_Sums
