@@ -10,8 +10,7 @@ IO_Console.Out_info($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}\n");
 
 XMLConfig drives_config = new();
 
-if (drives_config.Drives_Ready)
-{
+
     Console.WriteLine("\nВсе готово к копированию !");
     
     string source_dir = drives_config.Drives[0].Directory;
@@ -150,11 +149,6 @@ if (drives_config.Drives_Ready)
 
 
 
-}
-else
-{
-    Console.WriteLine("\nОшибка программы. Копирование невозможно ! Завершение работы >>");
-}
 
 
 

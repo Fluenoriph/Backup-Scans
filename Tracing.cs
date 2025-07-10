@@ -33,25 +33,7 @@ namespace Tracing
             [ProtocolFullTypeLocation.others_sums[1]] = 0,
             [ProtocolFullTypeLocation.others_sums[2]] = 0,
         };
-
-        public Dictionary<string, int> Simple_Protocols_Sums { get; set; } = new()
-        {
-            [ProtocolFullTypeLocation.location_sums[0]] = 0,
-            [ProtocolFullTypeLocation.location_sums[1]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[0]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[0]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[1]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[1]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[2]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[3]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[2]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[5]] = 0
-        };
-
+                
         public Dictionary<string, int> Unknown_Sums { get; set; } = new()
         {
             [ProtocolFullTypeLocation.others_sums[3]] = 0,
@@ -62,11 +44,16 @@ namespace Tracing
     }
 
 
-    class FileTransfer(List<FileInfo> backup_files, string backup_directory)
+    class FileTransfer(List<FileInfo> backup_files)
     {
+        private readonly List<FileInfo> files = backup_files;
+
+        public void CopyBackupFiles(string target_directory)
+        {
 
 
 
+        }
 
 
     }
@@ -74,7 +61,7 @@ namespace Tracing
 
 
 
-    class BackupProcess(int month_value, FileInfo[] pdf_files)
+    /*class BackupProcess(int month_value, FileInfo[] pdf_files)
     {
         private List<List<FileInfo>?>? Backup_Files         // else null, then stop !!
         {
@@ -97,7 +84,7 @@ namespace Tracing
                     return backup_files;
                 }  
             }
-        }
+        }*/
 
 
 
@@ -112,92 +99,100 @@ namespace Tracing
 
 
 
+         
 
-
-
-
-        
-
-    }
+    
 
 
 
 
     // count control in backup Directory
-    class ProtocolsAnalysis(List<List<int>?> protocol_type_numbers) // только анализ простых
+    class ProtocolsAnalysis // только анализ простых
     {
-        public Dictionary<string, int> Protocols_Sums
+        public Dictionary<string, int> Simple_Protocols_Sums { get; set; } = new()
         {
-            get
+            [ProtocolFullTypeLocation.location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[1]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[3]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[5]] = 0
+        };
+
+        public ProtocolsAnalysis(List<List<int>?> protocol_type_numbers)
+        {
+            // рассчет сумм типов протоколов и запись в словарь
+            // >> рассчет всех типов и по району
+            for (int type_index = 0; type_index < ProtocolFullTypeLocation.type_location_sums.Count; type_index++)
             {
-                // рассчет сумм типов протоколов и запись в словарь
-                ProtocolsCalculation protocol_calculation = new();
-                // >> рассчет всех типов и по району
-                for (int type_index = 0; type_index < ProtocolFullTypeLocation.type_location_sums.Count; type_index++)
-                {
-                    string current_protocol_type = ProtocolFullTypeLocation.type_location_sums[type_index];
-                    List<int>? current_protocol_numbers = protocol_type_numbers[type_index];
+                string current_protocol_type = ProtocolFullTypeLocation.type_location_sums[type_index];
+                List<int>? current_protocol_numbers = protocol_type_numbers[type_index];
 
-                    if (current_protocol_numbers != null)
-                    {
-                        protocol_calculation.Simple_Protocols_Sums[current_protocol_type] = current_protocol_numbers.Count;
-                    }
-                }
-                // рассчет каждого типа всего
-                for (int type_index = 0, calc_index = 0; type_index < ProtocolFullTypeLocation.type_full_sums.Count; type_index++)
+                if (current_protocol_numbers != null)
                 {
-                    protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_full_sums[type_index]] = protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 1]];
-                    calc_index += 2;
+                    Simple_Protocols_Sums[current_protocol_type] = current_protocol_numbers.Count;
                 }
-                // рассчет по району                            
-                for (int city_index = 0, calc_index = 0; city_index < ProtocolFullTypeLocation.location_sums.Count; city_index++)
-                {
-                    protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.location_sums[city_index]] = protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 2]] + protocol_calculation.Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 4]];
-                    calc_index += 1;
-                }
-
-                return protocol_calculation.Simple_Protocols_Sums;
             }
-        }
+            // рассчет каждого типа всего
+            for (int type_index = 0, calc_index = 0; type_index < ProtocolFullTypeLocation.type_full_sums.Count; type_index++)
+            {
+                Simple_Protocols_Sums[ProtocolFullTypeLocation.type_full_sums[type_index]] = Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 1]];
+                calc_index += 2;
+            }
+            // рассчет по району                            
+            for (int city_index = 0, calc_index = 0; city_index < ProtocolFullTypeLocation.location_sums.Count; city_index++)
+            {
+                Simple_Protocols_Sums[ProtocolFullTypeLocation.location_sums[city_index]] = Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 2]] + Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 4]];
+                calc_index += 1;
+            }
+        }   
     }
 
 
-    class MissingProtocols(List<List<int>?> type_numbers) : ISimpleProtocolTypes
+    class MissingProtocols 
     {
+        private readonly List<string> missing_protocols = [];
         public List<int> Min_Numbers { get; private set; } = [];
+        
+        public MissingProtocols(List<List<int>?> type_numbers)
+        {
+            MinimumNumbers extreme_min = new(type_numbers);
+            Min_Numbers = extreme_min.Numbers;
+
+            MaximumNumbers extreme_max = new(type_numbers);
+            List<int> max_numbers = extreme_max.Numbers;
+
+            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+            {
+                List<int>? current_protocols = type_numbers[type_index];
+
+                if ((current_protocols is not null) && (current_protocols.Count >= 2))
+                {
+                    List<int> range = CreateRange(Min_Numbers[type_index], max_numbers[type_index]);
+
+                    IEnumerable<int> missing = range.Except(current_protocols);
+                    List<int> missing_numbers = [.. missing];
+
+                    foreach (int number in missing_numbers)
+                    {
+                        missing_protocols.Add($"{number}-{SimpleProtocolTypes.protocol_types[type_index]}");
+                    }
+                }
+            }
+        }
+
         public List<string>? Missing_Protocols
         {
             get
             {
-                MinimumNumbers extreme_min = new(type_numbers);
-                Min_Numbers = extreme_min.Numbers;
-
-                MaximumNumbers extreme_max = new(type_numbers);
-                List<int> max_numbers = extreme_max.Numbers;
-
-                List<string> missing_protocols = [];
-
-                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
-                {
-                    List<int>? current_protocols = type_numbers[type_index];
-
-                    if (current_protocols != null)
-                    {
-                        if (current_protocols.Count >= 2)
-                        {
-                            List<int> range = CreateRange(Min_Numbers[type_index], max_numbers[type_index]);
-
-                            IEnumerable<int> missing = range.Except(current_protocols);
-                            List<int> missing_numbers = [.. missing];
-
-                            foreach (int number in missing_numbers)
-                            {
-                                missing_protocols.Add($"{number}-{ISimpleProtocolTypes.protocol_types[type_index]}");
-                            }
-                        }
-                    }
-                }
-
                 if (missing_protocols.Count > 0)
                 {
                     return missing_protocols;
@@ -206,9 +201,9 @@ namespace Tracing
                 {
                     return null;
                 }
-            }    
+            }
         }
-
+            
         private static List<int> CreateRange(int start, int end)
         {
             List<int> range = [];
@@ -220,32 +215,35 @@ namespace Tracing
     }
 
 
-    class UnknownProtocols(List<int> previous_max_numbers, List<int> current_min_numbers)
+    class UnknownProtocols
     {
+        private readonly List<string> unknown_protocols = [];
+
+        public UnknownProtocols(List<int> previous_max_numbers, List<int> current_min_numbers)
+        {
+            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+            {
+                string current_type = SimpleProtocolTypes.protocol_types[type_index];
+
+                int min_number = previous_max_numbers[type_index];
+                int max_number = current_min_numbers[type_index];
+
+                bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
+
+                if (unknowns_ok)
+                {
+                    for (int start_num = min_number + 1; start_num < max_number; start_num++)     // если один протокол ??
+                    {
+                        unknown_protocols.Add($"{start_num}-{current_type}");
+                    }
+                }
+            }
+        }
+
         public List<string>? Unknown_Protocols
         {
             get
-            {
-                List<string> unknown_protocols = [];
-
-                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
-                {
-                    string current_type = ISimpleProtocolTypes.protocol_types[type_index];
-
-                    int min_number = previous_max_numbers[type_index];
-                    int max_number = current_min_numbers[type_index];
-
-                    bool unknowns_ok = (min_number < max_number) & ((max_number - 1) != min_number);
-
-                    if (unknowns_ok == true)
-                    {
-                        for (int start_num = min_number + 1; start_num < max_number; start_num++)     // если один протокол ??
-                        {
-                            unknown_protocols.Add($"{start_num}-{current_type}");
-                        }
-                    }
-                }
-                                
+            {                
                 if (unknown_protocols.Count > 0)
                 {
                     return unknown_protocols;
@@ -257,16 +255,4 @@ namespace Tracing
             }
         }
     }
-
-        
-
-
-
-
-
-
-
-
-
-
 }

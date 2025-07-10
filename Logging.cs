@@ -16,7 +16,7 @@ namespace Logging
         public static XElement? GetDrivesConfig()
         {
             XDocument doc = XDocument.Load(drives_config_file);
-            return doc.Element("configuration");                    // если повреждение тэга, то исключение, если просто другое имя то 'null'
+            return doc.Element("configuration");                    // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
         }
 
         public static void SetupDriveDirectory(string drive_name, string path)

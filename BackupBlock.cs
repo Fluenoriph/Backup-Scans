@@ -24,39 +24,17 @@ namespace BackupBlock
 
     readonly struct MonthValues
     {
-        public static List<string> month_names = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-
-        public static Dictionary<string, int> Table 
-        { 
-            get
+        public static List<string> Month_Names { get; } = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        public static Dictionary<string, int> Table { get; set; } = [];
+        public MonthValues()
+        {
+            for (int value_index = 0; value_index < Month_Names.Count; value_index++)
             {
-                Dictionary<string, int> table = [];
-
-                for (int value_index = 0; value_index < month_names.Count; value_index++)
-                {
-                    table.Add(month_names[value_index], value_index + 1);
-                }
-                return table;
+                Table.Add(Month_Names[value_index], value_index + 1);
             }
         }
     }
-
-
-    struct ProtocolTypesSums
-    {
-        public Dictionary<string, int> Table { get; set; } = new() // не нужно ???
-        {
-            ["ф"] = 0,
-            ["фа"] = 0,
-            ["р"] = 0,
-            ["ра"] = 0,
-            ["м"] = 0,
-            ["ма"] = 0
-        };
-
-        public ProtocolTypesSums() { }
-    }
-               
+                      
 
     abstract class RgxPattern
     {
@@ -157,26 +135,26 @@ namespace BackupBlock
     }*/
 
 
-    interface ISimpleProtocolTypes
+    struct SimpleProtocolTypes
     {
-        static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
-        static int types_count = protocol_types.Count;
+        public static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
+        public static int types_count = protocol_types.Count;
     }
 
 
-    class ProtocolTypeNumbers : ISimpleProtocolTypes
+    class ProtocolTypeNumbers 
     {
         private const string number_capture_pattern = "^(?<number>\\d+)-";
         private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
         private static readonly Func<string, Regex> ProtocolTypeCapture = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
-        private readonly List<List<int>?> numbers = [];
+        public List<List<int>?> Numbers { get; private set; } = [];
 
         public ProtocolTypeNumbers(List<FileInfo> backup_files)
         {
-            for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
+            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
             {
                 IEnumerable<string> type_block = from file in backup_files
-                                                 where ProtocolTypeCapture(ISimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
+                                                 where ProtocolTypeCapture(SimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
                                                  select file.Name;
 
                 List<string> current_protocols = [.. type_block];            // может быть один протокол !!
@@ -187,7 +165,7 @@ namespace BackupBlock
 
                     if (current_protocols.Count == current_protocol_numbers.Count)           // дополнительная проверка количества номеров
                     {
-                        numbers.InsertRange(type_index, current_protocol_numbers);
+                        Numbers.InsertRange(type_index, current_protocol_numbers);
                     }
                     else
                     {
@@ -196,19 +174,14 @@ namespace BackupBlock
                 }
                 else
                 {
-                    Console.WriteLine($"\nТип {ISimpleProtocolTypes.protocol_types[type_index]} не найден");
+                    Console.WriteLine($"\nТип {SimpleProtocolTypes.protocol_types[type_index]} не найден");
 
                     List<int>? none_protocols = null;
-                    numbers.InsertRange(type_index, none_protocols);
+                    Numbers.InsertRange(type_index, none_protocols);
                 }
             }
         }
-
-        public List<List<int>?> Numbers
-        {
-            get => numbers;
-        }
-
+                
         private static List<int> ConvertToNumbers(List<string> protocol_type_list)
         {
             List<int> numbers = [];
@@ -231,7 +204,7 @@ namespace BackupBlock
     }
 
 
-    abstract class ExtremeNumbers(List<List<int>?> protocol_type_numbers) : ISimpleProtocolTypes
+    abstract class ExtremeNumbers(List<List<int>?> protocol_type_numbers) 
     {
         private readonly List<int> numbers = [];
         private protected abstract int GetExtremeNumber(List<int> current_numbers);
@@ -240,7 +213,7 @@ namespace BackupBlock
         {
             get
             {
-                for (int type_index = 0; type_index < ISimpleProtocolTypes.types_count; type_index++)
+                for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
                 {
                     List<int>? current_numbers = protocol_type_numbers[type_index];
 
