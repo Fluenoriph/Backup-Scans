@@ -33,79 +33,66 @@ namespace BackupBlock
                 Table.Add(Month_Names[value_index], value_index + 1);
             }
         }
-    }
-                      
+    }              
+    
 
-    abstract class RgxPattern
-    {
-        public abstract Regex Full_Pattern { get; }
-    }
-
-
-    class ProtocolScanPattern(string file_pattern, int month_value) : RgxPattern
+    class ProtocolScanPattern(int month_value)
     {
         private static readonly DateTime current_date = DateTime.Now;
         private static readonly string file_type = FileTypesPatterns.File_Types["PDF"];
 
-        public override Regex Full_Pattern { get; } = new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);
+        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);        
     }
         
 
-    class FilesOfType 
+    abstract class BackupFilesType 
     {
-        private readonly FileInfo[] received_files;
+        private protected readonly FileInfo[] files;
 
-        public FilesOfType(string file_type, string drive_directory)
+        public BackupFilesType(string file_type, string drive_directory)
         {
             DirectoryInfo directory = new(drive_directory);
-            received_files = directory.GetFiles(file_type);
+            files = directory.GetFiles(file_type);
         }
 
-        public FileInfo[]? Received_Files 
+        public bool Found_Status 
         { 
             get
             {
-                if (received_files.Length is not 0)
+                if (files.Length is not 0)
                 {
-                    Console.WriteLine("\nPDF Found !!");
-                    return received_files;
+                    return true;
                 }
                 else
                 {
-                    return null;
+                    return false;
                 }
             }
-        }   
+        }
+
+        public abstract List<FileInfo> GetResultFiles(Regex pattern);
     }
                    
 
-    class BackupItem
+    class PdfFiles(string file_type, string drive_directory) : BackupFilesType(file_type, drive_directory)
     {
-        private readonly List<FileInfo> result_files;
-
-        public BackupItem(Regex pattern, FileInfo[] files_found)
+        public override List<FileInfo> GetResultFiles(Regex pattern)
         {
-            IEnumerable<FileInfo> backup_block = from file in files_found
+            IEnumerable<FileInfo> backup_block = from file in files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
 
-            result_files = [.. backup_block];
-        }
+            return [.. backup_block];
 
-        public List<FileInfo>? Result_Files 
-        { 
-            get
+            /*if (result_files.Count is not 0)
             {
-                if (result_files.Count is not 0)
-                {
-                    return result_files;
-                }
-                else
-                {
-                    return null;  
-                }
-            }  
-        }       
+                return result_files;
+            }
+            else
+            {
+                return null;
+            }*/
+        }      
     }
 
     // method !!!!!!

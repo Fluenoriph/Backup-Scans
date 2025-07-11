@@ -25,7 +25,7 @@ namespace Tracing
     }
 
 
-    struct ProtocolsCalculation
+    struct ProtocolsCalculation   // no need ????
     {
         public Dictionary<string, int> Full_Sums { get; set; } = new()
         {
@@ -47,65 +47,21 @@ namespace Tracing
     class FileTransfer(List<FileInfo> backup_files)
     {
         private readonly List<FileInfo> files = backup_files;
-
-        public void CopyBackupFiles(string target_directory)
+          
+        public int CopyBackupFiles(string target_directory) // month dir
         {
+            int files_count = 0;
 
-
-
-        }
-
-
-    }
-
-
-
-
-    /*class BackupProcess(int month_value, FileInfo[] pdf_files)
-    {
-        private List<List<FileInfo>?>? Backup_Files         // else null, then stop !!
-        {
-            get
-            {   // create a backup list [EIAS, Simple]
-                List<List<FileInfo>?> backup_files = [];
-
-                foreach (string protocol_file_type in FileTypesPatterns.protocol_file_type)
-                {
-                    ProtocolScanGrabbing protocol_file_type_capture = new(protocol_file_type, month_value, pdf_files);
-                    backup_files.AddRange(protocol_file_type_capture.Files);
-                }
-
-                if ((backup_files[0] == null) && (backup_files[1] == null))
-                {
-                    return null; // ???
-                }
-                else
-                {
-                    return backup_files;
-                }  
+            for (int file_index = 0; file_index < files.Count; file_index++)
+            {
+                var new_file = files[file_index].CopyTo(target_directory, true);
+                Console.WriteLine($"\n{new_file.FullName} успешно скопирован !");
+                files_count++;
             }
-        }*/
-
-
-
-
-
-
+            return files_count;
+        }
+    }
         
-        // объект транспортировщик в бэкап ??
-
-
-        
-
-
-
-         
-
-    
-
-
-
-
     // count control in backup Directory
     class ProtocolsAnalysis // только анализ простых
     {
@@ -193,7 +149,7 @@ namespace Tracing
         {
             get
             {
-                if (missing_protocols.Count > 0)
+                if (missing_protocols.Count is not 0)
                 {
                     return missing_protocols;
                 }
@@ -244,7 +200,7 @@ namespace Tracing
         {
             get
             {                
-                if (unknown_protocols.Count > 0)
+                if (unknown_protocols.Count is not 0)
                 {
                     return unknown_protocols;
                 }

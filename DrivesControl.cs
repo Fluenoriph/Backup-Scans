@@ -4,7 +4,7 @@ using Logging;
 
 namespace DrivesControl
 {
-    enum SettingsStatus
+    enum SettingsStatus   // is's need, if write to log_error_file
     {
         UNKNOWN,
         DRIVE_CONFIG_ERROR,
@@ -22,7 +22,7 @@ namespace DrivesControl
     class Drive(string type)
     {
         public string Name { get; } = type;
-        public string? Directory { get; set; }
+        public string Directory { get; set; } = "";
         public bool Directory_Exist
         {
             get
@@ -102,6 +102,8 @@ namespace DrivesControl
 
                 } while (dir_status == false);
             }
+
+            Console.WriteLine("\nВсе готово к копированию !");
         }
     }
 }
