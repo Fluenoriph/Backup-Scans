@@ -11,157 +11,123 @@ Console.WriteLine($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}\n");
 XMLConfig drives_config = new();
 
 string source_dir = drives_config.Drives[0].Directory;
-string destination_dir = drives_config.Drives[1].Directory;
+//string destination_dir = drives_config.Drives[1].Directory;
 
 Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
 string backup_items_type = Console.ReadLine();   // отдельный класс для проверки пустой строки
 
 switch (backup_items_type)
 { 
-    // может быть это отдельный метод ??
+    
     case "1":
-        BackupFilesType pdf_files = new(FileTypesPatterns.File_Types["PDF"], source_dir);
-        var result_pdf_files = pdf_files.Found_Status;
+        PdfFiles pdf_files = new(FileTypesPatterns.file_types["PDF"], source_dir);
 
-        if (result_pdf_files is not null)
+        if (pdf_files.Found_Status)
         {
+            Dictionary<string, int> all_protocols_sums = new()    // class field ???
+            {
+                [ProtocolFullTypeLocation.others_sums[0]] = 0, // всего
+                [ProtocolFullTypeLocation.others_sums[1]] = 0, // еиас
+                [ProtocolFullTypeLocation.others_sums[2]] = 0,   // простые
+            };
+
             Console.WriteLine("\nPDF IS OK !!!");
             Console.WriteLine("\nВведите месяц, за который выполнить копирование:");
             // должна быть проверка правильности ввода месяца
             string current_period = Console.ReadLine();
             int current_month_value = MonthValues.Table[current_period];
+            ///////////
+            ProtocolScanPattern protocol_pattern = new();
+            ProtocolScanPattern.Month_Value = current_month_value;
 
-            ProtocolScanPattern protocol_pattern = new(current_month_value);
-            BackupItem protocol_files = new(result_pdf_files);
-            // получаем еиас сканы
+            // инициализация сканов
+            List<List<FileInfo>?> backup_block = [];
 
-
-
-
-
-
-        }
-        else
-        {
-            Console.WriteLine("\nPDF NOT FOUND !!");
-        }
-
-
-            break;
-        /*if (result_pdf_files != null)
-        {
-            
-            
-            
-
-
-            // начало класса ////
-            
-            ProtocolScanGrabbing eias_capture = new(FileTypesPatterns.protocol_file_type[0], current_month_value, result_pdf_files);
-            List<FileInfo>? eias_files = eias_capture.Files;
-            // получаем простые сканы
-            ProtocolScanGrabbing simple_capture = new(FileTypesPatterns.protocol_file_type[1], current_month_value, result_pdf_files);
-            List<FileInfo>? simple_files = simple_capture.Files;
-
-            List<FileInfo> result_files = [];
-
-
-
-
-            // null result !!!
-            if (eias_files != null && simple_files != null)
+            for (int protocol_type_index = 0; protocol_type_index < FileTypesPatterns.protocol_file_type.Count; protocol_type_index++)
             {
-                IEnumerable<FileInfo> result = eias_files.Concat(simple_files);
-                // соединяем результат
-                result_files = [.. result];
-                // записать в словарь !!!
-                Console.WriteLine($"\nЗа {current_period} найдено {result_files.Count} файлов. Можно отправлять !\n");
-                foreach (var file in result_files)
+                Regex type_pattern = protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[protocol_type_index]]);
+                List<FileInfo>? files = pdf_files.GrabMatchedFiles(type_pattern);
+
+                backup_block.AddRange(files);
+                
+                if (files is not null)
                 {
-                    Console.WriteLine(file.Name);
+                    all_protocols_sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = files.Count;
+                    all_protocols_sums[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
                 }
+            }
+            //////------------------------------------------
+            // это отдельное вообще
+            if (backup_block[1] is not null)
+            {
+                ProtocolTypeNumbers current_type_numbers = new(backup_block[1]);
+                //var numbers = type_numbers.Numbers;
+                ////
+                ProtocolsAnalysis protocols_analysis = new(current_type_numbers.Numbers);
 
-
-
-
-                ProtocolTypeNumbers current_type_numbers = new(simple_files);
-                var type_numb = current_type_numbers.Numbers;
-
-                ProtocolsAnalysis analysis = new(type_numb);
-
-
-
-                foreach (var sums in analysis.Protocols_Sums)
+                foreach (var item in protocols_analysis.Simple_Protocols_Sums)
                 {
-                    Console.WriteLine($"{sums.Key} - {sums.Value}");
+                    all_protocols_sums.Add(item.Key, item.Value);
                 }
+                //////
+                MissingProtocols missing_protocols = new(current_type_numbers.Numbers);
 
-
-
-                MissingProtocols missing = new(type_numb);
-
-                var missing_protocols = missing.Missing_Protocols;
-
-                if (missing_protocols != null)
+                if (missing_protocols.Missing_Protocols is not null)
                 {
-                    Console.WriteLine($"\nПропущенных - {missing_protocols.Count}");
+                    all_protocols_sums.Add(ProtocolFullTypeLocation.not_found_sums[0], missing_protocols.Missing_Protocols.Count);
                 }
-                else
+                ////// 
+                if (current_month_value is not 1)
                 {
-                    Console.WriteLine("\nПропущенных нет !");
-                }
-
-
-
-
-
-
-                // подкласс ??
-                if (current_month_value > 1)
-                {
-                    ProtocolScanGrabbing previous = new(FileTypesPatterns.protocol_file_type[1], current_month_value - 1, result_pdf_files);
-
-                    var previous_files = previous.Files;    
-                    if (previous_files != null)
+                    ProtocolScanPattern.Month_Value = current_month_value - 1;
+                    Regex previous_period_pattern = protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]]);
+                    List<FileInfo>? previous_period_files = pdf_files.GrabMatchedFiles(previous_period_pattern);
+                    ///////
+                    if (previous_period_files is not null)
                     {
-                        ProtocolTypeNumbers previous_type_numbers = new(previous_files);
-                        MaximumNumbers max_numb = new(previous_type_numbers.Numbers);
+                        ProtocolTypeNumbers previous_type_numbers = new(previous_period_files);
 
-                        UnknownProtocols unknown = new(max_numb.Numbers, missing.Min_Numbers);
+                        MaximumNumbers previous_max = new(previous_type_numbers.Numbers);
 
-                        var unknown_protocols = unknown.Unknown_Protocols;
-
-                        if (unknown_protocols != null)
+                        UnknownProtocols unknown = new(previous_max.Numbers, missing_protocols.Min_Numbers);
+                        ///////////
+                        if (unknown.Unknown_Protocols is not null)
                         {
-                            Console.WriteLine($"\nНеизвестных - {unknown_protocols.Count}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("\nНеизвестных нет !");
+                            all_protocols_sums.Add(ProtocolFullTypeLocation.not_found_sums[1], unknown.Unknown_Protocols.Count);
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine("\nНеизвестных не найдено !");
-                    }
-
 
                 }
 
-
-
-            }              
-            else
-            {
-                Console.WriteLine($"\nЗа {current_period} ничего не найдено !");
+                
             }
 
 
+
+
+            foreach (var count in all_protocols_sums)
+            {
+                Console.WriteLine($"{count.Key} - {count.Value}");
+            }
+
+            
+            
+            
+            
+
+
+
+
+
         }
         else
         {
-            Console.WriteLine("\nНикаких файлов сканов не найдено !");
-        }*/
+            Console.WriteLine("\nPDF NOT FOUND !!"); // return false
+        }
+
+
+        break;
+        
 
 }
 

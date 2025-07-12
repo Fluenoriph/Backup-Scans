@@ -11,7 +11,7 @@ namespace Tracing
     {
         public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
 
-        public static List<string> not_found_sums = ["Пропущенные в этом месяце", "Неизвестные"];   //создать перед применением ??
+        public static List<string> not_found_sums = ["Пропущенные в этом месяце", "Неизвестные"];   
 
         public static List<string> location_sums = ["Уссурийск всего", "Арсеньев всего"];
 
@@ -92,7 +92,7 @@ namespace Tracing
                 string current_protocol_type = ProtocolFullTypeLocation.type_location_sums[type_index];
                 List<int>? current_protocol_numbers = protocol_type_numbers[type_index];
 
-                if (current_protocol_numbers != null)
+                if (current_protocol_numbers is not null)
                 {
                     Simple_Protocols_Sums[current_protocol_type] = current_protocol_numbers.Count;
                 }

@@ -9,15 +9,15 @@ namespace BackupBlock
     {
         public static List<string> protocol_file_type = ["EIAS", "Simple"];
 
-        public static Dictionary<string, string> File_Patterns { get; } = new()
+        public static Dictionary<string, string> file_patterns = new()
         {
             [protocol_file_type[0]] = "^\\d{5}-\\d{2}-\\d{2}-",
             [protocol_file_type[1]] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-"
         };
 
-        public static Dictionary<string, string> File_Types { get; } = new()
+        public static Dictionary<string, string> file_types = new()
         {
-            ["PDF"] = "*.pdf"
+            ["PDF"] = "pdf"
         };
     }
 
@@ -26,7 +26,7 @@ namespace BackupBlock
     {
         public static List<string> Month_Names { get; } = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
         public static Dictionary<string, int> Table { get; set; } = [];
-        public MonthValues()
+        static MonthValues()
         {
             for (int value_index = 0; value_index < Month_Names.Count; value_index++)
             {
@@ -36,23 +36,34 @@ namespace BackupBlock
     }              
     
 
-    class ProtocolScanPattern(int month_value)
+    class ProtocolScanPattern
     {
+        //private static int month_value;
         private static readonly DateTime current_date = DateTime.Now;
-        private static readonly string file_type = FileTypesPatterns.File_Types["PDF"];
+        private static readonly string file_type = FileTypesPatterns.file_types["PDF"];
 
-        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);        
+        public static int Month_Value { get; set; }
+        /*{ 
+            get => month_value;
+            
+            set
+            {
+                month_value = value;
+            }
+        }*/
+
+        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{Month_Value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);      
     }
         
 
-    abstract class BackupFilesType 
+    abstract class BackupFileType 
     {
-        private protected readonly FileInfo[] files;
+        private protected FileInfo[] files;
 
-        public BackupFilesType(string file_type, string drive_directory)
+        public BackupFileType(string file_type, string drive_directory)
         {
             DirectoryInfo directory = new(drive_directory);
-            files = directory.GetFiles(file_type);
+            files = directory.GetFiles($"*.{file_type}");
         }
 
         public bool Found_Status 
@@ -70,28 +81,26 @@ namespace BackupBlock
             }
         }
 
-        public abstract List<FileInfo> GetResultFiles(Regex pattern);
+        public abstract List<FileInfo>? GrabMatchedFiles(Regex pattern);
     }
                    
 
-    class PdfFiles(string file_type, string drive_directory) : BackupFilesType(file_type, drive_directory)
+    class PdfFiles(string file_type, string drive_directory) : BackupFileType(file_type, drive_directory) 
     {
-        public override List<FileInfo> GetResultFiles(Regex pattern)
+        public override List<FileInfo>? GrabMatchedFiles(Regex pattern)
         {
             IEnumerable<FileInfo> backup_block = from file in files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
 
-            return [.. backup_block];
-
-            /*if (result_files.Count is not 0)
+            if (backup_block.Any())
             {
-                return result_files;
+                return [.. backup_block];
             }
             else
             {
                 return null;
-            }*/
+            }
         }      
     }
 
@@ -143,21 +152,13 @@ namespace BackupBlock
                 IEnumerable<string> type_block = from file in backup_files
                                                  where ProtocolTypeCapture(SimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
                                                  select file.Name;
-
-                List<string> current_protocols = [.. type_block];            // может быть один протокол !!
+                
+                List<string> current_protocols = [.. type_block];
 
                 if (current_protocols.Count > 0)
                 {
                     List<int> current_protocol_numbers = ConvertToNumbers(current_protocols);
-
-                    if (current_protocols.Count == current_protocol_numbers.Count)           // дополнительная проверка количества номеров
-                    {
-                        Numbers.InsertRange(type_index, current_protocol_numbers);
-                    }
-                    else
-                    {
-                        Console.WriteLine("\nНеизвестная ошибка (количество не совпадает - 'GetProtocolTypeNames')");
-                    }
+                    Numbers.InsertRange(type_index, current_protocol_numbers);
                 }
                 else
                 {
