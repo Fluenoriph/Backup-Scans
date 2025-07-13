@@ -36,23 +36,12 @@ namespace BackupBlock
     }              
     
 
-    class ProtocolScanPattern
+    class ProtocolScanPattern(int month_value)
     {
-        //private static int month_value;
         private static readonly DateTime current_date = DateTime.Now;
         private static readonly string file_type = FileTypesPatterns.file_types["PDF"];
-
-        public static int Month_Value { get; set; }
-        /*{ 
-            get => month_value;
-            
-            set
-            {
-                month_value = value;
-            }
-        }*/
-
-        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{Month_Value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);      
+                
+        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);      
     }
         
 
@@ -92,7 +81,7 @@ namespace BackupBlock
             IEnumerable<FileInfo> backup_block = from file in files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
-
+            
             if (backup_block.Any())
             {
                 return [.. backup_block];
@@ -104,33 +93,7 @@ namespace BackupBlock
         }      
     }
 
-    // method !!!!!!
-    /*class ProtocolScanGrabbing
-    {
-        private List<FileInfo> files;
-
-        public ProtocolScanGrabbing(string protocol_file_type, int month_value, FileInfo[] all_type_files)
-        {
-            ProtocolScanPattern pattern = new(FileTypesPatterns.File_Patterns[protocol_file_type], month_value);
-            BackupItem backup_files = new(pattern.Full_Pattern, all_type_files);
-
-
-
-
-        }
-
-        public List<FileInfo>? Files
-        {
-            get
-            {
-                
-
-                return backup_files.Result_Files;
-            }
-        }
-    }*/
-
-
+    
     struct SimpleProtocolTypes
     {
         public static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
@@ -157,13 +120,10 @@ namespace BackupBlock
 
                 if (current_protocols.Count > 0)
                 {
-                    List<int> current_protocol_numbers = ConvertToNumbers(current_protocols);
-                    Numbers.InsertRange(type_index, current_protocol_numbers);
+                    Numbers.InsertRange(type_index, ConvertToNumbers(current_protocols));
                 }
                 else
                 {
-                    Console.WriteLine($"\nТип {SimpleProtocolTypes.protocol_types[type_index]} не найден");
-
                     List<int>? none_protocols = null;
                     Numbers.InsertRange(type_index, none_protocols);
                 }

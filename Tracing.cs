@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Xml.Linq;
-using BackupBlock;
+﻿using BackupBlock;
 using DrivesControl;
 using Logging;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 
 namespace Tracing
@@ -23,26 +24,7 @@ namespace Tracing
                 
         public ProtocolFullTypeLocation() { }
     }
-
-
-    struct ProtocolsCalculation   // no need ????
-    {
-        public Dictionary<string, int> Full_Sums { get; set; } = new()
-        {
-            [ProtocolFullTypeLocation.others_sums[0]] = 0,
-            [ProtocolFullTypeLocation.others_sums[1]] = 0,
-            [ProtocolFullTypeLocation.others_sums[2]] = 0,
-        };
-                
-        public Dictionary<string, int> Unknown_Sums { get; set; } = new()
-        {
-            [ProtocolFullTypeLocation.others_sums[3]] = 0,
-            [ProtocolFullTypeLocation.others_sums[4]] = 0,
-        };
-
-        public ProtocolsCalculation() { }
-    }
-
+            
 
     class FileTransfer(List<FileInfo> backup_files)
     {
@@ -61,10 +43,27 @@ namespace Tracing
             return files_count;
         }
     }
-        
-    // count control in backup Directory
-    class ProtocolsAnalysis // только анализ простых
+
+    // только анализ простых
+    class ProtocolsAnalysis 
     {
+        private protected List<int> current_period_min_numbers = [];
+        
+        private readonly Func<int, int, List<int>> CreateRange = (start, end) =>
+        {
+            List<int> range = [];
+            for (int i = start; i < end + 1; i++) range.Add(i);
+            return range;
+        };
+                
+        public ProtocolsAnalysis(List<FileInfo> captured_simple_files)
+        {
+            ProtocolTypeNumbers obj_protocol_type_numbers = new(captured_simple_files);
+
+            CalculateTypeSums(obj_protocol_type_numbers.Numbers);
+            Missing_Protocols = ComputeMissingProtocols(obj_protocol_type_numbers.Numbers);
+        }
+
         public Dictionary<string, int> Simple_Protocols_Sums { get; set; } = new()
         {
             [ProtocolFullTypeLocation.location_sums[0]] = 0,
@@ -83,7 +82,9 @@ namespace Tracing
             [ProtocolFullTypeLocation.type_location_sums[5]] = 0
         };
 
-        public ProtocolsAnalysis(List<List<int>?> protocol_type_numbers)
+        public List<string>? Missing_Protocols { get; set; }
+        
+        private void CalculateTypeSums(List<List<int>?> protocol_type_numbers)
         {
             // рассчет сумм типов протоколов и запись в словарь
             // >> рассчет всех типов и по району
@@ -109,30 +110,25 @@ namespace Tracing
                 Simple_Protocols_Sums[ProtocolFullTypeLocation.location_sums[city_index]] = Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index]] + Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 2]] + Simple_Protocols_Sums[ProtocolFullTypeLocation.type_location_sums[calc_index + 4]];
                 calc_index += 1;
             }
-        }   
-    }
-
-
-    class MissingProtocols 
-    {
-        private readonly List<string> missing_protocols = [];
-        public List<int> Min_Numbers { get; private set; } = [];
-        
-        public MissingProtocols(List<List<int>?> type_numbers)
+        }
+                
+        private List<string>? ComputeMissingProtocols(List<List<int>?> protocol_type_numbers)
         {
-            MinimumNumbers extreme_min = new(type_numbers);
-            Min_Numbers = extreme_min.Numbers;
+            MinimumNumbers extreme_min = new(protocol_type_numbers);
+            current_period_min_numbers = extreme_min.Numbers;
 
-            MaximumNumbers extreme_max = new(type_numbers);
+            MaximumNumbers extreme_max = new(protocol_type_numbers);
             List<int> max_numbers = extreme_max.Numbers;
+
+            List<string> missing_protocols = [];
 
             for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
             {
-                List<int>? current_protocols = type_numbers[type_index];
+                List<int>? current_protocols = protocol_type_numbers[type_index];
 
                 if ((current_protocols is not null) && (current_protocols.Count >= 2))
                 {
-                    List<int> range = CreateRange(Min_Numbers[type_index], max_numbers[type_index]);
+                    List<int> range = CreateRange(current_period_min_numbers[type_index], max_numbers[type_index]);
 
                     IEnumerable<int> missing = range.Except(current_protocols);
                     List<int> missing_numbers = [.. missing];
@@ -143,46 +139,55 @@ namespace Tracing
                     }
                 }
             }
-        }
 
-        public List<string>? Missing_Protocols
-        {
-            get
+            if (missing_protocols.Count is not 0)
             {
-                if (missing_protocols.Count is not 0)
-                {
-                    return missing_protocols;
-                }
-                else
-                {
-                    return null;
-                }
+                Simple_Protocols_Sums.Add(ProtocolFullTypeLocation.not_found_sums[0], missing_protocols.Count);
+                return missing_protocols;
             }
-        }
-            
-        private static List<int> CreateRange(int start, int end)
-        {
-            List<int> range = [];
-
-            for (int i = start; i < end + 1; i++) range.Add(i);
-
-            return range;
+            else
+            {
+                return null;
+            }
         }
     }
 
 
-    class UnknownProtocols
+    class AnalysWithUnknownProtocols : ProtocolsAnalysis
     {
-        private readonly List<string> unknown_protocols = [];
-
-        public UnknownProtocols(List<int> previous_max_numbers, List<int> current_min_numbers)
+        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, int previous_month_value, PdfFiles source_files) : base(captured_simple_files)
         {
+            ProtocolScanPattern self_obj_protocol_pattern = new(previous_month_value);
+
+            Regex pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]]);
+            List<FileInfo>? files = source_files.GrabMatchedFiles(pattern);
+
+            if (files is not null)
+            {
+                ProtocolTypeNumbers previous_type_numbers = new(files);
+                
+                MaximumNumbers previous_max = new(previous_type_numbers.Numbers);
+
+                Unknown_Protocols = ComputeUnknownProtocols(previous_max.Numbers, current_period_min_numbers);
+            }
+            else
+            {
+                Unknown_Protocols = null;
+            }
+        }
+
+        public List<string>? Unknown_Protocols { get; set; }
+
+        private List<string>? ComputeUnknownProtocols(List<int> previous_period_max_numbers, List<int> current_period_min_numbers)
+        {
+            List<string> unknown_protocols = [];
+
             for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
             {
                 string current_type = SimpleProtocolTypes.protocol_types[type_index];
 
-                int min_number = previous_max_numbers[type_index];
-                int max_number = current_min_numbers[type_index];
+                int min_number = previous_period_max_numbers[type_index];
+                int max_number = current_period_min_numbers[type_index];
 
                 bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
 
@@ -194,21 +199,63 @@ namespace Tracing
                     }
                 }
             }
-        }
 
-        public List<string>? Unknown_Protocols
+            if (unknown_protocols.Count is not 0)
+            {
+                Simple_Protocols_Sums.Add(ProtocolFullTypeLocation.not_found_sums[1], unknown_protocols.Count);
+                return unknown_protocols;
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+
+    class BackupFiles
+    {
+        private readonly List<List<FileInfo>?> backup_block = [];
+                               
+        public BackupFiles(int month_value, PdfFiles source_files)
         {
-            get
-            {                
-                if (unknown_protocols.Count is not 0)
+            ProtocolScanPattern self_obj_protocol_pattern = new(month_value);
+
+            for (int protocol_type_index = 0; protocol_type_index < FileTypesPatterns.protocol_file_type.Count; protocol_type_index++)
+            {       ///////// method ??
+                Regex type_pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[protocol_type_index]]);
+                List<FileInfo>? files = source_files.GrabMatchedFiles(type_pattern);
+                ////////
+                backup_block.AddRange(files);
+
+                if (files is not null)
                 {
-                    return unknown_protocols;
-                }
-                else
-                {
-                    return null;
+                    All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
+                    All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = files.Count;
                 }
             }
         }
+
+        public List<List<FileInfo>?>? Backup_Block
+        {
+            get
+            {
+                if ((backup_block[0] is null) && (backup_block[1] is null))
+                {
+                    return null;
+                }
+                else
+                {
+                    return backup_block;
+                }
+            }
+        }
+
+        public Dictionary<string, int> All_Protocols_Sums { get; } = new()
+        {
+            [ProtocolFullTypeLocation.others_sums[0]] = 0, // всего
+            [ProtocolFullTypeLocation.others_sums[1]] = 0, // еиас
+            [ProtocolFullTypeLocation.others_sums[2]] = 0,   // простые
+        };
     }
 }
