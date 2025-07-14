@@ -13,7 +13,7 @@ namespace DrivesControl
     }
 
 
-    readonly struct DrivesConfiguration
+    readonly struct Target_Drives
     {
         public static readonly List<string> drive_type = ["SOURCE", "DESTINATION"];
     }
@@ -42,18 +42,18 @@ namespace DrivesControl
 
     class XMLConfig
     {
-        public List<Drive> Drives { get; } = [new(DrivesConfiguration.drive_type[0]), new(DrivesConfiguration.drive_type[1])];
+        public List<Drive> Drives { get; } = [new(Target_Drives.drive_type[0]), new(Target_Drives.drive_type[1])];
         public bool Drives_Ready { get; private set; }
 
         public XMLConfig()
         {
             // получаем конфигурацию
-            XElement? drives_config = Logging.DrivesConfiguration.GetDrivesConfig();
+            XElement? drives_config = DrivesConfiguration.Config_Element;
             List<string> dirs = [];
 
             if (drives_config is not null)
             {
-                foreach (string drive_name in DrivesConfiguration.drive_type)
+                foreach (string drive_name in Target_Drives.drive_type)
                 {
                     // получаем путь из диска
                     string? directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
@@ -89,15 +89,15 @@ namespace DrivesControl
 
                     if (dir_status)
                     {
-                        Console.WriteLine($"\nДиректория {DrivesConfiguration.drive_type[drive_index]} успешно установлена !");
+                        Console.WriteLine($"\nДиректория {Target_Drives.drive_type[drive_index]} успешно установлена !");
                     }
                     else
                     {
-                        Console.WriteLine($"\n{DrivesConfiguration.drive_type[drive_index]} - директория не существует ! Установите правильную >>");
+                        Console.WriteLine($"\n{Target_Drives.drive_type[drive_index]} - директория не существует ! Установите правильную >>");
                         string new_path = Console.ReadLine();
 
                         dirs[drive_index] = new_path;
-                        Logging.DrivesConfiguration.SetupDriveDirectory(DrivesConfiguration.drive_type[drive_index], new_path); // null !!
+                        Logging.DrivesConfiguration.SetupDriveDirectory(Target_Drives.drive_type[drive_index], new_path); // null !!
                     }
 
                 } while (dir_status == false);
