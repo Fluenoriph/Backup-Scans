@@ -6,7 +6,7 @@ using Tracing;
 
 
 const string line = "- - - - - - - - - - - - - - -";
-Console.WriteLine($"{line}\n* Nebulium 1.0 * / Test 2025\n{line}\n");
+Console.WriteLine($"{line}\n* Backup PDF 1.0 * / Test 2025\n{line}\n");
 
 XMLConfig self_obj_drives_config = new();
 

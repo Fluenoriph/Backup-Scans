@@ -48,7 +48,7 @@ namespace DrivesControl
         public XMLConfig()
         {
             // получаем конфигурацию
-            XElement? drives_config = ConfigFiles.GetDrivesConfig();
+            XElement? drives_config = Logging.DrivesConfiguration.GetDrivesConfig();
             List<string> dirs = [];
 
             if (drives_config is not null)
@@ -97,7 +97,7 @@ namespace DrivesControl
                         string new_path = Console.ReadLine();
 
                         dirs[drive_index] = new_path;
-                        ConfigFiles.SetupDriveDirectory(DrivesConfiguration.drive_type[drive_index], new_path); // null !!
+                        Logging.DrivesConfiguration.SetupDriveDirectory(DrivesConfiguration.drive_type[drive_index], new_path); // null !!
                     }
 
                 } while (dir_status == false);
