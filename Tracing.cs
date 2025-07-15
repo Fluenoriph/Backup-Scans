@@ -193,7 +193,7 @@ namespace Tracing
 
                 if (unknowns_ok)
                 {
-                    for (int start_num = min_number + 1; start_num < max_number; start_num++)     // если один протокол ??
+                    for (int start_num = min_number + 1; start_num < max_number; start_num++)     
                     {
                         unknown_protocols.Add($"{start_num}-{current_type}");
                     }
@@ -217,15 +217,20 @@ namespace Tracing
     {
         private readonly List<List<FileInfo>?> backup_block = [];
                                
+        // logger 
+        // log out
+        // log write
+
+
         public BackupFiles(int month_value, PdfFiles source_files)
         {
             ProtocolScanPattern self_obj_protocol_pattern = new(month_value);
 
             for (int protocol_type_index = 0; protocol_type_index < FileTypesPatterns.protocol_file_type.Count; protocol_type_index++)
-            {       ///////// method ??
+            {       
                 Regex type_pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[protocol_type_index]]);
                 List<FileInfo>? files = source_files.GrabMatchedFiles(type_pattern);
-                ////////
+                
                 backup_block.AddRange(files);
 
                 if (files is not null)

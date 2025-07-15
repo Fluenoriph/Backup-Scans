@@ -47,7 +47,7 @@ namespace BackupBlock
 
     abstract class BackupFileType 
     {
-        private protected FileInfo[] files;
+        private readonly FileInfo[] files;
 
         public BackupFileType(string file_type, string drive_directory)
         {
@@ -55,17 +55,17 @@ namespace BackupBlock
             files = directory.GetFiles($"*.{file_type}");
         }
 
-        public bool Found_Status 
+        public FileInfo[]? Files
         { 
             get
             {
                 if (files.Length is not 0)
                 {
-                    return true;
+                    return files;
                 }
                 else
                 {
-                    return false;
+                    return null;
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace BackupBlock
     {
         public override List<FileInfo>? GrabMatchedFiles(Regex pattern)
         {
-            IEnumerable<FileInfo> backup_block = from file in files
+            IEnumerable<FileInfo> backup_block = from file in Files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
             
