@@ -24,7 +24,38 @@ namespace Tracing
                 
         public ProtocolFullTypeLocation() { }
     }
-            
+
+
+    readonly struct ProtocolsSums
+    {
+        public ProtocolsSums() { }
+
+        public Dictionary<string, int> All_Protocols { get; } = new()
+        {
+            [ProtocolFullTypeLocation.others_sums[0]] = 0, // всего
+            [ProtocolFullTypeLocation.others_sums[1]] = 0, // еиас
+            [ProtocolFullTypeLocation.others_sums[2]] = 0,   // простые
+        };
+
+        public Dictionary<string, int> Simple_Protocols { get; } = new()
+        {
+            [ProtocolFullTypeLocation.location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[0]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[1]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[1]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[3]] = 0,
+
+            [ProtocolFullTypeLocation.type_full_sums[2]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
+            [ProtocolFullTypeLocation.type_location_sums[5]] = 0
+        };
+    }
+
 
     class FileTransfer(List<FileInfo> backup_files)
     {
@@ -49,38 +80,25 @@ namespace Tracing
     {
         private protected List<int> current_period_min_numbers = [];
         
-        private readonly Func<int, int, List<int>> CreateRange = (start, end) =>
+        private readonly Func<int, int, List<int>> CreateNumbersRange = (start, end) =>
         {
             List<int> range = [];
-            for (int i = start; i < end + 1; i++) range.Add(i);
+            for (int number = start; number < end + 1; number++) range.Add(number);
             return range;
         };
                 
         public ProtocolsAnalysis(List<FileInfo> captured_simple_files)
         {
             ProtocolTypeNumbers obj_protocol_type_numbers = new(captured_simple_files);
-
+            
+            ProtocolsSums self_obj_protocols_sums = new();
+            Simple_Protocols_Sums = self_obj_protocols_sums.Simple_Protocols;
+            
             CalculateTypeSums(obj_protocol_type_numbers.Numbers);
             Missing_Protocols = ComputeMissingProtocols(obj_protocol_type_numbers.Numbers);
         }
 
-        public Dictionary<string, int> Simple_Protocols_Sums { get; set; } = new()
-        {
-            [ProtocolFullTypeLocation.location_sums[0]] = 0,
-            [ProtocolFullTypeLocation.location_sums[1]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[0]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[0]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[1]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[1]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[2]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[3]] = 0,
-
-            [ProtocolFullTypeLocation.type_full_sums[2]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
-            [ProtocolFullTypeLocation.type_location_sums[5]] = 0
-        };
+        public Dictionary<string, int> Simple_Protocols_Sums { get; private set; }
 
         public List<string>? Missing_Protocols { get; set; }
         
@@ -128,7 +146,7 @@ namespace Tracing
 
                 if ((current_protocols is not null) && (current_protocols.Count >= 2))
                 {
-                    List<int> range = CreateRange(current_period_min_numbers[type_index], max_numbers[type_index]);
+                    List<int> range = CreateNumbersRange(current_period_min_numbers[type_index], max_numbers[type_index]);
 
                     IEnumerable<int> missing = range.Except(current_protocols);
                     List<int> missing_numbers = [.. missing];
@@ -155,12 +173,12 @@ namespace Tracing
 
     class AnalysWithUnknownProtocols : ProtocolsAnalysis
     {
-        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, int previous_month_value, PdfFiles source_files) : base(captured_simple_files)
+        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, int previous_month_value, PdfFiles source_files) : base(captured_simple_files) // изменить
         {
             ProtocolScanPattern self_obj_protocol_pattern = new(previous_month_value);
 
             Regex pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]]);
-            List<FileInfo>? files = source_files.GrabMatchedFiles(pattern);
+            List<FileInfo>? files = source_files.GrabMatchedFiles(pattern); // получить извне
 
             if (files is not null)
             {
@@ -213,54 +231,19 @@ namespace Tracing
     }
 
 
-    class BackupFiles
-    {
-        private readonly List<List<FileInfo>?> backup_block = [];
-                               
-        // logger 
-        // log out
-        // log write
-
-
-        public BackupFiles(int month_value, PdfFiles source_files)
+    class BackupFiles(PdfFiles self_obj_source_files)
+    {                              
+        public int Month_Value { get; set; }
+        
+        public List<FileInfo>? CapturingFiles(string pattern_type)
         {
-            ProtocolScanPattern self_obj_protocol_pattern = new(month_value);
+            ProtocolScanPattern self_obj_protocol_pattern = new(Month_Value);
+            Regex pattern = self_obj_protocol_pattern.CreatePattern(pattern_type);
 
-            for (int protocol_type_index = 0; protocol_type_index < FileTypesPatterns.protocol_file_type.Count; protocol_type_index++)
-            {       
-                Regex type_pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[protocol_type_index]]);
-                List<FileInfo>? files = source_files.GrabMatchedFiles(type_pattern);
-                
-                backup_block.AddRange(files);
-
-                if (files is not null)
-                {
-                    All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
-                    All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = files.Count;
-                }
-            }
-        }
-
-        public List<List<FileInfo>?>? Backup_Block
-        {
-            get
-            {
-                if ((backup_block[0] is null) && (backup_block[1] is null))
-                {
-                    return null;
-                }
-                else
-                {
-                    return backup_block;
-                }
-            }
-        }
-
-        public Dictionary<string, int> All_Protocols_Sums { get; } = new()
-        {
-            [ProtocolFullTypeLocation.others_sums[0]] = 0, // всего
-            [ProtocolFullTypeLocation.others_sums[1]] = 0, // еиас
-            [ProtocolFullTypeLocation.others_sums[2]] = 0,   // простые
-        };
+            return self_obj_source_files.GrabMatchedFiles(pattern);
+        }  
     }
+           
+
+
 }

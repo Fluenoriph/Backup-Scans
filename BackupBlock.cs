@@ -48,11 +48,12 @@ namespace BackupBlock
     abstract class BackupFileType 
     {
         private readonly FileInfo[] files;
-
-        public BackupFileType(string file_type, string drive_directory)
+        private protected abstract string File_Type { get; set; }
+        
+        public BackupFileType(string drive_directory)
         {
             DirectoryInfo directory = new(drive_directory);
-            files = directory.GetFiles($"*.{file_type}");
+            files = directory.GetFiles($"*.{File_Type}");
         }
 
         public FileInfo[]? Files
@@ -74,8 +75,10 @@ namespace BackupBlock
     }
                    
 
-    class PdfFiles(string file_type, string drive_directory) : BackupFileType(file_type, drive_directory) 
+    class PdfFiles(string drive_directory) : BackupFileType(drive_directory) 
     {
+        private protected override string File_Type { get; set; } = FileTypesPatterns.file_types["PDF"];
+
         public override List<FileInfo>? GrabMatchedFiles(Regex pattern)
         {
             IEnumerable<FileInfo> backup_block = from file in Files
@@ -134,7 +137,7 @@ namespace BackupBlock
         {
             List<int> numbers = [];
 
-            foreach (string protocol in protocol_type_list)              // если один протокол ??
+            foreach (string protocol in protocol_type_list)              
             {
                 Match match = number_capture.Match(protocol);
 
@@ -165,7 +168,7 @@ namespace BackupBlock
                 {
                     List<int>? current_numbers = protocol_type_numbers[type_index];
 
-                    if (current_numbers is not null)      // если один протокол, то что мин и макс ?
+                    if (current_numbers is not null)      
                     {
                         numbers.Insert(type_index, GetExtremeNumber(current_numbers));
                     }

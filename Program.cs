@@ -9,41 +9,35 @@ const string line = "- - - - - - - - - - - - - - -";
 Console.WriteLine($"{line}\n* Backup PDF v.1.0 * / Test 2025\n{line}\n");
 
 XMLConfig self_obj_drives_config = new();
-
-string source_dir = self_obj_drives_config.Drives[0].Directory;
+string source_directory = self_obj_drives_config.Drives[0].Directory;
 //string destination_dir = drives_config.Drives[1].Directory;
 
 Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
 string backup_items_type = Console.ReadLine();   // отдельный класс для проверки пустой строки
 
-
-
-
-switch (backup_items_type) // class ?????
+switch (backup_items_type) 
 { 
     case "1":
+        PdfFiles self_obj_pdf_files = new(source_directory);
+         
+        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   
+        // должна быть проверка правильности ввода месяца
+        string current_period = Console.ReadLine();
+        int current_month_value = MonthValues.Table[current_period];
+                           
+        BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
+        
 
-        //for (int test_index = 0; test_index < 6;  test_index++)
-        //{
-            PdfFiles self_obj_pdf_files = new(FileTypesPatterns.file_types["PDF"], $"C:\\Users\\Mahabhara\\Desktop\\сканы\\test_unknowns_across_type_with_missing");
             
-                // enter point !!!
-            if (self_obj_pdf_files.Files is not null)
-            {
-                Console.WriteLine("\nPDF IS OK !!!");
-                Console.WriteLine("\nВведите месяц, за который выполнить копирование:");
-                // должна быть проверка правильности ввода месяца
-                string current_period = Console.ReadLine();
-                int current_month_value = MonthValues.Table[current_period];
+        self_obj_backup_item.Month_Value = current_month_value;
+
+            //Func<>
 
 
 
 
 
-                // enter point !!!!!!
-                BackupFiles self_obj_backup = new(current_month_value, self_obj_pdf_files);
-
-                if (self_obj_backup.Backup_Block is not null)
+                if (self_obj_backup.Backup_Block is not null) // return false
                 {
                     Console.WriteLine($"\nЗа {current_period} найдено:\n{line}");
                     // logger
@@ -123,34 +117,104 @@ switch (backup_items_type) // class ?????
                 {
                     Console.WriteLine($"\nЗа {current_period} сканов не найдено !");
                 }
+                  
+    break;
+        
 
+}
+
+
+class BackupProcess<T>(string source_directory)
+{
+    private static PdfFiles self_obj_pdf_files; // = new(source_directory); // static ?
+    private T? eias { get; set; }
+
+    public BackupFiles? Self_Obj_Backup_Item
+    {
+        get
+        {
+            if (self_obj_pdf_files.Files is not null)
+            {
+                return new(self_obj_pdf_files);
             }
             else
             {
-                Console.WriteLine("\nPDF NOT FOUND !!"); // return false    
+                return null;
+            }
+        }
+    }
+
+    private void CalculateEIASType()
+    {
+
+
+
+    }
+
+
+
+
+    ///public bool Search_Status { get; private set; }
+    public Dictionary<string, int> All_Protocols_Sums { get; private set; } // ?????
+    // transfer
+    // logger
+
+
+
+    public BackupProcess(string source_directory)
+    {
+        PdfFiles self_obj_pdf_files = new(source_directory);
+
+        if (self_obj_pdf_files.Files is not null)
+        {
+            int current_period_value = MonthValues.Table[period];
+            BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
+
+            if (current_period_value == 1)   // enum - January
+            {
+
+
+
+
             }
 
 
 
-        //}
+
+
+        }
+        else
+        {
+            Search_Status = false;
+        }
+
+    }
+
+    public void Backuping(string period)
+    {
+
+
+
+    }
+
+
+
+
+
+
+}            
 
         
+    
 
-
-        break;
-        
-
-}
-
-
-class BackupProcess
-{
-
+    //--------------------------------------------
+    /*if (files is not null)
+    {
+        All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
+        All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = files.Count;
+    }*/
 
 
 
 
-
-
-}
 
