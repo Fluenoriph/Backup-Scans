@@ -231,19 +231,59 @@ namespace Tracing
     }
 
 
-    class BackupFiles(PdfFiles self_obj_source_files)
-    {                              
-        public int Month_Value { get; set; }
-        
-        public List<FileInfo>? CapturingFiles(string pattern_type)
-        {
-            ProtocolScanPattern self_obj_protocol_pattern = new(Month_Value);
-            Regex pattern = self_obj_protocol_pattern.CreatePattern(pattern_type);
+    interface IMonthBlock
+    {
+        static PdfFiles? Self_Obj_Source_Files { get; set; }
 
-            return self_obj_source_files.GrabMatchedFiles(pattern);
-        }  
+        protected List<List<FileInfo>?>? MonthCapturing(int month_value) 
+        {
+            ProtocolScanPattern self_obj_protocol_pattern = new(month_value);
+
+            List<List<FileInfo>?> month_block = [];
+
+            foreach (string pattern_type in FileTypesPatterns.protocol_file_type)
+            {
+                Regex pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[pattern_type]);
+                month_block.AddRange(Self_Obj_Source_Files?.GrabMatchedFiles(pattern));
+            }
+
+            if ((month_block[0] is null) && (month_block[1] is null))
+            {
+                return null;
+            }
+            else
+            {
+                return month_block;
+            }
+        }
+    }
+
+    // may be method in main class ???
+    class BackupFilesMonth : IMonthBlock 
+    {
+        public List<List<FileInfo>?>? Month_Block { get; private set; }
+
+        public BackupFilesMonth(PdfFiles self_obj_source_files)
+        {
+            IMonthBlock.Self_Obj_Source_Files = self_obj_source_files;
+            Month_Block = 
+        }
+
+        
     }
            
 
+    struct YearBlock
+    {
+        public List<List<FileInfo>?>? EIAS { get; set; }
+        public List<List<FileInfo>?>? Simple { get; set; }
+    }
 
+
+    class BackupFilesYear(PdfFiles self_obj_source_files) : BackupFilesMonth(self_obj_source_files)
+    {
+        public YearBlock? YearCapturing()
+
+
+    }
 }

@@ -18,23 +18,31 @@ string backup_items_type = Console.ReadLine();   // отдельный клас�
 switch (backup_items_type) 
 { 
     case "1":
-        PdfFiles self_obj_pdf_files = new(source_directory);
-         
-        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   
+        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
         // должна быть проверка правильности ввода месяца
         string current_period = Console.ReadLine();
-        int current_month_value = MonthValues.Table[current_period];
-                           
-        BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
-        
 
-            
-        self_obj_backup_item.Month_Value = current_month_value;
+        PdfFiles self_obj_pdf_files = new(source_directory);
+                 
+        if (self_obj_pdf_files.Files is not null )
+        {
+            BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
 
-            //Func<>
-
+            self_obj_backup_item.Month_Value = MonthValues.Table[current_period]; // null check !!
 
 
+
+
+
+        }
+        else
+        {
+            Console.WriteLine($"\nЗа {current_period} сканов не найдено !");  // lambda ??
+        }
+
+                        
+
+                
 
 
                 if (self_obj_backup.Backup_Block is not null) // return false
@@ -124,71 +132,55 @@ switch (backup_items_type)
 }
 
 
-class BackupProcess<T>(string source_directory)
-{
-    private static PdfFiles self_obj_pdf_files; // = new(source_directory); // static ?
-    private T? eias { get; set; }
+class BackupProcessJanuary
+{   
+    //private protected T? EIAS_Block { get; private set; }
+    //private protected T? Simple_Block { get; }
 
-    public BackupFiles? Self_Obj_Backup_Item
+    public bool Search_Status { get; private set; }
+
+    public BackupProcessJanuary(PdfFiles source_files)
     {
-        get
+        if (source_files.Files is not null)
         {
-            if (self_obj_pdf_files.Files is not null)
+            BackupFiles self_obj_backup_item = new(source_files);
+
+
+
+
+
+            if ((EIAS_Block is null) && (Simple_Block is null))
             {
-                return new(self_obj_pdf_files);
+                Search_Status = false;
             }
             else
             {
-                return null;
+                Search_Status = true;
             }
-        }
-    }
-
-    private void CalculateEIASType()
-    {
-
-
-
-    }
-
-
-
-
-    ///public bool Search_Status { get; private set; }
-    public Dictionary<string, int> All_Protocols_Sums { get; private set; } // ?????
-    // transfer
-    // logger
-
-
-
-    public BackupProcess(string source_directory)
-    {
-        PdfFiles self_obj_pdf_files = new(source_directory);
-
-        if (self_obj_pdf_files.Files is not null)
-        {
-            int current_period_value = MonthValues.Table[period];
-            BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
-
-            if (current_period_value == 1)   // enum - January
-            {
-
-
-
-
-            }
-
-
-
-
-
         }
         else
         {
-            Search_Status = false;
+            Search_Status = false; 
         }
-
     }
+
+
+    private protected virtual T? CalculateEIASType()
+    {
+        return self_obj_backup_item.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[0]]);
+    }
+    //abstract private protected T? CalculateSimpleType();
+
+
+
+
+
+    //public Dictionary<string, int> All_Protocols_Sums { get; private set; } // ?????
+    // transfer ?
+    // logger ?
+
+
+
 
     public void Backuping(string period)
     {
