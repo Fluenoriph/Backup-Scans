@@ -20,15 +20,16 @@ namespace BackupBlock
             ["PDF"] = "pdf"
         };
     }
-
+    
 
     readonly struct MonthValues
     {
         public static List<string> Month_Names { get; } = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-        public static Dictionary<string, int> Table { get; set; } = [];
+        public static int Month_Count { get; } = Month_Names.Count;
+        public static Dictionary<string, int> Table { get; } = [];
         static MonthValues()
         {
-            for (int value_index = 0; value_index < Month_Names.Count; value_index++)
+            for (int value_index = 0; value_index < Month_Count; value_index++)
             {
                 Table.Add(Month_Names[value_index], value_index + 1);
             }
@@ -36,14 +37,18 @@ namespace BackupBlock
     }              
     
 
-    class ProtocolScanPattern(int month_value)
+    struct CurrentYear
     {
-        private static readonly DateTime current_date = DateTime.Now;
-        private static readonly string file_type = FileTypesPatterns.file_types["PDF"];
-                
-        public Func<string, Regex> CreatePattern = (file_pattern) => new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", current_date.Year.ToString(), "\\.", file_type, "$"), RegexOptions.IgnoreCase);      
+        public static string Year 
+        { 
+            get
+            {
+                DateTime current_date = DateTime.Now;
+                return current_date.Year.ToString();
+            }
+        }
     }
-        
+                   
 
     abstract class BackupFileType 
     {

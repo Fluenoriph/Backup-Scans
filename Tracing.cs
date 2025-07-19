@@ -95,12 +95,12 @@ namespace Tracing
             Simple_Protocols_Sums = self_obj_protocols_sums.Simple_Protocols;
             
             CalculateTypeSums(obj_protocol_type_numbers.Numbers);
-            Missing_Protocols = ComputeMissingProtocols(obj_protocol_type_numbers.Numbers);
+            Missed_Protocols = ComputeMissedProtocols(obj_protocol_type_numbers.Numbers);
         }
 
-        public Dictionary<string, int> Simple_Protocols_Sums { get; private set; }
+        public Dictionary<string, int> Simple_Protocols_Sums { get; }
 
-        public List<string>? Missing_Protocols { get; set; }
+        public List<string>? Missed_Protocols { get; }
         
         private void CalculateTypeSums(List<List<int>?> protocol_type_numbers)
         {
@@ -130,7 +130,7 @@ namespace Tracing
             }
         }
                 
-        private List<string>? ComputeMissingProtocols(List<List<int>?> protocol_type_numbers)
+        private List<string>? ComputeMissedProtocols(List<List<int>?> protocol_type_numbers)
         {
             MinimumNumbers extreme_min = new(protocol_type_numbers);
             current_period_min_numbers = extreme_min.Numbers;
@@ -138,7 +138,7 @@ namespace Tracing
             MaximumNumbers extreme_max = new(protocol_type_numbers);
             List<int> max_numbers = extreme_max.Numbers;
 
-            List<string> missing_protocols = [];
+            List<string> missed_protocols = [];
 
             for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
             {
@@ -153,15 +153,15 @@ namespace Tracing
 
                     foreach (int number in missing_numbers)
                     {
-                        missing_protocols.Add($"{number}-{SimpleProtocolTypes.protocol_types[type_index]}");
+                        missed_protocols.Add($"{number}-{SimpleProtocolTypes.protocol_types[type_index]}");
                     }
                 }
             }
 
-            if (missing_protocols.Count is not 0)
+            if (missed_protocols.Count is not 0)
             {
-                Simple_Protocols_Sums.Add(ProtocolFullTypeLocation.not_found_sums[0], missing_protocols.Count);
-                return missing_protocols;
+                Simple_Protocols_Sums.Add(ProtocolFullTypeLocation.not_found_sums[0], missed_protocols.Count);
+                return missed_protocols;
             }
             else
             {
@@ -173,16 +173,11 @@ namespace Tracing
 
     class AnalysWithUnknownProtocols : ProtocolsAnalysis
     {
-        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, int previous_month_value, PdfFiles source_files) : base(captured_simple_files) // изменить
+        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, List<FileInfo>? previous_period_files) : base(captured_simple_files) // изменить
         {
-            ProtocolScanPattern self_obj_protocol_pattern = new(previous_month_value);
-
-            Regex pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]]);
-            List<FileInfo>? files = source_files.GrabMatchedFiles(pattern); // получить извне
-
-            if (files is not null)
+            if (previous_period_files is not null)
             {
-                ProtocolTypeNumbers previous_type_numbers = new(files);
+                ProtocolTypeNumbers previous_type_numbers = new(previous_period_files);
                 
                 MaximumNumbers previous_max = new(previous_type_numbers.Numbers);
 
@@ -230,60 +225,62 @@ namespace Tracing
         }
     }
 
-
-    interface IMonthBlock
+    
+    abstract class BackupFiles(PdfFiles self_obj_source_files)
     {
-        static PdfFiles? Self_Obj_Source_Files { get; set; }
-
-        protected List<List<FileInfo>?>? MonthCapturing(int month_value) 
+        public List<FileInfo>? CapturingFiles(string file_pattern, int month_value)
         {
-            ProtocolScanPattern self_obj_protocol_pattern = new(month_value);
+            Regex pattern = new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", CurrentYear.Year, "\\.", FileTypesPatterns.file_types["PDF"], "$"), RegexOptions.IgnoreCase);
 
-            List<List<FileInfo>?> month_block = [];
+            return self_obj_source_files.GrabMatchedFiles(pattern);
+        }
+    }
 
+    
+    class BackupFilesMonth : BackupFiles
+    {
+        private readonly List<List<FileInfo>?>? files = [];
+        public List<List<FileInfo>?>? Files { get; } 
+        
+        public BackupFilesMonth(int month_value, PdfFiles self_obj_source_files) : base(self_obj_source_files)
+        {
             foreach (string pattern_type in FileTypesPatterns.protocol_file_type)
             {
-                Regex pattern = self_obj_protocol_pattern.CreatePattern(FileTypesPatterns.file_patterns[pattern_type]);
-                month_block.AddRange(Self_Obj_Source_Files?.GrabMatchedFiles(pattern));
+                files?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[pattern_type], month_value));
             }
 
-            if ((month_block[0] is null) && (month_block[1] is null))
+            if ((files?[0] is null) && (files?[1] is null))
             {
-                return null;
+                Files = null;
             }
             else
             {
-                return month_block;
+                Files = files;
             }
         }
     }
 
-    // may be method in main class ???
-    class BackupFilesMonth : IMonthBlock 
-    {
-        public List<List<FileInfo>?>? Month_Block { get; private set; }
 
-        public BackupFilesMonth(PdfFiles self_obj_source_files)
+    readonly struct YearBlock
+    {
+        public YearBlock() { }  
+
+        public List<List<FileInfo>?>? EIAS { get; } = [];
+        public List<List<FileInfo>?>? Simple { get; } = [];
+    }
+
+
+    class BackupFilesYear : BackupFiles
+    {
+        public YearBlock Year_Capture { get; }
+
+        public BackupFilesYear(PdfFiles self_obj_source_files) : base(self_obj_source_files)
         {
-            IMonthBlock.Self_Obj_Source_Files = self_obj_source_files;
-            Month_Block = 
+            for (int month_index = 1; month_index < MonthValues.Month_Count; month_index++)  
+            {
+                Year_Capture.EIAS?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[0]], month_index));
+                Year_Capture.Simple?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_index));
+            }
         }
-
-        
-    }
-           
-
-    struct YearBlock
-    {
-        public List<List<FileInfo>?>? EIAS { get; set; }
-        public List<List<FileInfo>?>? Simple { get; set; }
-    }
-
-
-    class BackupFilesYear(PdfFiles self_obj_source_files) : BackupFilesMonth(self_obj_source_files)
-    {
-        public YearBlock? YearCapturing()
-
-
     }
 }

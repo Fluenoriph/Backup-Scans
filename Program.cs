@@ -13,39 +13,48 @@ string source_directory = self_obj_drives_config.Drives[0].Directory;
 //string destination_dir = drives_config.Drives[1].Directory;
 
 Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
-string backup_items_type = Console.ReadLine();   // отдельный класс для проверки пустой строки
+string backup_items_type = "1";//Console.ReadLine();   // отдельный класс для проверки пустой строки
 
-switch (backup_items_type) 
-{ 
+switch (backup_items_type)
+{
     case "1":
+        // while ??
+
         Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
         // должна быть проверка правильности ввода месяца
         string current_period = Console.ReadLine();
 
         PdfFiles self_obj_pdf_files = new(source_directory);
-                 
-        if (self_obj_pdf_files.Files is not null )
+
+        if (MonthValues.Month_Names.Contains(current_period))
         {
-            BackupFiles self_obj_backup_item = new(self_obj_pdf_files);
+            Console.WriteLine("\nЗапущено копирование в месяц !\n");
 
-            self_obj_backup_item.Month_Value = MonthValues.Table[current_period]; // null check !!
-
-
-
-
-
+            BackupProcess self_obj_month_backup = new(self_obj_pdf_files, current_period);
+        }
+        else if (current_period is "год")
+        {
+            Console.WriteLine("\nЗапущено копирование за год !");
         }
         else
         {
-            Console.WriteLine($"\nЗа {current_period} сканов не найдено !");  // lambda ??
+            Console.WriteLine("\nОшибка ввода периода !");
+            System.Environment.Exit(0);
         }
-
-                        
-
-                
+        break;
+}
 
 
-                if (self_obj_backup.Backup_Block is not null) // return false
+
+
+               
+
+
+
+
+
+
+                /*if (self_obj_backup.Backup_Block is not null) // return false
                 {
                     Console.WriteLine($"\nЗа {current_period} найдено:\n{line}");
                     // logger
@@ -80,10 +89,10 @@ switch (backup_items_type)
                                 Console.WriteLine($"{item.Key}: {item.Value}");
                             }
                             // show missing scans
-                            if (self_obj_analysis_with_unknowns.Missing_Protocols is not null)
+                            if (self_obj_analysis_with_unknowns.Missed_Protocols is not null)
                             {
                                 Console.WriteLine("\nПропущены >>>");
-                                foreach (var miss_file in self_obj_analysis_with_unknowns.Missing_Protocols)
+                                foreach (var miss_file in self_obj_analysis_with_unknowns.Missed_Protocols)
                                 {
                                     Console.WriteLine(miss_file);
                                 }
@@ -109,10 +118,10 @@ switch (backup_items_type)
                             }
 
                             // show missing in january ----------------------------
-                            if (self_obj_analysis.Missing_Protocols is not null)
+                            if (self_obj_analysis.Missed_Protocols is not null)
                             {
                                 Console.WriteLine("\nПропущены >>>");
-                                foreach (var miss_file in self_obj_analysis.Missing_Protocols)
+                                foreach (var miss_file in self_obj_analysis.Missed_Protocols)
                                 {
                                     Console.WriteLine(miss_file);
                                 }
@@ -124,89 +133,96 @@ switch (backup_items_type)
                 else
                 {
                     Console.WriteLine($"\nЗа {current_period} сканов не найдено !");
-                }
+                }*/
                   
-    break;
-        
+    
 
-}
+class BackupProcess
+{
+    //private readonly List<List<FileInfo>?>? backup_item;  // словарь пропущенных ???
+    private Dictionary<string, int>? Sums;
+    private int month_value;
+    private readonly BackupFilesMonth? self_obj_backup_item;  // required ??? googling !!
 
+    public bool Search_Status { get; private set; } // no ??
 
-class BackupProcessJanuary
-{   
-    //private protected T? EIAS_Block { get; private set; }
-    //private protected T? Simple_Block { get; }
-
-    public bool Search_Status { get; private set; }
-
-    public BackupProcessJanuary(PdfFiles source_files)
+    public BackupProcess(PdfFiles source_files, string month)
     {
         if (source_files.Files is not null)
         {
-            BackupFiles self_obj_backup_item = new(source_files);
-
-
-
-
-
-            if ((EIAS_Block is null) && (Simple_Block is null))
+            month_value = MonthValues.Table[month];
+            self_obj_backup_item = new(month_value, source_files);
+                                   
+            if (self_obj_backup_item.Files is not null)
             {
-                Search_Status = false;
+                Search_Status = true;
+                                
+                CalcAllSums();
+
+                if (self_obj_backup_item.Files[1] is not null)
+                {
+                    SearchNoneProtocols();
+                }
+
+                // show log
+                foreach (var item in Sums)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
+
+
             }
             else
             {
-                Search_Status = true;
+                Search_Status = false;
+                Console.WriteLine($"\nЗа {month} сканов не найдено ! ***");  // out 
             }
         }
         else
         {
-            Search_Status = false; 
+            Search_Status = false;
+            Console.WriteLine($"\nЗа {month} сканов не найдено ! Нет PDF !");  // out 
         }
     }
 
-
-    private protected virtual T? CalculateEIASType()
+    private void CalcAllSums()
     {
-        return self_obj_backup_item.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[0]]);
+        ProtocolsSums self_obj_sums = new();
+        Sums = self_obj_sums.All_Protocols;
+                
+        for (int protocol_type_index = 0; protocol_type_index < self_obj_backup_item?.Files?.Count; protocol_type_index++) // null disable ??
+        {
+            if (self_obj_backup_item.Files[protocol_type_index] is not null)
+            {
+                Sums[ProtocolFullTypeLocation.others_sums[0]] += self_obj_backup_item.Files[protocol_type_index].Count;
+                Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = self_obj_backup_item.Files[protocol_type_index].Count;
+            }
+        }
     }
-    //abstract private protected T? CalculateSimpleType();
-
-
-
-
-
-    //public Dictionary<string, int> All_Protocols_Sums { get; private set; } // ?????
-    // transfer ?
-    // logger ?
-
-
-
-
-    public void Backuping(string period)
-    {
-
-
-
-    }
-
-
-
-
-
-
-}            
-
-        
     
-
-    //--------------------------------------------
-    /*if (files is not null)
+    private void SearchNoneProtocols()
     {
-        All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
-        All_Protocols_Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = files.Count;
-    }*/
+        if (month_value is not 1)
+        {
+            var previous_files = self_obj_backup_item?.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1);
 
+            AnalysWithUnknownProtocols other_monthes_analys = new(self_obj_backup_item.Files[1], previous_files);
 
+            foreach (var item in other_monthes_analys.Simple_Protocols_Sums) // lambda ?
+            {
+                //Console.WriteLine($"{item.Key}: {item.Value}");
+                Sums?.Add(item.Key, item.Value);
+            }
+        }
+        else
+        {
+            ProtocolsAnalysis january_analys = new(self_obj_backup_item.Files[1]);
 
-
-
+            foreach (var item in january_analys.Simple_Protocols_Sums) // lambda ?
+            {
+                //Console.WriteLine($"{item.Key}: {item.Value}");
+                Sums?.Add(item.Key, item.Value);
+            }
+        }
+    }
+}            
