@@ -28,15 +28,8 @@ namespace Tracing
 
     readonly struct ProtocolsSums
     {
-        public ProtocolsSums() { }
-
-        public Dictionary<string, int> All_Protocols { get; } = new()
-        {
-            [ProtocolFullTypeLocation.others_sums[0]] = 0, // всего
-            [ProtocolFullTypeLocation.others_sums[1]] = 0, // еиас
-            [ProtocolFullTypeLocation.others_sums[2]] = 0,   // простые
-        };
-
+        public Dictionary<string, int>? All_Protocols { get; } = [];
+        
         public Dictionary<string, int> Simple_Protocols { get; } = new()
         {
             [ProtocolFullTypeLocation.location_sums[0]] = 0,
@@ -54,6 +47,16 @@ namespace Tracing
             [ProtocolFullTypeLocation.type_location_sums[4]] = 0,
             [ProtocolFullTypeLocation.type_location_sums[5]] = 0
         };
+
+        public ProtocolsSums()
+        {
+            foreach (string item in ProtocolFullTypeLocation.others_sums)
+            {
+                All_Protocols?.Add(item, 0);
+            }
+
+            // так же
+        }
     }
 
 
@@ -89,7 +92,7 @@ namespace Tracing
                 
         public ProtocolsAnalysis(List<FileInfo> captured_simple_files)
         {
-            ProtocolTypeNumbers obj_protocol_type_numbers = new(captured_simple_files);
+            ProtocolTypeNumbers obj_protocol_type_numbers = new(captured_simple_files); // field class
             
             ProtocolsSums self_obj_protocols_sums = new();
             Simple_Protocols_Sums = self_obj_protocols_sums.Simple_Protocols;
@@ -102,7 +105,7 @@ namespace Tracing
 
         public List<string>? Missed_Protocols { get; }
         
-        private void CalculateTypeSums(List<List<int>?> protocol_type_numbers)
+        private void CalculateTypeSums(List<List<int>?> protocol_type_numbers)  // рефактор поле вместо параметра
         {
             // рассчет сумм типов протоколов и запись в словарь
             // >> рассчет всех типов и по району
@@ -173,7 +176,7 @@ namespace Tracing
 
     class AnalysWithUnknownProtocols : ProtocolsAnalysis
     {
-        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, List<FileInfo>? previous_period_files) : base(captured_simple_files) // изменить
+        public AnalysWithUnknownProtocols(List<FileInfo> captured_simple_files, List<FileInfo>? previous_period_files) : base(captured_simple_files) 
         {
             if (previous_period_files is not null)
             {
@@ -240,16 +243,24 @@ namespace Tracing
     class BackupFilesMonth : BackupFiles
     {
         private readonly List<List<FileInfo>?>? files = [];
-        public List<List<FileInfo>?>? Files { get; } 
+        public List<List<FileInfo>?>? Files { get; }
         
         public BackupFilesMonth(int month_value, PdfFiles self_obj_source_files) : base(self_obj_source_files)
         {
+            int null_count = 0;
+
             foreach (string pattern_type in FileTypesPatterns.protocol_file_type)
             {
-                files?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[pattern_type], month_value));
+                var capturing_files = CapturingFiles(FileTypesPatterns.file_patterns[pattern_type], month_value);
+                if (capturing_files is null)
+                {
+                    null_count++;
+                }
+
+                files.AddRange(capturing_files);
             }
 
-            if ((files?[0] is null) && (files?[1] is null))
+            if (null_count is 2)
             {
                 Files = null;
             }
@@ -272,14 +283,41 @@ namespace Tracing
 
     class BackupFilesYear : BackupFiles
     {
-        public YearBlock Year_Capture { get; }
+        public Dictionary<string, List<List<FileInfo>?>?>? Files { get; }
 
+        private readonly Dictionary<string, List<List<FileInfo>?>?>? files;
+        
         public BackupFilesYear(PdfFiles self_obj_source_files) : base(self_obj_source_files)
         {
+            foreach (string protocol_type in FileTypesPatterns.protocol_file_type)
+            {
+                files?.Add(protocol_type, []);
+            }
+            
+            int null_count = 0;
+
             for (int month_index = 1; month_index < MonthValues.Month_Count; month_index++)  
             {
-                Year_Capture.EIAS?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[0]], month_index));
-                Year_Capture.Simple?.AddRange(CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_index));
+                foreach (string type in FileTypesPatterns.protocol_file_type)
+                {
+                    var month_files = CapturingFiles(FileTypesPatterns.file_patterns[type], month_index);
+
+                    if (month_files is null)
+                    {
+                        null_count++;
+                    }
+
+                    files?[type]?.AddRange(month_files);
+                }
+            }
+
+            if (null_count is 24)
+            {
+                Files = null;
+            }
+            else
+            {
+                Files = files;
             }
         }
     }
