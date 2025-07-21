@@ -114,7 +114,7 @@ namespace BackupBlock
         private const string number_capture_pattern = "^(?<number>\\d+)-";
         private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled);
         private static readonly Func<string, Regex> ProtocolTypeCapture = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
-        public List<List<int>?> Numbers { get; private set; } = [];
+        public List<List<int>?> Numbers { get; } = [];
 
         public ProtocolTypeNumbers(List<FileInfo> backup_files)
         {

@@ -69,30 +69,34 @@ switch (backup_items_type)
 abstract class BackupProcessing
 {
     public bool Search_Status { get; set; }
-    public Dictionary<string, int>? Sums { get; set; }
+    public Dictionary<string, int> Sums { get; }
+
+    public BackupProcessing()
+    {
+        ProtocolsSums self_obj_sums = new();
+        Sums = self_obj_sums.All_Protocols;
+    }
 
     private protected abstract void CalcAllSums();
     private protected abstract void SearchNoneProtocols();
+    // сложение словарей ??
 }
 
 
 class MonthBackupProcessing : BackupProcessing
 {
     private readonly int month_value;
-    private readonly BackupFilesMonth? self_obj_backup_item;  
-       
+    private readonly BackupFilesMonth self_obj_backup_item;
+    
     public MonthBackupProcessing(PdfFiles source_files, string month)
     {
         month_value = MonthValues.Table[month];
         self_obj_backup_item = new(month_value, source_files);
-
-        ProtocolsSums self_obj_sums = new();
-        Sums = self_obj_sums.All_Protocols;
-            
+                            
         if (self_obj_backup_item.Files is not null)
         {
             Search_Status = true;
-                                
+                                    
             CalcAllSums();                              
 
                 // метод или класс компоновщик данных отчета
@@ -107,7 +111,7 @@ class MonthBackupProcessing : BackupProcessing
 #nullable disable
     private protected override void CalcAllSums()
     {
-        for (int protocol_type_index = 0; protocol_type_index < self_obj_backup_item.Files.Count; protocol_type_index++)
+        for (int protocol_type_index = 0; protocol_type_index < self_obj_backup_item?.Files?.Count; protocol_type_index++)
         {
             if (self_obj_backup_item.Files[protocol_type_index] is not null)
             {
@@ -128,7 +132,7 @@ class MonthBackupProcessing : BackupProcessing
         {
             foreach (var item in analys_obj.Simple_Protocols_Sums)
             {
-                Sums?.Add(item.Key, item.Value);
+                Sums.Add(item.Key, item.Value);
             }
         }
 
@@ -151,13 +155,52 @@ class MonthBackupProcessing : BackupProcessing
 }
 
 
-/*class YearBackupProcessing : BackupProcessing
+class YearBackupProcessing : BackupProcessing
 {
-    private BackupFilesYear? files_block;
+    private readonly BackupFilesYear files_block;
 
     public YearBackupProcessing(PdfFiles source_files)
     {
-    
+        files_block = new(source_files);
+
+        if (files_block.Files is not null)
+        {
+            Search_Status = true;
+
+
+
+
+        }
+        else
+        {
+            Search_Status = false;
+        }
+    }
+
+    private protected override void CalcAllSums()
+    {
+        static bool CheckNoneYearBlock(List<List<FileInfo>?> year_file_block)
+        {
+            int month_count = 0;
+
+            foreach (var files in year_file_block)
+            {
+                if (files is null)
+                {
+                    month_count++;
+                }
+            }
+
+            if (month_count != MonthValues.Month_Count)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
 
 
 
@@ -168,4 +211,6 @@ class MonthBackupProcessing : BackupProcessing
 
 
 
-}*/
+
+
+}
