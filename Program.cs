@@ -35,12 +35,29 @@ switch (backup_items_type)
 
                 if (self_obj_month_backup.Search_Status)
                 {
-                    Console.WriteLine($"\nЗа {current_period} найдено {self_obj_month_backup.Sums?[ProtocolFullTypeLocation.others_sums[0]]} сканов !");
+                    Console.WriteLine($"\nЗа {current_period} найдено {self_obj_month_backup.MonthLog.All_Protocols[ProtocolFullTypeLocation.others_sums[0]]} сканов !");
 
-                    foreach (var item in self_obj_month_backup.Sums)
+                    Console.WriteLine($"\n{self_obj_month_backup.MonthLog.Period}");
+                    foreach (var item in self_obj_month_backup.MonthLog.All_Protocols)
                     {
                         Console.WriteLine($"{item.Key}: {item.Value}");
                     }
+
+                    foreach (var item in self_obj_month_backup.MonthLog.Simple_Protocols)
+                    {
+                        Console.WriteLine($"{item.Key}: {item.Value}");
+                    }
+
+                    foreach (var item in self_obj_month_backup.MonthLog.Missed_Protocols)
+                    {
+                        Console.WriteLine(item);
+                    }
+
+                    foreach (var item in self_obj_month_backup.MonthLog.Unknown_Protocols)
+                    {
+                        Console.WriteLine(item);
+                    }
+
                 }
                 else
                 {
@@ -69,13 +86,7 @@ switch (backup_items_type)
 abstract class BackupProcessing
 {
     public bool Search_Status { get; set; }
-    public Dictionary<string, int> Sums { get; }
-
-    public BackupProcessing()
-    {
-        ProtocolsSums self_obj_sums = new();
-        Sums = self_obj_sums.All_Protocols;
-    }
+    public MonthSums MonthLog { get; } = new();
 
     private protected abstract void CalcAllSums();
     private protected abstract void SearchNoneProtocols();
@@ -86,17 +97,19 @@ abstract class BackupProcessing
 class MonthBackupProcessing : BackupProcessing
 {
     private readonly int month_value;
-    private readonly BackupFilesMonth self_obj_backup_item;
+    private readonly BackupFilesMonth self_obj_backup_item; // in abs
     
     public MonthBackupProcessing(PdfFiles source_files, string month)
     {
         month_value = MonthValues.Table[month];
-        self_obj_backup_item = new(month_value, source_files);
-                            
+        self_obj_backup_item = new(source_files);
+        self_obj_backup_item.GetMonthBlock(month_value);
+
         if (self_obj_backup_item.Files is not null)
         {
             Search_Status = true;
-                                    
+
+            MonthLog.Period = month;
             CalcAllSums();                              
 
                 // метод или класс компоновщик данных отчета
@@ -115,8 +128,8 @@ class MonthBackupProcessing : BackupProcessing
         {
             if (self_obj_backup_item.Files[protocol_type_index] is not null)
             {
-                Sums[ProtocolFullTypeLocation.others_sums[0]] += self_obj_backup_item.Files[protocol_type_index].Count;
-                Sums[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = self_obj_backup_item.Files[protocol_type_index].Count;
+                MonthLog.All_Protocols[ProtocolFullTypeLocation.others_sums[0]] += self_obj_backup_item.Files[protocol_type_index].Count;
+                MonthLog.All_Protocols[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = self_obj_backup_item.Files[protocol_type_index].Count;
 
                 if (protocol_type_index is 1)
                 {
@@ -128,12 +141,10 @@ class MonthBackupProcessing : BackupProcessing
 
     private protected override void SearchNoneProtocols()
     {
-        void AddSums(ProtocolsAnalysis analys_obj)
+        void ConnectLogs(ProtocolsAnalysis analys_obj)
         {
-            foreach (var item in analys_obj.Simple_Protocols_Sums)
-            {
-                Sums.Add(item.Key, item.Value);
-            }
+            MonthLog.Simple_Protocols = analys_obj.Simple_Protocols_Sums;
+            MonthLog.Missed_Protocols = analys_obj.Missed_Protocols;
         }
 
         if (month_value is not 1)
@@ -142,20 +153,21 @@ class MonthBackupProcessing : BackupProcessing
 
             AnalysWithUnknownProtocols self_obj_other_monthes_analys = new(self_obj_backup_item.Files[1], previous_files);
 
-            AddSums(self_obj_other_monthes_analys);   
+            ConnectLogs(self_obj_other_monthes_analys);
+            MonthLog.Unknown_Protocols = self_obj_other_monthes_analys.Unknown_Protocols;
         }
         else
         {
             ProtocolsAnalysis self_obj_january_analys = new(self_obj_backup_item.Files[1]);
 
-            AddSums(self_obj_january_analys);      
+            ConnectLogs(self_obj_january_analys);      
         }
     }
 #nullable restore
 }
 
 
-class YearBackupProcessing : BackupProcessing
+/*class YearBackupProcessing : BackupProcessing
 {
     private readonly BackupFilesYear files_block;
 
@@ -213,4 +225,4 @@ class YearBackupProcessing : BackupProcessing
 
 
 
-}
+}*/
