@@ -106,7 +106,7 @@ namespace Tracing
     class ProtocolsAnalysis : ISimpleProtocolsSums
     {
         private protected List<int> current_period_min_numbers = [];
-        private readonly ProtocolTypeNumbers obj_protocol_type_numbers;
+        private readonly ProtocolTypeNumbers obj_protocol_type_numbers;   // struct massive ???
                                 
         public ProtocolsAnalysis(List<FileInfo> captured_simple_files)
         {
@@ -290,6 +290,10 @@ namespace Tracing
     }
 
     
+
+
+
+
     /*class BackupFilesYear : BackupFiles
     {
         public Dictionary<string, List<List<FileInfo>?>>? Files { get; }
