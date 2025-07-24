@@ -22,11 +22,13 @@ switch (backup_items_type)
         // method ????? in class
         Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
         // должна быть проверка правильности ввода месяца
-        string current_period = Console.ReadLine();
-        Action<string> MonthScansNotFound = (month) => Console.WriteLine($"\nЗа {month} сканов не найдено !");
+        string? current_period = Console.ReadLine();
 
-        PdfFiles self_obj_pdf_files = new(source_directory);
 
+
+        
+
+        
         if (self_obj_pdf_files.Files is not null)
         {
             if (MonthValues.Month_Names.Contains(current_period))
@@ -82,154 +84,11 @@ switch (backup_items_type)
     break;
 }
               
-    
-abstract class BackupProcessing<T>
+    // destination >>
+class BackupProcess(string source_directory, string target_period)
 {
-    public bool Search_Status { get; set; }
-    public BackupFilesMonth? Self_Obj_Backup_Item { get; set; }
-    public T? PeriodLog { get; set; }
-
-    private protected abstract void CalcAllSums();
-    private protected abstract void SearchNoneProtocols();
-    // сложение словарей ??
-}
-
-
-class MonthBackupProcessing : BackupProcessing<MonthSums>
-{
-    private readonly int month_value;
-        
-    public MonthBackupProcessing(PdfFiles source_files, string month)
-    {
-        month_value = MonthValues.Table[month];
-        Self_Obj_Backup_Item = new(source_files);
-        Self_Obj_Backup_Item.GetMonthBlock(month_value);
-
-        if (Self_Obj_Backup_Item.Files is not null)
-        {
-            Search_Status = true;
-            PeriodLog = new() { Period = month };
-
-            CalcAllSums();                              
-
-                // метод или класс компоновщик данных отчета
-                // но сначала копирование !
-        }
-        else
-        {
-            Search_Status = false;
-        }
-    }
-
-#nullable disable
-    private protected override void CalcAllSums()
-    {
-        for (int protocol_type_index = 0; protocol_type_index < Self_Obj_Backup_Item?.Files?.Count; protocol_type_index++)
-        {
-            if (Self_Obj_Backup_Item.Files[protocol_type_index] is not null)
-            {
-                PeriodLog.All_Protocols[ProtocolFullTypeLocation.others_sums[0]] += Self_Obj_Backup_Item.Files[protocol_type_index].Count;
-                PeriodLog.All_Protocols[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = Self_Obj_Backup_Item.Files[protocol_type_index].Count;
-
-                if (protocol_type_index is 1)
-                {
-                    SearchNoneProtocols();
-                }
-            }
-        }
-    }
-
-    private protected override void SearchNoneProtocols()
-    {
-        void ConnectLogs(ProtocolsAnalysis analys_obj)
-        {
-            PeriodLog.Simple_Protocols = analys_obj.Simple_Protocols_Sums;
-            PeriodLog.Missed_Protocols = analys_obj.Missed_Protocols;
-        }
-
-        if (month_value is not 1)
-        {
-            var previous_files = Self_Obj_Backup_Item.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1);
-
-            AnalysWithUnknownProtocols self_obj_other_monthes_analys = new(Self_Obj_Backup_Item.Files[1], previous_files);
-
-            ConnectLogs(self_obj_other_monthes_analys);
-            PeriodLog.Unknown_Protocols = self_obj_other_monthes_analys.Unknown_Protocols;
-        }
-        else
-        {
-            ProtocolsAnalysis self_obj_january_analys = new(Self_Obj_Backup_Item.Files[1]);
-
-            ConnectLogs(self_obj_january_analys);      
-        }
-    }
-#nullable restore
-}
-
-
-class YearBackupProcessing : BackupProcessing<YearSums>
-{
-    public List<(MonthSums, List<List<FileInfo>?>)> Year_Backup { get; set; }
-
-    public YearBackupProcessing(PdfFiles source_files)
-    {
-
-
-
-        files_block = new(source_files);
-
-        if (files_block.Files is not null)
-        {
-            Search_Status = true;
-
-
-
-
-        }
-        else
-        {
-            Search_Status = false;
-        }
-    }
-    // фиктивная проверка
-    private bool 
-
-
-
-    private protected override void CalcAllSums()
-    {
-        static bool CheckNoneYearBlock(List<List<FileInfo>?> year_file_block)
-        {
-            int month_count = 0;
-
-            foreach (var files in year_file_block)
-            {
-                if (files is null)
-                {
-                    month_count++;
-                }
-            }
-
-            if (month_count != MonthValues.Month_Count)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-
-
-
-
-
-    }
-
-
-
-
+    private readonly PdfFiles self_obj_pdf_files = new(source_directory);
+    private Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
 
 
 }

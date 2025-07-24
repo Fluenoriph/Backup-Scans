@@ -26,17 +26,17 @@ namespace Tracing
     }
 
 
-    abstract class GeneralSums
+    interface IGeneralSums   
     {
-        public string Period { get; set; } = "";
-        public Dictionary<string, int> All_Protocols { get; } = [];
-
-        public GeneralSums()
+        static Dictionary<string, int> CreateTable()
         {
+            Dictionary<string, int> sums = [];
+
             foreach (string item in ProtocolFullTypeLocation.others_sums)
             {
-                All_Protocols.Add(item, 0);
+                sums.Add(item, 0);
             }
+            return sums;
         }
     }
 
@@ -63,22 +63,16 @@ namespace Tracing
             return sums;
         }
     }
-
-        
-    class MonthSums : GeneralSums
+           
+    
+    class YearSums : IGeneralSums, ISimpleProtocolsSums 
     {
-        public Dictionary<string, int>? Simple_Protocols { get; set; }
-        public List<string>? Missed_Protocols { get; set; }
-        public List<string>? Unknown_Protocols { get; set; }
-    }
-
-
-    class YearSums : GeneralSums, ISimpleProtocolsSums 
-    {
+        public Dictionary<string, int> All_Protocols { get; }
         public Dictionary<string, int> Simple_Protocols { get; }
 
         public YearSums()
         {
+            All_Protocols = IGeneralSums.CreateTable();
             Simple_Protocols = ISimpleProtocolsSums.CreateTable();
         }
     }
@@ -246,7 +240,7 @@ namespace Tracing
     }
 
     
-    abstract class BackupFiles(PdfFiles self_obj_source_files)
+    class BackupFilesMonth(PdfFiles self_obj_source_files)
     {
         public List<FileInfo>? CapturingFiles(string file_pattern, int month_value)
         {
@@ -254,17 +248,12 @@ namespace Tracing
 
             return self_obj_source_files.GrabMatchedFiles(pattern);
         }
-    }
 
-
-    class BackupFilesMonth(PdfFiles self_obj_source_files) : BackupFiles(self_obj_source_files)
-    {
-        private readonly List<List<FileInfo>?> files = [];
-        public List<List<FileInfo>?>? Files { get; private set; }
-
-        public void GetMonthBlock(int month_value) 
+        public List<List<FileInfo>?>? GetBlock(int month_value)
         {
-            int null_count = 0;          
+            int null_count = 0;
+
+            List<List<FileInfo>?> files = [];
 
             foreach (string pattern_type in FileTypesPatterns.protocol_file_type)
             {
@@ -277,62 +266,61 @@ namespace Tracing
             }
 
             int NULL_FILES = 2;
-
             if (null_count != NULL_FILES)
             {
-                Files = files;
+                return files;
             }
             else
             {
-                Files =  null;
+                return null;
+            }
+        }
+    }
+        
+
+    abstract class MonthSums<T> : IGeneralSums
+    {
+        public Dictionary<string, int> All_Protocols { get; }
+        public List<List<FileInfo>?> Backup_Block { get; set; }
+        public T? Analys_Simple_Type { get; set; }
+        
+        public MonthSums(List<List<FileInfo>?> backup_block)
+        {
+            All_Protocols = IGeneralSums.CreateTable();
+            Backup_Block = backup_block;
+
+            for (int protocol_type_index = 0; protocol_type_index < Backup_Block.Count; protocol_type_index++)
+            {
+                if (Backup_Block[protocol_type_index] is not null)
+                {
+                    All_Protocols[ProtocolFullTypeLocation.others_sums[0]] += Backup_Block[protocol_type_index]!.Count;
+                    All_Protocols[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = Backup_Block[protocol_type_index]!.Count;
+                }
             }
         }
     }
 
-    
 
-
-
-
-    /*class BackupFilesYear : BackupFiles
+    class MonthSumsExceptUnknowns : MonthSums<ProtocolsAnalysis>
     {
-        public Dictionary<string, List<List<FileInfo>?>>? Files { get; }
-        private readonly Dictionary<string, List<List<FileInfo>?>> files = [];
-        
-        public BackupFilesYear(PdfFiles self_obj_source_files) : base(self_obj_source_files)
+        public MonthSumsExceptUnknowns(List<List<FileInfo>?> backup_block) : base(backup_block)
         {
-            foreach (string protocol_type in FileTypesPatterns.protocol_file_type)
+            if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                files.Add(protocol_type, []);
-            }
-            
-            int null_count = 0;
-
-            for (int month_index = 1; month_index < MonthValues.Month_Count; month_index++)  
-            {
-                foreach (string type in FileTypesPatterns.protocol_file_type)
-                {
-                    var month_files = CapturingFiles(FileTypesPatterns.file_patterns[type], month_index);
-
-                    if (month_files is null)
-                    {
-                        null_count++;
-                    }
-                    files[type].AddRange(month_files);
-                }
-            }
-
-            NULL_FILES = 24;
-
-            if (null_count != NULL_FILES)
-            {
-                Files = files;
-            }
-            else
-            {
-                Files = null;
+                _ = new ProtocolsAnalysis(Backup_Block[1]!);
             }
         }
-    }*/
+    }
+
+
+    class MonthSumsWithUnknowns : MonthSums<AnalysWithUnknownProtocols>
+    {
+        public MonthSumsWithUnknowns(List<List<FileInfo>?> backup_block, List<FileInfo>? previous_period_simple_files) : base(backup_block)
+        {
+            if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
+            {
+                _ = new AnalysWithUnknownProtocols(Backup_Block[1]!, previous_period_simple_files);
+            }
+        }
+    }
 }
-// проверено пока
