@@ -278,11 +278,11 @@ namespace Tracing
     }
         
 
-    abstract class MonthSums<T> : IGeneralSums
+    abstract class MonthSums : IGeneralSums
     {
         public Dictionary<string, int> All_Protocols { get; }
         public List<List<FileInfo>?> Backup_Block { get; set; }
-        public T? Analys_Simple_Type { get; set; }
+        public ProtocolsAnalysis? Self_Obj_Analys_Simple_Type { get; set; }
         
         public MonthSums(List<List<FileInfo>?> backup_block)
         {
@@ -301,25 +301,25 @@ namespace Tracing
     }
 
 
-    class MonthSumsExceptUnknowns : MonthSums<ProtocolsAnalysis>
+    class MonthSumsExceptUnknowns : MonthSums
     {
         public MonthSumsExceptUnknowns(List<List<FileInfo>?> backup_block) : base(backup_block)
         {
             if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                _ = new ProtocolsAnalysis(Backup_Block[1]!);
+                Self_Obj_Analys_Simple_Type = new(Backup_Block[1]!);
             }
         }
     }
 
 
-    class MonthSumsWithUnknowns : MonthSums<AnalysWithUnknownProtocols>
+    class MonthSumsWithUnknowns : MonthSums
     {
         public MonthSumsWithUnknowns(List<List<FileInfo>?> backup_block, List<FileInfo>? previous_period_simple_files) : base(backup_block)
         {
             if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                _ = new AnalysWithUnknownProtocols(Backup_Block[1]!, previous_period_simple_files);
+                Self_Obj_Analys_Simple_Type = new AnalysWithUnknownProtocols(Backup_Block[1]!, previous_period_simple_files);   // test !!!
             }
         }
     }

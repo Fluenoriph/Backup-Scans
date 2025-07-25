@@ -1,7 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using Aspose.Words.Drawing;
 using BackupBlock;
 using DrivesControl;
 using Logging;
+using System.Text.RegularExpressions;
 using Tracing;
 
 // class App
@@ -23,43 +24,18 @@ switch (backup_items_type)
         Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
         // должна быть проверка правильности ввода месяца
         string? current_period = Console.ReadLine();
+        Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
+        PdfFiles self_obj_pdf_files = new(source_directory);
 
-
-
-        
-
-        
         if (self_obj_pdf_files.Files is not null)
         {
             if (MonthValues.Month_Names.Contains(current_period))
             {
-                MonthBackupProcessing self_obj_month_backup = new(self_obj_pdf_files, current_period);
+                BackupProcessMonth self_obj_backup_month = new(self_obj_pdf_files, current_period);
 
-                if (self_obj_month_backup.Search_Status)
+                if (self_obj_backup_month.Search_Status)
                 {
-                    Console.WriteLine($"\nЗа {current_period} найдено {self_obj_month_backup.PeriodLog.All_Protocols[ProtocolFullTypeLocation.others_sums[0]]} сканов !");
-
-                    Console.WriteLine($"\n{self_obj_month_backup.PeriodLog.Period}");
-                    foreach (var item in self_obj_month_backup.PeriodLog.All_Protocols)
-                    {
-                        Console.WriteLine($"{item.Key}: {item.Value}");
-                    }
-
-                    foreach (var item in self_obj_month_backup.PeriodLog.Simple_Protocols)
-                    {
-                        Console.WriteLine($"{item.Key}: {item.Value}");
-                    }
-
-                    foreach (var item in self_obj_month_backup.PeriodLog.Missed_Protocols)
-                    {
-                        Console.WriteLine(item);
-                    }
-
-                    foreach (var item in self_obj_month_backup.PeriodLog.Unknown_Protocols)
-                    {
-                        Console.WriteLine(item);
-                    }
-
+                    Console.WriteLine("\nМожно копировать !");
                 }
                 else
                 {
@@ -85,10 +61,55 @@ switch (backup_items_type)
 }
               
     // destination >>
-class BackupProcess(string source_directory, string target_period)
+class BackupProcessMonth
 {
-    private readonly PdfFiles self_obj_pdf_files = new(source_directory);
-    private Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
+    public bool Search_Status { get; set; } // abs ?
+    
+    public BackupProcessMonth(PdfFiles self_obj_source_files, string target_month)
+    {
+        BackupFilesMonth self_obj_files = new(self_obj_source_files);
 
+        int month_value = MonthValues.Table[target_month];
+        var files = self_obj_files.GetBlock(month_value);
 
+        if (files is not null)
+        {
+            Search_Status = true;
+
+            Console.WriteLine($"\nЗа {target_month} найдено: ЕИАС-{files[0]?.Count}/ Простых: {files[1]?.Count}");
+
+            if (month_value != 1)
+            {
+                MonthSumsWithUnknowns self_obj_backup = new(files, self_obj_files.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1));
+
+                foreach (var item in self_obj_backup.All_Protocols)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
+
+                foreach (var item in self_obj_backup.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
+            }
+            else
+            {
+                MonthSumsExceptUnknowns self_obj_backup = new(files);
+
+                foreach (var item in self_obj_backup.All_Protocols)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
+
+                foreach (var item in self_obj_backup.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
+            }
+        }
+        else
+        {
+            Search_Status = false;  
+        }
+    }
 }
