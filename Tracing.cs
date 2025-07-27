@@ -1,4 +1,5 @@
-﻿using BackupBlock;
+﻿using Aspose.Words.Drawing;
+using BackupBlock;
 using DrivesControl;
 using Logging;
 using System.Collections.Generic;
@@ -239,40 +240,47 @@ namespace Tracing
         }
     }
 
-    
+
+    class MonthFilesBlock(List<FileInfo>? eias_files, List<FileInfo>? simple_files)
+    {
+        public List<FileInfo>? EIAS { get; } = eias_files;
+        public List<FileInfo>? Simple { get; } = simple_files;
+    }
+
+
     class BackupFilesMonth(PdfFiles self_obj_source_files)
     {
+        private readonly Func<int, string> ConvertMonth = static (value) =>
+        {
+            if (value < 10)
+            {
+                return $"0{value}";
+            }
+            else
+            {
+                return value.ToString();
+            }
+        };
+
         public List<FileInfo>? CapturingFiles(string file_pattern, int month_value)
         {
-            Regex pattern = new(string.Concat(file_pattern, "\\d{2}\\.", $"0{month_value}", "\\.", CurrentYear.Year, "\\.", FileTypesPatterns.file_types["PDF"], "$"), RegexOptions.IgnoreCase);
+            Regex pattern = new(string.Concat(file_pattern, "\\d{2}\\.", ConvertMonth(month_value), "\\.", CurrentYear.Year, "\\.", FileTypesPatterns.file_types["PDF"], "$"), RegexOptions.IgnoreCase);
 
             return self_obj_source_files.GrabMatchedFiles(pattern);
         }
 
-        public List<List<FileInfo>?>? GetBlock(int month_value)
+        public MonthFilesBlock? GetFilesBlock(int month_value)
         {
-            int null_count = 0;
+            var eias = CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[0]], month_value);
+            var simple = CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value);
 
-            List<List<FileInfo>?> files = [];
-
-            foreach (string pattern_type in FileTypesPatterns.protocol_file_type)
+            if ((eias is null) && (simple is null))
             {
-                var capturing_files = CapturingFiles(FileTypesPatterns.file_patterns[pattern_type], month_value);
-                if (capturing_files is null)
-                {
-                    null_count++;
-                }
-                files.AddRange(capturing_files);
-            }
-
-            int NULL_FILES = 2;
-            if (null_count != NULL_FILES)
-            {
-                return files;
+                return null;
             }
             else
             {
-                return null;
+                return new(eias, simple);
             }
         }
     }
@@ -280,34 +288,38 @@ namespace Tracing
 
     abstract class MonthSums : IGeneralSums
     {
-        public Dictionary<string, int> All_Protocols { get; }
-        public List<List<FileInfo>?> Backup_Block { get; set; }
+        public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
         public ProtocolsAnalysis? Self_Obj_Analys_Simple_Type { get; set; }
         
-        public MonthSums(List<List<FileInfo>?> backup_block)
+        public MonthSums(MonthFilesBlock backup_block)
         {
-            All_Protocols = IGeneralSums.CreateTable();
-            Backup_Block = backup_block;
-
-            for (int protocol_type_index = 0; protocol_type_index < Backup_Block.Count; protocol_type_index++)
+            if (backup_block.EIAS is not null)
             {
-                if (Backup_Block[protocol_type_index] is not null)
-                {
-                    All_Protocols[ProtocolFullTypeLocation.others_sums[0]] += Backup_Block[protocol_type_index]!.Count;
-                    All_Protocols[ProtocolFullTypeLocation.others_sums[protocol_type_index + 1]] = Backup_Block[protocol_type_index]!.Count;
-                }
+                AddFullSum(backup_block.EIAS);
+                All_Protocols[ProtocolFullTypeLocation.others_sums[1]] = backup_block.EIAS.Count;
             }
+
+            if (backup_block.Simple is not null)
+            {
+                AddFullSum(backup_block.Simple);
+                All_Protocols[ProtocolFullTypeLocation.others_sums[2]] = backup_block.Simple.Count;
+            }
+        }
+
+        private protected void AddFullSum(List<FileInfo> files)
+        {
+            All_Protocols[ProtocolFullTypeLocation.others_sums[0]] += files.Count;
         }
     }
 
 
     class MonthSumsExceptUnknowns : MonthSums
     {
-        public MonthSumsExceptUnknowns(List<List<FileInfo>?> backup_block) : base(backup_block)
+        public MonthSumsExceptUnknowns(MonthFilesBlock backup_block) : base(backup_block)
         {
             if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                Self_Obj_Analys_Simple_Type = new(Backup_Block[1]!);
+                Self_Obj_Analys_Simple_Type = new ProtocolsAnalysis(backup_block.Simple!);
             }
         }
     }
@@ -315,11 +327,11 @@ namespace Tracing
 
     class MonthSumsWithUnknowns : MonthSums
     {
-        public MonthSumsWithUnknowns(List<List<FileInfo>?> backup_block, List<FileInfo>? previous_period_simple_files) : base(backup_block)
+        public MonthSumsWithUnknowns(MonthFilesBlock backup_block, List<FileInfo>? previous_period_simple_files) : base(backup_block)
         {
             if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                Self_Obj_Analys_Simple_Type = new AnalysWithUnknownProtocols(Backup_Block[1]!, previous_period_simple_files);   // test !!!
+                Self_Obj_Analys_Simple_Type = new AnalysWithUnknownProtocols(backup_block.Simple!, previous_period_simple_files);   // test !!!
             }
         }
     }
