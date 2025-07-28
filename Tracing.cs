@@ -64,21 +64,8 @@ namespace Tracing
             return sums;
         }
     }
-           
-    
-    class YearSums : IGeneralSums, ISimpleProtocolsSums 
-    {
-        public Dictionary<string, int> All_Protocols { get; }
-        public Dictionary<string, int> Simple_Protocols { get; }
-
-        public YearSums()
-        {
-            All_Protocols = IGeneralSums.CreateTable();
-            Simple_Protocols = ISimpleProtocolsSums.CreateTable();
-        }
-    }
-
-
+        
+      
     class FileTransfer(List<FileInfo> backup_files)
     {
         private readonly List<FileInfo> files = backup_files;
@@ -331,7 +318,7 @@ namespace Tracing
         {
             if (All_Protocols[ProtocolFullTypeLocation.others_sums[2]] != 0)
             {
-                Self_Obj_Analys_Simple_Type = new AnalysWithUnknownProtocols(backup_block.Simple!, previous_period_simple_files);   // test !!!
+                Self_Obj_Analys_Simple_Type = new AnalysWithUnknownProtocols(backup_block.Simple!, previous_period_simple_files);   
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Aspose.Words.Drawing;
+﻿using Aspose.Words.Bibliography;
+using Aspose.Words.Drawing;
 using BackupBlock;
 using DrivesControl;
 using Logging;
@@ -65,9 +66,9 @@ switch (backup_items_type)
 
 abstract class BackupProcess
 {
-    private protected BackupFilesMonth? self_obj_files;
-    private protected MonthSums? self_obj_backup; 
-    public bool Search_Status { get; set; } // нужно ли ?
+    private protected BackupFilesMonth? self_obj_backup_files;
+    private protected MonthSums? self_obj_sums; 
+    public bool Search_Status { get; set; } // не надо, сразу копировать ??
 }
 
     // destination >>
@@ -76,33 +77,79 @@ class BackupProcessMonth : BackupProcess
     public BackupProcessMonth(PdfFiles self_obj_source_files, string target_month)
     {
         int month_value = MonthValues.Table[target_month];
-        self_obj_files = new(self_obj_source_files);       
-        var files_block = self_obj_files.GetFilesBlock(month_value);
+        self_obj_backup_files = new(self_obj_source_files);       
+        var files_block = self_obj_backup_files.GetFilesBlock(month_value);
 
         if (files_block is not null)
         {
             Search_Status = true;
-
-            Console.WriteLine($"\nЗа {target_month} найдено: ЕИАС-{files_block.EIAS?.Count}/ Простых: {files_block.Simple?.Count}");
-
+                        
             if (month_value != 1)
             {
-                self_obj_backup = new MonthSumsWithUnknowns(files_block, self_obj_files.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1));                
+                self_obj_sums = new MonthSumsWithUnknowns(files_block, self_obj_backup_files.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1));                
             }
             else
             {
-                self_obj_backup = new MonthSumsExceptUnknowns(files_block);                
+                self_obj_sums = new MonthSumsExceptUnknowns(files_block);                
             }
 
-            foreach (var item in self_obj_backup.All_Protocols)
+            // start log class !!
+            // >>>>>>>>>>> out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            foreach (var item in self_obj_sums.All_Protocols)
             {
                 Console.WriteLine($"{item.Key}: {item.Value}");
             }
 
-            foreach (var item in self_obj_backup.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+            if (self_obj_sums.Self_Obj_Analys_Simple_Type is not null)
             {
-                Console.WriteLine($"{item.Key}: {item.Value}");
+                foreach (var item in self_obj_sums.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                {
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
             }
+            Console.WriteLine("\n");
+            if (files_block.EIAS is not null)
+            {
+                foreach (var file in files_block.EIAS)
+                {
+                    Console.WriteLine(file.Name);
+                }
+            }
+
+            if (files_block.Simple is not null)
+            {
+                foreach (var file in files_block.Simple)
+                {
+                    Console.WriteLine(file.Name);
+                }
+            }
+            // *** missed & unknowns ***
+            if (self_obj_sums.Self_Obj_Analys_Simple_Type is not null)
+            {
+                if (self_obj_sums.Self_Obj_Analys_Simple_Type.Missed_Protocols is not null)
+                {
+                    Console.WriteLine("\nПропущенные >>>>>>>>>>>>>");
+                    foreach (var item in self_obj_sums.Self_Obj_Analys_Simple_Type.Missed_Protocols)
+                    {
+                        Console.WriteLine(item);
+                    }
+                }
+                
+                if (self_obj_sums is MonthSumsWithUnknowns)
+                {
+                    var mass = (AnalysWithUnknownProtocols)self_obj_sums.Self_Obj_Analys_Simple_Type;
+
+                    if (mass.Unknown_Protocols is not null)
+                    {
+                        Console.WriteLine("\nНеизвестные >>>>>>>>>>>>>");
+                        foreach (var item in mass.Unknown_Protocols)
+                        {
+                            Console.WriteLine(item);
+                        }
+                    }
+                }
+            }
+            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         }
         else
         {
@@ -112,18 +159,46 @@ class BackupProcessMonth : BackupProcess
 }
 
 
-class BackupProcessYear : BackupProcess
+class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 {
     private readonly List<(int, MonthFilesBlock)> year_sums = [];
-    // словарь за весь год !!!
+    public Dictionary<string, int>? All_Protocols { get; private set; }
+    public Dictionary<string, int>? Simple_Protocols { get; private set; }
 
     public BackupProcessYear(PdfFiles self_obj_source_files)
     {
-        self_obj_files = new(self_obj_source_files);
+        self_obj_backup_files = new(self_obj_source_files);
 
+        if (FindYearFiles())
+        {
+            Search_Status = true;
+
+            ComputeBackupSums();
+
+            // >>>>>>>>>>>>>>>>>>>>>>> out
+            Console.WriteLine("\n>>> Сумма за год >>> >>> >>> >>> >>>\n");
+            foreach (var item in All_Protocols!)
+            {
+                Console.WriteLine($"{item.Key}: {item.Value}");
+            }
+            foreach (var item in Simple_Protocols!)
+            {
+                Console.WriteLine($"{item.Key}: {item.Value}");
+            }
+            // >>>>>>>>>>>>>>>>>>>>>>>
+
+        }
+        else
+        {
+            Search_Status = false;
+        } 
+    }
+
+    private bool FindYearFiles()
+    {
         for (int month_index = 0; month_index < MonthValues.Month_Count; month_index++)
         {
-            var files_block = self_obj_files.GetFilesBlock(month_index + 1);
+            var files_block = self_obj_backup_files!.GetFilesBlock(month_index + 1);
             
             if (files_block is not null)
             {
@@ -131,58 +206,89 @@ class BackupProcessYear : BackupProcess
             }
         }
 
-        // другая операция и метод !!
-        //Console.WriteLine(year_sums.Count);
-        if (year_sums.Count != 1) // найдено за год хотя бы 1 месяц
+        if (year_sums.Count > 0) 
+        { 
+            return true; 
+        }
+        else
         {
-            for (int files_block_index = 0; files_block_index < year_sums.Count; files_block_index++)      // variable - count
+            return false;
+        }
+    }
+
+    private void ComputeBackupSums()
+    {
+        if (year_sums.Count != 1) 
+        {
+            All_Protocols = IGeneralSums.CreateTable();
+            Simple_Protocols = ISimpleProtocolsSums.CreateTable();
+
+            for (int files_block_index = 0; files_block_index < year_sums.Count; files_block_index++)      
             {
                 var current_block = year_sums[files_block_index];
+                // out >>>>>>>>>>>>>>>>>>>>>>>>>
                 var current_month = MonthValues.Month_Names[current_block.Item1 - 1];
-
-                Console.WriteLine($"\nНайдено за {current_month} !");
-                                                                        // simple files gets !!!
-                if ((files_block_index > 0) && (current_block.Item1 - year_sums[files_block_index - 1].Item1 == 1))   // bool string var !!
+                Console.WriteLine($"\nУспех ! Найдено за {current_month} !");
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                
+                if ((files_block_index > 0) && (current_block.Item1 - year_sums[files_block_index - 1].Item1 == 1))   
                 {
-                    self_obj_backup = new MonthSumsWithUnknowns(current_block.Item2, year_sums[files_block_index - 1].Item2.Simple);
-
+                    self_obj_sums = new MonthSumsWithUnknowns(current_block.Item2, year_sums[files_block_index - 1].Item2.Simple);
                 }
                 else
                 {
-                    self_obj_backup = new MonthSumsExceptUnknowns(current_block.Item2);
+                    self_obj_sums = new MonthSumsExceptUnknowns(current_block.Item2);
                 }
-                // test out >>>>
-                foreach (var item in self_obj_backup.All_Protocols)
+
+
+                // test out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                foreach (var item in self_obj_sums.All_Protocols)
                 {
+                    All_Protocols[item.Key] += item.Value;
                     Console.WriteLine($"{item.Key}: {item.Value}");
                 }
 
-                foreach (var item in self_obj_backup.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                if (self_obj_sums.Self_Obj_Analys_Simple_Type is not null)
                 {
-                    Console.WriteLine($"{item.Key}: {item.Value}");
+                    foreach (var item in self_obj_sums.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                    {
+                        Simple_Protocols[item.Key] += item.Value;
+                        Console.WriteLine($"{item.Key}: {item.Value}");
+                    }
                 }
-
+                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             }
-        }        // без проверки на пустой год !!
+        }        
         else
         {
             Console.WriteLine($"\nНайдено за {MonthValues.Month_Names[year_sums[0].Item1 - 1]} !");
 
-            self_obj_backup = new MonthSumsExceptUnknowns(year_sums[0].Item2);
-            // test out !!
-            foreach (var item in self_obj_backup.All_Protocols)
+            self_obj_sums = new MonthSumsExceptUnknowns(year_sums[0].Item2);
+
+            All_Protocols = self_obj_sums.All_Protocols;
+            Simple_Protocols = self_obj_sums.Self_Obj_Analys_Simple_Type?.Simple_Protocols_Sums;  // null set
+
+
+            // test out !! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            foreach (var item in self_obj_sums.All_Protocols)
             {
+                //All_Protocols[item.Key] += item.Value;
                 Console.WriteLine($"{item.Key}: {item.Value}");
             }
 
-            foreach (var item in self_obj_backup.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+            if (self_obj_sums.Self_Obj_Analys_Simple_Type is not null)
             {
-                Console.WriteLine($"{item.Key}: {item.Value}");
+                foreach (var item in self_obj_sums.Self_Obj_Analys_Simple_Type.Simple_Protocols_Sums)
+                {
+                    //Simple_Protocols[item.Key] += item.Value;
+                    Console.WriteLine($"{item.Key}: {item.Value}");
+                }
             }
+            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         }
-
-        
     }
 
-    
+
+
+
 }
