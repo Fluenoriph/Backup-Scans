@@ -87,15 +87,14 @@ namespace Tracing
     // только анализ простых
     class ProtocolsAnalysis : ISimpleProtocolsSums
     {
-        private protected List<int> current_period_min_numbers = [];
-        private readonly ProtocolTypeNumbers obj_protocol_type_numbers;   // struct massive ???
-                                
+        private protected Dictionary<string, int> current_period_min_numbers = [];
+        private readonly ProtocolTypeNumbers obj_protocol_type_numbers;
+        private protected readonly Func<string, string> GetShortTypeName = (key) => SimpleProtocolTypes.protocol_types[ProtocolFullTypeLocation.type_location_sums.IndexOf(key)];
+
         public ProtocolsAnalysis(List<FileInfo> captured_simple_files)
         {
             obj_protocol_type_numbers = new(captured_simple_files);
-
             Simple_Protocols_Sums = ISimpleProtocolsSums.CreateTable();
-
             CalculateTypeSums();
             Missed_Protocols = ComputeMissedProtocols();
         }
@@ -108,15 +107,9 @@ namespace Tracing
         {
             // рассчет сумм типов протоколов и запись в словарь
             // >> рассчет всех типов и по району
-            for (int type_index = 0; type_index < ProtocolFullTypeLocation.type_location_sums.Count; type_index++)
+            foreach (var item in obj_protocol_type_numbers.Numbers)
             {
-                string current_protocol_type = ProtocolFullTypeLocation.type_location_sums[type_index];
-                List<int>? current_protocol_numbers = obj_protocol_type_numbers.Numbers[type_index];
-
-                if (current_protocol_numbers is not null)
-                {
-                    Simple_Protocols_Sums[current_protocol_type] = current_protocol_numbers.Count;
-                }
+                Simple_Protocols_Sums[item.Key] = item.Value.Count;
             }
             // рассчет каждого типа всего
             for (int type_index = 0, calc_index = 0; type_index < ProtocolFullTypeLocation.type_full_sums.Count; type_index++)
@@ -138,24 +131,22 @@ namespace Tracing
             current_period_min_numbers = extreme_min.Numbers;
 
             MaximumNumbers extreme_max = new(obj_protocol_type_numbers.Numbers);
-            List<int> max_numbers = extreme_max.Numbers;
+            Dictionary<string, int> max_numbers = extreme_max.Numbers;
 
             List<string> missed_protocols = [];
 
-            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+            foreach (var item in obj_protocol_type_numbers.Numbers)
             {
-                List<int>? current_protocols = obj_protocol_type_numbers.Numbers[type_index];
-
-                if ((current_protocols is not null) && (current_protocols.Count >= 2))
+                if (item.Value.Count >= 2)
                 {
-                    var range = Enumerable.Range(current_period_min_numbers[type_index] + 1, max_numbers[type_index] - current_period_min_numbers[type_index]);
+                    var range = Enumerable.Range(current_period_min_numbers[item.Key] + 1, max_numbers[item.Key] - current_period_min_numbers[item.Key]);
                     
-                    IEnumerable<int> missing = range.Except(current_protocols); 
+                    IEnumerable<int> missing = range.Except(item.Value); 
                     List<int> missing_numbers = [.. missing];
 
                     foreach (int number in missing_numbers)
                     {
-                        missed_protocols.Add($"{number}-{SimpleProtocolTypes.protocol_types[type_index]}");
+                        missed_protocols.Add($"{number}-{GetShortTypeName(item.Key)}");
                     }
                 }
             }
@@ -193,16 +184,14 @@ namespace Tracing
 
         public List<string>? Unknown_Protocols { get; }
 
-        private List<string>? ComputeUnknownProtocols(List<int> previous_period_max_numbers, List<int> current_period_min_numbers)
+        private List<string>? ComputeUnknownProtocols(Dictionary<string, int> previous_period_max_numbers, Dictionary<string, int> current_period_min_numbers)
         {
             List<string> unknown_protocols = [];
 
-            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+            foreach (var item in current_period_min_numbers)
             {
-                string current_type = SimpleProtocolTypes.protocol_types[type_index];
-
-                int min_number = previous_period_max_numbers[type_index];
-                int max_number = current_period_min_numbers[type_index];
+                int min_number = previous_period_max_numbers[item.Key];
+                int max_number = item.Value;
 
                 bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
 
@@ -210,7 +199,7 @@ namespace Tracing
                 {
                     for (int start_num = min_number + 1; start_num < max_number; start_num++)     
                     {
-                        unknown_protocols.Add($"{start_num}-{current_type}");
+                        unknown_protocols.Add($"{start_num}-{GetShortTypeName(item.Key)}");
                     }
                 }
             }

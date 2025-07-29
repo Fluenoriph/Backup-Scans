@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Tracing;
 
 
 namespace BackupBlock
@@ -100,41 +101,36 @@ namespace BackupBlock
             }
         }      
     }
+        
 
-    
     struct SimpleProtocolTypes
     {
         public static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
-        public static int types_count = protocol_types.Count;
     }
 
-
+        
     class ProtocolTypeNumbers 
     {
         private const string number_capture_pattern = "^(?<number>\\d+)-";
-        private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled); // изменить без предупр.
+        private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled); // изменить без предупр. /pragma ??
         private static readonly Func<string, Regex> ProtocolTypeCapture = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
-        public List<List<int>?> Numbers { get; } = [];
+        
+        public Dictionary<string, List<int>> Numbers { get; } = [];
 
         public ProtocolTypeNumbers(List<FileInfo> backup_files)
         {
-            for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+            for (int type_index = 0; type_index < SimpleProtocolTypes.protocol_types.Count; type_index++)
             {
                 IEnumerable<string> type_block = from file in backup_files
                                                  where ProtocolTypeCapture(SimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
                                                  select file.Name;
-                
+
                 List<string> current_protocols = [.. type_block];
 
                 if (current_protocols.Count > 0)
                 {
-                    Numbers.InsertRange(type_index, ConvertToNumbers(current_protocols));
-                }
-                else
-                {
-                    List<int>? none_protocols = null;
-                    Numbers.InsertRange(type_index, none_protocols);
-                }
+                    Numbers.Add(ProtocolFullTypeLocation.type_location_sums[type_index], ConvertToNumbers(current_protocols));
+                }   
             }
         }
                 
@@ -152,7 +148,7 @@ namespace BackupBlock
                 }
                 else 
                 { 
-                    Console.WriteLine("\nОшибка захвата номера протокола !"); 
+                    Console.WriteLine("\nОшибка захвата номера протокола !"); // shutdown app ??
                 }
             }
             return numbers;
@@ -160,35 +156,27 @@ namespace BackupBlock
     }
 
 
-    abstract class ExtremeNumbers(List<List<int>?> protocol_type_numbers) 
+    abstract class ExtremeNumbers(Dictionary<string, List<int>> protocol_type_numbers) 
     {
-        private readonly List<int> numbers = [];
+        private readonly Dictionary<string, int> numbers = [];
         private protected abstract int GetExtremeNumber(List<int> current_numbers);
 
-        public List<int> Numbers
+        public Dictionary<string, int> Numbers
         {
             get
             {
-                for (int type_index = 0; type_index < SimpleProtocolTypes.types_count; type_index++)
+                foreach (var item in protocol_type_numbers)
                 {
-                    List<int>? current_numbers = protocol_type_numbers[type_index];
-
-                    if (current_numbers is not null)      
-                    {
-                        numbers.Insert(type_index, GetExtremeNumber(current_numbers));
-                    }
-                    else
-                    {
-                        numbers.Insert(type_index, 0);
-                    }
+                    numbers.Add(item.Key, GetExtremeNumber(item.Value));                                        
                 }
+
                 return numbers;
             }
         }
     }
 
 
-    class MaximumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers(protocol_type_numbers)
+    class MaximumNumbers(Dictionary<string, List<int>> protocol_type_numbers) : ExtremeNumbers(protocol_type_numbers)
     {
         private protected override int GetExtremeNumber(List<int> current_numbers)
         {
@@ -197,7 +185,7 @@ namespace BackupBlock
     }
 
 
-    class MinimumNumbers(List<List<int>?> protocol_type_numbers) : ExtremeNumbers(protocol_type_numbers)
+    class MinimumNumbers(Dictionary<string, List<int>> protocol_type_numbers) : ExtremeNumbers(protocol_type_numbers)
     {
         private protected override int GetExtremeNumber(List<int> current_numbers)
         {
