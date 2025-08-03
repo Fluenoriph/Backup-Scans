@@ -3,7 +3,10 @@ using Aspose.Words.Drawing;
 using BackupBlock;
 using DrivesControl;
 using Logging;
+using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using TextData;
 using Tracing;
 
 // class App
@@ -25,74 +28,113 @@ switch (backup_items_type)
         Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
         // должна быть проверка правильности ввода месяца
         string? current_period = Console.ReadLine();
+
         Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
-        PdfFiles self_obj_pdf_files = new(source_directory);
+        
+        SourceFiles self_obj_pdf_files = new(source_directory);
 
-        if (self_obj_pdf_files.Files is not null)
+        if (AppConstants.month_names.Contains(current_period))
         {
-            if (MonthValues.Month_Names.Contains(current_period))
-            {
-                BackupProcessMonth self_obj_backup_month = new(self_obj_pdf_files, current_period);
+            BackupProcessMonth self_obj_backup_month = new(self_obj_pdf_files, current_period);
 
-                if (self_obj_backup_month.Search_Status)
-                {
-                    Console.WriteLine("\nМожно копировать !");
-                }
-                else
-                {
-                    MonthScansNotFound(current_period);
-                }
-            }
-            else if (current_period is "год")
+            if (self_obj_backup_month.Search_Status)
             {
-                Console.WriteLine("\nЗапущено копирование за год !");
-
-                BackupProcessYear self_obj_backup_year = new(self_obj_pdf_files);
+                Console.WriteLine("\nМожно копировать !");
             }
             else
             {
-                Console.WriteLine("\nОшибка ввода периода !");
-                System.Environment.Exit(0);
+                MonthScansNotFound(current_period);
             }
+        }
+        else if (current_period is "год")
+        {
+            Console.WriteLine("\nЗапущено копирование за год !");
+
+            BackupProcessYear self_obj_backup_year = new(self_obj_pdf_files);
         }
         else
         {
-            MonthScansNotFound(current_period);
+            Console.WriteLine("\nОшибка ввода периода !");
+            System.Environment.Exit(0);
         }
-
+        
     break;
 }
               
 
-abstract class BackupProcess
+abstract class BackupProcess(SourceFiles self_obj_source_files)
 {
-    private protected BackupFilesMonth? self_obj_backup_files;
-    private protected MonthSumsExceptUnknowns? self_obj_sums; 
-    public bool Search_Status { get; set; } // не надо, сразу копировать ??
+    private protected MonthSums? self_obj_sums;
+    public bool Search_Status { get; set; } 
+
+    private protected static string CreatePeriodPattern(int month_value)
+    {
+        string month;
+
+        if (month_value < 10)
+        {
+            month = $"0{month_value}";
+        }
+        else
+        {
+            month = month_value.ToString();
+        }
+
+        return string.Concat("\\d{2}\\.", month, "\\.", CurrentYear.Year, "\\.", AppConstants.scan_file_type, "$");
+    }
+
+    private protected List<FileInfo>? GetEIASFiles(string period_pattern)
+    {
+        return self_obj_source_files.GrabMatchedFiles(new(string.Concat(AppConstants.eias_number_pattern, period_pattern), RegexOptions.IgnoreCase));
+    }
+
+    private protected Dictionary<string, List<FileInfo>>? GetSimpleFiles(string period_pattern)
+    {
+        Dictionary<string, List<FileInfo>> files = [];
+
+        for (int type_index = 0; type_index < AppConstants.types_full_names.Count; type_index++)
+        {
+            var current_files = self_obj_source_files.GrabMatchedFiles(new(string.Concat($"{AppConstants.simple_number_pattern}{AppConstants.types_short_names[type_index]}-", period_pattern), RegexOptions.IgnoreCase));
+
+            if (current_files is not null)
+            {
+                files.Add(AppConstants.types_full_names[type_index], current_files);
+            }
+        }
+
+        if (files.Count > 0)
+        {
+            return files;
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
 
     // destination >>
 class BackupProcessMonth : BackupProcess
 {
-    public BackupProcessMonth(PdfFiles self_obj_source_files, string target_month)
+    public BackupProcessMonth(SourceFiles self_obj_source_files, string target_month) : base(self_obj_source_files)
     {
-        int month_value = MonthValues.Table[target_month];
-        self_obj_backup_files = new(self_obj_source_files);       
-        var files_block = self_obj_backup_files.GetFilesBlock(month_value);
+        int month_value = AppConstants.month_names.IndexOf(target_month) + 1;
 
-        if (files_block is not null)
+        var eias_files = GetEIASFiles(CreatePeriodPattern(month_value));
+        var simple_files = GetSimpleFiles(CreatePeriodPattern(month_value));
+                                        
+        if (month_value != 1)
+        {
+            self_obj_sums = new(eias_files, simple_files, GetSimpleFiles(CreatePeriodPattern(month_value - 1)));                
+        }
+        else
+        {
+            self_obj_sums = new(eias_files, simple_files);                
+        }
+
+        if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
         {
             Search_Status = true;
-                        
-            if (month_value != 1)
-            {
-                self_obj_sums = new MonthSumsWithUnknowns(files_block, self_obj_backup_files.CapturingFiles(FileTypesPatterns.file_patterns[FileTypesPatterns.protocol_file_type[1]], month_value - 1));                
-            }
-            else
-            {
-                self_obj_sums = new(files_block);                
-            }
-
             // start log class !!
             // >>>>>>>>>>> out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             foreach (var item in self_obj_sums.All_Protocols)
@@ -107,20 +149,38 @@ class BackupProcessMonth : BackupProcess
                     Console.WriteLine($"{item.Key}: {item.Value}");
                 }
             }
-            Console.WriteLine("\n");
-            if (files_block.EIAS is not null)
+            //Console.WriteLine("\n");
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] > 0)
             {
-                foreach (var file in files_block.EIAS)
+                Console.WriteLine($"\n{AppConstants.others_sums[1]} >>>>>>>>>>>>>");
+                foreach (var file in eias_files!)
                 {
                     Console.WriteLine(file.Name);
                 }
             }
-
-            if (files_block.Simple is not null)
+            // в другом классе ??
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] > 0)
             {
-                foreach (var file in files_block.Simple)
+                Console.WriteLine($"\n{AppConstants.others_sums[2]} >>>>>>>>>>>>>");
+                
+                foreach (var item_files in simple_files!)
                 {
-                    Console.WriteLine(file.Name);
+                    Console.WriteLine($"{item_files.Key}:");
+                    
+                    var current_numbers_list = self_obj_sums.Self_obj_currents_type_numbers!.Numbers[item_files.Key];
+                    var current_files_list = item_files.Value;
+                    int table_number = 1;
+
+                    foreach (var number in current_numbers_list)
+                    {
+                        foreach (var file in current_files_list)
+                        {
+                            if (file.Name.StartsWith($"{number}"))
+                            {
+                                Console.WriteLine($"{table_number++}) {file.Name}");
+                            }
+                        }
+                    }
                 }
             }
             // *** missed & unknowns ***
@@ -132,45 +192,36 @@ class BackupProcessMonth : BackupProcess
                     Console.WriteLine(item);
                 }
             }
-                
-            if (self_obj_sums is MonthSumsWithUnknowns)
-            {
-                MonthSumsWithUnknowns self_obj_unknown = (MonthSumsWithUnknowns)self_obj_sums;
 
-                if (self_obj_unknown.Unknown_Protocols is not null)
+            if (self_obj_sums.Unknown_Protocols is not null)
+            {
+                Console.WriteLine("\nНеизвестные >>>>>>>>>>>>>");
+                foreach (var item in self_obj_sums.Unknown_Protocols)
                 {
-                    Console.WriteLine("\nНеизвестные >>>>>>>>>>>>>");
-                    foreach (var item in self_obj_unknown.Unknown_Protocols)
-                    {
-                        Console.WriteLine(item);
-                    }
+                    Console.WriteLine(item);
                 }
             }
             // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         }
         else
         {
-            Search_Status = false;  
-        }        
+            Search_Status = false;
+        }
     }
 }
 
-
+// test year results !!!
 class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 {
-    private readonly List<(int, MonthFilesBlock)> year_sums = [];
-    public Dictionary<string, int>? All_Protocols { get; private set; }
-    public Dictionary<string, int>? Simple_Protocols { get; private set; }
+    private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
+    public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
+    public Dictionary<string, int> Simple_Protocols { get; } = ISimpleProtocolsSums.CreateTable();
 
-    public BackupProcessYear(PdfFiles self_obj_source_files)
+    public BackupProcessYear(SourceFiles self_obj_source_files) : base(self_obj_source_files)
     {
-        self_obj_backup_files = new(self_obj_source_files);
-
-        if (FindYearFiles())
+        if (FindAllYearFiles())
         {
             Search_Status = true;
-
-            ComputeBackupSums();
 
             // >>>>>>>>>>>>>>>>>>>>>>> out
             Console.WriteLine("\n>>> Сумма за год >>> >>> >>> >>> >>>\n");
@@ -188,61 +239,35 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
         else
         {
             Search_Status = false;
-        } 
+        }
     }
 
-    private bool FindYearFiles()
+    private bool FindAllYearFiles()
     {
-        for (int month_index = 0; month_index < MonthValues.Month_Count; month_index++)
+        for (int month_index = 0; month_index < AppConstants.month_names.Count; month_index++)
         {
-            var files_block = self_obj_backup_files!.GetFilesBlock(month_index + 1);
-            
-            if (files_block is not null)
+            var eias_files = GetEIASFiles(CreatePeriodPattern(month_index + 1));
+            var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index + 1));
+
+            if (month_index > 0)
             {
-                year_sums.Add((month_index + 1, files_block));
+                self_obj_sums = new(eias_files, simple_files, year_full_backup[month_index - 1].Item3);
             }
-        }
-
-        if (year_sums.Count > 0) 
-        { 
-            return true; 
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    private void ComputeBackupSums()
-    {
-        if (year_sums.Count != 1) 
-        {
-            All_Protocols = IGeneralSums.CreateTable();
-            Simple_Protocols = ISimpleProtocolsSums.CreateTable();
-
-            for (int files_block_index = 0; files_block_index < year_sums.Count; files_block_index++)      
+            else
             {
-                var current_block = year_sums[files_block_index];
-                // out >>>>>>>>>>>>>>>>>>>>>>>>>
-                var current_month = MonthValues.Month_Names[current_block.Item1 - 1];
-                Console.WriteLine($"\nУспех ! Найдено за {current_month} !");
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                
-                if ((files_block_index > 0) && (current_block.Item1 - year_sums[files_block_index - 1].Item1 == 1))   
-                {
-                    self_obj_sums = new MonthSumsWithUnknowns(current_block.Item2, year_sums[files_block_index - 1].Item2.Simple);
-                }
-                else
-                {
-                    self_obj_sums = new(current_block.Item2);
-                }
+                self_obj_sums = new(eias_files, simple_files);
+            }
 
-
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
+            {
+                var current_month = AppConstants.month_names[month_index];
+                // out console
+                Console.WriteLine($"\nУспех ! Найдено за {current_month} - {self_obj_sums.All_Protocols[AppConstants.others_sums[0]]} файлов !");
                 // test out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 foreach (var item in self_obj_sums.All_Protocols)
                 {
                     All_Protocols[item.Key] += item.Value;
-                    Console.WriteLine($"{item.Key}: {item.Value}");
+                    //Console.WriteLine($"{item.Key}: {item.Value}");
                 }
 
                 if (self_obj_sums.Simple_Protocols_Sums is not null)
@@ -250,37 +275,21 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
                     foreach (var item in self_obj_sums.Simple_Protocols_Sums)
                     {
                         Simple_Protocols[item.Key] += item.Value;
-                        Console.WriteLine($"{item.Key}: {item.Value}");
+                        //Console.WriteLine($"{item.Key}: {item.Value}");
                     }
                 }
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                year_full_backup.Add((current_month, eias_files, simple_files, self_obj_sums));
             }
-        }        
+        }
+
+        if (year_full_backup.Count > 0)
+        {
+            return true;
+        }
         else
         {
-            Console.WriteLine($"\nНайдено за {MonthValues.Month_Names[year_sums[0].Item1 - 1]} !");
-
-            self_obj_sums = new(year_sums[0].Item2);
-
-            All_Protocols = self_obj_sums.All_Protocols;
-            Simple_Protocols = self_obj_sums.Simple_Protocols_Sums;
-
-
-            // test out !! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            foreach (var item in self_obj_sums.All_Protocols)
-            {
-                //All_Protocols[item.Key] += item.Value;
-                Console.WriteLine($"{item.Key}: {item.Value}");
-            }
-
-            if (self_obj_sums.Simple_Protocols_Sums is not null)
-            {
-                foreach (var item in self_obj_sums.Simple_Protocols_Sums)
-                {
-                    Console.WriteLine($"{item.Key}: {item.Value}");
-                }
-            }
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            return false;
         }
     }
 }

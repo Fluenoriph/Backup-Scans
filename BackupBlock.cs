@@ -1,43 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+﻿using System.Text.RegularExpressions;
 using Tracing;
+using TextData;
 
 
 namespace BackupBlock
 {
-    readonly struct FileTypesPatterns
-    {
-        public static List<string> protocol_file_type = ["EIAS", "Simple"];
-
-        public static Dictionary<string, string> file_patterns = new()
-        {
-            [protocol_file_type[0]] = "^\\d{5}-\\d{2}-\\d{2}-",
-            [protocol_file_type[1]] = "^\\d{1,4}-(ф|фа|р|ра|м|ма)-"
-        };
-
-        public static Dictionary<string, string> file_types = new()
-        {
-            ["PDF"] = "pdf"
-        };
-    }
-    
-
-    readonly struct MonthValues
-    {
-        public static List<string> Month_Names { get; } = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-        public static int Month_Count { get; } = Month_Names.Count;
-        public static Dictionary<string, int> Table { get; } = [];
-        static MonthValues()
-        {
-            for (int value_index = 0; value_index < Month_Count; value_index++)
-            {
-                Table.Add(Month_Names[value_index], value_index + 1);
-            }
-        }
-    }              
-    
-
     struct CurrentYear
     {
         public static string Year 
@@ -48,46 +15,23 @@ namespace BackupBlock
                 return current_date.Year.ToString();
             }
         }
-    }
-                   
+    }             
+                        
 
-    abstract class BackupFileType 
+    class SourceFiles
     {
         private readonly FileInfo[] files;
-        private protected abstract string File_Type { get; set; }
-        
-        public BackupFileType(string drive_directory)
+        public string File_Type { get; set; } = AppConstants.scan_file_type;
+
+        public SourceFiles(string drive_directory)
         {
             DirectoryInfo directory = new(drive_directory);
-            files = directory.GetFiles($"*.{File_Type}");
+            files = directory.GetFiles($"*.{File_Type}");  
         }
-
-        public FileInfo[]? Files
-        { 
-            get
-            {
-                if (files.Length is not 0)
-                {
-                    return files;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
-        public abstract List<FileInfo>? GrabMatchedFiles(Regex pattern);
-    }
-                   
-
-    class PdfFiles(string drive_directory) : BackupFileType(drive_directory) 
-    {
-        private protected override string File_Type { get; set; } = FileTypesPatterns.file_types["PDF"];
-
-        public override List<FileInfo>? GrabMatchedFiles(Regex pattern)
+                
+        public List<FileInfo>? GrabMatchedFiles(Regex pattern)
         {
-            IEnumerable<FileInfo> backup_block = from file in Files
+            IEnumerable<FileInfo> backup_block = from file in files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
             
@@ -101,46 +45,30 @@ namespace BackupBlock
             }
         }      
     }
-        
-
-    struct SimpleProtocolTypes
-    {
-        public static List<string> protocol_types = ["ф", "фа", "р", "ра", "м", "ма"];
-    }
-
+               
         
     class ProtocolTypeNumbers 
     {
-        private const string number_capture_pattern = "^(?<number>\\d+)-";
-        private static readonly Regex number_capture = new(number_capture_pattern, RegexOptions.Compiled); // изменить без предупр. /pragma ??
-        private static readonly Func<string, Regex> ProtocolTypeCapture = (type) => new($"{number_capture_pattern}{type}-", RegexOptions.IgnoreCase);
-        
+#pragma warning disable SYSLIB1045
+        private static readonly Regex number_capture = new(AppConstants.simple_number_pattern); 
+#pragma warning restore SYSLIB1045
         public Dictionary<string, List<int>> Numbers { get; } = [];
 
-        public ProtocolTypeNumbers(List<FileInfo> backup_files)
+        public ProtocolTypeNumbers(Dictionary<string, List<FileInfo>> simple_files)
         {
-            for (int type_index = 0; type_index < SimpleProtocolTypes.protocol_types.Count; type_index++)
+            foreach (var item in simple_files)
             {
-                IEnumerable<string> type_block = from file in backup_files
-                                                 where ProtocolTypeCapture(SimpleProtocolTypes.protocol_types[type_index]).IsMatch(file.Name)
-                                                 select file.Name;
-
-                List<string> current_protocols = [.. type_block];
-
-                if (current_protocols.Count > 0)
-                {
-                    Numbers.Add(ProtocolFullTypeLocation.type_location_sums[type_index], ConvertToNumbers(current_protocols));
-                }   
+                Numbers.Add(item.Key, ConvertToNumbers(item.Value)); 
             }
         }
                 
-        private static List<int> ConvertToNumbers(List<string> protocol_type_list)
+        private static List<int> ConvertToNumbers(List<FileInfo> protocol_type_list)
         {
             List<int> numbers = [];
 
-            foreach (string protocol in protocol_type_list)              
+            foreach (var protocol in protocol_type_list)              
             {
-                Match match = number_capture.Match(protocol);
+                Match match = number_capture.Match(protocol.Name);
 
                 if (match.Success)
                 {
@@ -151,6 +79,8 @@ namespace BackupBlock
                     Console.WriteLine("\nОшибка захвата номера протокола !"); // shutdown app ??
                 }
             }
+
+            numbers.Sort();
             return numbers;
         }        
     }
@@ -180,7 +110,7 @@ namespace BackupBlock
     {
         private protected override int GetExtremeNumber(List<int> current_numbers)
         {
-            return current_numbers.Max();
+            return current_numbers.Last();
         }
     }
 
@@ -189,7 +119,7 @@ namespace BackupBlock
     {
         private protected override int GetExtremeNumber(List<int> current_numbers)
         {
-            return current_numbers.Min();
+            return current_numbers.First();
         }
     }
 }

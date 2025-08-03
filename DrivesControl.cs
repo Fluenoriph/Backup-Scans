@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using TextData;
 using Logging;
 
 
@@ -12,13 +13,7 @@ namespace DrivesControl
         DIRECTORY_INSTALLED
     }
 
-
-    readonly struct Target_Drives
-    {
-        public static readonly List<string> drive_type = ["SOURCE", "DESTINATION"];
-    }
-
-
+    
     class Drive(string type)
     {
         public string Name { get; } = type;
@@ -42,7 +37,7 @@ namespace DrivesControl
 
     class XMLConfig
     {
-        public List<Drive> Drives { get; } = [new(Target_Drives.drive_type[0]), new(Target_Drives.drive_type[1])];
+        public List<Drive> Drives { get; } = [new(AppConstants.drive_type[0]), new(AppConstants.drive_type[1])];
         public bool Drives_Ready { get; private set; }
 
         public XMLConfig()
@@ -53,7 +48,7 @@ namespace DrivesControl
 
             if (drives_config is not null)
             {
-                foreach (string drive_name in Target_Drives.drive_type)
+                foreach (string drive_name in AppConstants.drive_type)
                 {
                     // получаем путь из диска
                     string? directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
@@ -89,15 +84,15 @@ namespace DrivesControl
 
                     if (dir_status)
                     {
-                        Console.WriteLine($"\nДиректория {Target_Drives.drive_type[drive_index]} успешно установлена !");
+                        Console.WriteLine($"\nДиректория {AppConstants.drive_type[drive_index]} успешно установлена !");
                     }
                     else
                     {
-                        Console.WriteLine($"\n{Target_Drives.drive_type[drive_index]} - директория не существует ! Установите правильную >>");
+                        Console.WriteLine($"\n{AppConstants.drive_type[drive_index]} - директория не существует ! Установите правильную >>");
                         string new_path = Console.ReadLine();
 
                         dirs[drive_index] = new_path;
-                        Logging.DrivesConfiguration.SetupDriveDirectory(Target_Drives.drive_type[drive_index], new_path); // null !!
+                        Logging.DrivesConfiguration.SetupDriveDirectory(AppConstants.drive_type[drive_index], new_path); // null !!
                     }
 
                 } while (dir_status == false);
