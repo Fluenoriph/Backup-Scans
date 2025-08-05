@@ -1,9 +1,6 @@
-﻿using Aspose.Words.Bibliography;
-using Aspose.Words.Drawing;
-using BackupBlock;
+﻿using BackupBlock;
 using DrivesControl;
 using Logging;
-using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using TextData;
@@ -158,7 +155,12 @@ class BackupProcessMonth : BackupProcess
                     Console.WriteLine(file.Name);
                 }
             }
-            // в другом классе ??
+
+
+
+
+
+            // в другом классе ?? in class logger !!
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] > 0)
             {
                 Console.WriteLine($"\n{AppConstants.others_sums[2]} >>>>>>>>>>>>>");
@@ -167,7 +169,7 @@ class BackupProcessMonth : BackupProcess
                 {
                     Console.WriteLine($"{item_files.Key}:");
                     
-                    var current_numbers_list = self_obj_sums.Self_obj_currents_type_numbers!.Numbers[item_files.Key];
+                    var current_numbers_list = self_obj_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item_files.Key];
                     var current_files_list = item_files.Value;
                     int table_number = 1;
 
@@ -178,6 +180,7 @@ class BackupProcessMonth : BackupProcess
                             if (file.Name.StartsWith($"{number}"))
                             {
                                 Console.WriteLine($"{table_number++}) {file.Name}");
+                                continue;
                             }
                         }
                     }
@@ -213,15 +216,18 @@ class BackupProcessMonth : BackupProcess
 // test year results !!!
 class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 {
-    private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
-    public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
-    public Dictionary<string, int> Simple_Protocols { get; } = ISimpleProtocolsSums.CreateTable();
+    private readonly List<(int, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
+    public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();  // --//--
+    public Dictionary<string, int> Simple_Protocols { get; } = ISimpleProtocolsSums.CreateTable(); // рассчитать в классе логера
 
     public BackupProcessYear(SourceFiles self_obj_source_files) : base(self_obj_source_files)
     {
         if (FindAllYearFiles())
         {
             Search_Status = true;
+
+
+
 
             // >>>>>>>>>>>>>>>>>>>>>>> out
             Console.WriteLine("\n>>> Сумма за год >>> >>> >>> >>> >>>\n");
@@ -257,11 +263,13 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
             {
                 self_obj_sums = new(eias_files, simple_files);
             }
+                                    
+            year_full_backup.Add((month_index, eias_files, simple_files, self_obj_sums));
 
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
             {
-                var current_month = AppConstants.month_names[month_index];
                 // out console
+                var current_month = AppConstants.month_names[month_index]; // only out
                 Console.WriteLine($"\nУспех ! Найдено за {current_month} - {self_obj_sums.All_Protocols[AppConstants.others_sums[0]]} файлов !");
                 // test out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                 foreach (var item in self_obj_sums.All_Protocols)
@@ -270,16 +278,15 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
                     //Console.WriteLine($"{item.Key}: {item.Value}");
                 }
 
-                if (self_obj_sums.Simple_Protocols_Sums is not null)
+                if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] > 0)
                 {
-                    foreach (var item in self_obj_sums.Simple_Protocols_Sums)
+                    foreach (var item in self_obj_sums.Simple_Protocols_Sums!)
                     {
                         Simple_Protocols[item.Key] += item.Value;
                         //Console.WriteLine($"{item.Key}: {item.Value}");
                     }
                 }
                 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                year_full_backup.Add((current_month, eias_files, simple_files, self_obj_sums));
             }
         }
 
@@ -292,4 +299,25 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
             return false;
         }
     }
+}
+
+
+abstract class MonthLogData
+{
+    private readonly XDocument xlog = XDocument.Load(AppConstants.logs_file);
+    
+    private protected XElement? GetMonthData(int month_value)
+    {
+        return xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value}");
+    }
+}
+
+
+class MonthLogger : MonthLogData
+{
+    private List<string> 
+
+
+
+
 }

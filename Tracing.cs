@@ -1,5 +1,4 @@
-﻿using Aspose.Words.Drawing;
-using BackupBlock;
+﻿using BackupBlock;
 using DrivesControl;
 using Logging;
 using TextData;
@@ -71,14 +70,14 @@ namespace Tracing
     class MonthSums : IGeneralSums, ISimpleProtocolsSums
     {
         private Dictionary<string, int>? current_period_min_numbers;
-        public ProtocolTypeNumbers? Self_obj_currents_type_numbers { get; }
         private readonly Func<string, string> GetShortTypeName = (key) => AppConstants.types_short_names[AppConstants.types_full_names.IndexOf(key)];
 
+        public ProtocolTypeNumbers? Self_Obj_Currents_Type_Numbers { get; }
         public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
         public Dictionary<string, int>? Simple_Protocols_Sums { get; }
         public List<string>? Missed_Protocols { get; }
         public List<string>? Unknown_Protocols { get; }
-        // sort files field string ??
+                
         public MonthSums(List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, Dictionary<string, List<FileInfo>>? previous_period_simple_files = null)
         {
             if (eias_files is not null)
@@ -101,8 +100,7 @@ namespace Tracing
                 CalcProtocolTypeFullSum();
                 CalcProtocolLocationSums();
 
-                Self_obj_currents_type_numbers = new(simple_files);                             
-                
+                Self_Obj_Currents_Type_Numbers = new(simple_files);                             
                 Missed_Protocols = ComputeMissedProtocols();
                               
                 if (previous_period_simple_files is not null)
@@ -135,15 +133,15 @@ namespace Tracing
 
         private List<string>? ComputeMissedProtocols()
         {
-            MinimumNumbers extreme_min = new(Self_obj_currents_type_numbers!.Numbers);
+            MinimumNumbers extreme_min = new(Self_Obj_Currents_Type_Numbers!.Numbers);
             current_period_min_numbers = extreme_min.Numbers;
 
-            MaximumNumbers extreme_max = new(Self_obj_currents_type_numbers.Numbers);
+            MaximumNumbers extreme_max = new(Self_Obj_Currents_Type_Numbers.Numbers);
             Dictionary<string, int> max_numbers = extreme_max.Numbers;
 
             List<string> missed_protocols = [];
 
-            foreach (var item in Self_obj_currents_type_numbers.Numbers)
+            foreach (var item in Self_Obj_Currents_Type_Numbers.Numbers)
             {
                 if (item.Value.Count >= 2)
                 {
@@ -199,6 +197,6 @@ namespace Tracing
             {
                 return null;
             }
-        }
+        }        
     }
 }

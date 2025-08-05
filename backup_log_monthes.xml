@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<logs_data>
+	<month value="0">
+		<sums>
+			<FULL>0</FULL>
+			<EIAS>0</EIAS>
+			<SIMPLE>0</SIMPLE>
+			<uss>0</uss>
+			<ars>0</ars>
+			<f_all>0</f_all>
+			<r_all>0</r_all>
+			<m_all>0</m_all>
+			<f>0</f>
+			<fa>0</fa>
+			<r>0</r>
+			<ra>0</ra>
+			<m>0</m>
+			<ma>0</ma>
+			<misseds>0</misseds>
+			<unknowns>0</unknowns>
+		</sums>
+		<scan_names>
+			<EIAS></EIAS>
+			<f></f>
+			<fa></fa>
+			<r></r>
+			<ra></ra>
+			<m></m>
+			<ma></ma>
+			<misseds></misseds>
+			<unknowns></unknowns>
+		</scan_names>
+	</month>
+	
+	
+	
+	
+	
+	
+	
+	
+</logs_data> 
