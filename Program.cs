@@ -129,9 +129,26 @@ class BackupProcessMonth : BackupProcess
             self_obj_sums = new(eias_files, simple_files);                
         }
 
-        if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
+
+
+        // no check
+
+        if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
         {
             Search_Status = true;
+
+            // проверить файлы на ноль и копировать и лог соответственно
+
+
+
+
+
+
+
+
+
+
+
             // start log class !!
             // >>>>>>>>>>> out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             foreach (var item in self_obj_sums.All_Protocols)
@@ -165,26 +182,7 @@ class BackupProcessMonth : BackupProcess
             {
                 Console.WriteLine($"\n{AppConstants.others_sums[2]} >>>>>>>>>>>>>");
                 
-                foreach (var item_files in simple_files!)
-                {
-                    Console.WriteLine($"{item_files.Key}:");
-                    
-                    var current_numbers_list = self_obj_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item_files.Key];
-                    var current_files_list = item_files.Value;
-                    int table_number = 1;
-
-                    foreach (var number in current_numbers_list)
-                    {
-                        foreach (var file in current_files_list)
-                        {
-                            if (file.Name.StartsWith($"{number}"))
-                            {
-                                Console.WriteLine($"{table_number++}) {file.Name}");
-                                continue;
-                            }
-                        }
-                    }
-                }
+                
             }
             // *** missed & unknowns ***
             if (self_obj_sums.Missed_Protocols is not null)
@@ -226,6 +224,13 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
         {
             Search_Status = true;
 
+            // copy and logging
+
+
+
+
+
+
 
 
 
@@ -250,21 +255,38 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 
     private bool FindAllYearFiles()
     {
+        List<Dictionary<string, List<FileInfo>>?> simple_files_trace = [];
+
         for (int month_index = 0; month_index < AppConstants.month_names.Count; month_index++)
         {
             var eias_files = GetEIASFiles(CreatePeriodPattern(month_index + 1));
             var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index + 1));
 
+            simple_files_trace.Add(simple_files);
+
             if (month_index > 0)
             {
-                self_obj_sums = new(eias_files, simple_files, year_full_backup[month_index - 1].Item3);
+                self_obj_sums = new(eias_files, simple_files, simple_files_trace[month_index - 1]);
             }
             else
             {
                 self_obj_sums = new(eias_files, simple_files);
             }
+
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
+            {
+                year_full_backup.Add((month_index, eias_files, simple_files, self_obj_sums)); // month index or string ??
+            }
+
                                     
-            year_full_backup.Add((month_index, eias_files, simple_files, self_obj_sums));
+            
+
+
+
+
+
+
+
 
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
             {
@@ -290,7 +312,7 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
             }
         }
 
-        if (year_full_backup.Count > 0)
+        if (year_full_backup.Count != 0)
         {
             return true;
         }
@@ -302,22 +324,4 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 }
 
 
-abstract class MonthLogData
-{
-    private readonly XDocument xlog = XDocument.Load(AppConstants.logs_file);
-    
-    private protected XElement? GetMonthData(int month_value)
-    {
-        return xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value}");
-    }
-}
 
-
-class MonthLogger : MonthLogData
-{
-    private List<string> 
-
-
-
-
-}

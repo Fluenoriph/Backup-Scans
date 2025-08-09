@@ -58,7 +58,7 @@ namespace Tracing
 
             for (int file_index = 0; file_index < files.Count; file_index++)
             {
-                var new_file = files[file_index].CopyTo(target_directory, true);
+                var new_file = files[file_index].CopyTo(target_directory, true);   // exception !!
                 Console.WriteLine($"\n{new_file.FullName} успешно скопирован !");
                 files_count++;
             }
@@ -72,7 +72,7 @@ namespace Tracing
         private Dictionary<string, int>? current_period_min_numbers;
         private readonly Func<string, string> GetShortTypeName = (key) => AppConstants.types_short_names[AppConstants.types_full_names.IndexOf(key)];
 
-        public ProtocolTypeNumbers? Self_Obj_Currents_Type_Numbers { get; }
+        public SimpleProtocolsNumbers? Self_Obj_Currents_Type_Numbers { get; }
         public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
         public Dictionary<string, int>? Simple_Protocols_Sums { get; }
         public List<string>? Missed_Protocols { get; }
@@ -105,7 +105,7 @@ namespace Tracing
                               
                 if (previous_period_simple_files is not null)
                 {
-                    ProtocolTypeNumbers self_obj_previous_type_numbers = new(previous_period_simple_files);
+                    SimpleProtocolsNumbers self_obj_previous_type_numbers = new(previous_period_simple_files);
                     MaximumNumbers self_obj_previous_max = new(self_obj_previous_type_numbers.Numbers);
 
                     Unknown_Protocols = ComputeUnknownProtocols(self_obj_previous_max.Numbers);

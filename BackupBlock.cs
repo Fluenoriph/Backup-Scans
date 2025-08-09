@@ -47,42 +47,68 @@ namespace BackupBlock
     }
                
         
-    class ProtocolTypeNumbers 
-    {
-#pragma warning disable SYSLIB1045
-        private static readonly Regex number_capture = new(AppConstants.simple_number_pattern); 
-#pragma warning restore SYSLIB1045
-        public Dictionary<string, List<int>> Numbers { get; } = [];
-
-        public ProtocolTypeNumbers(Dictionary<string, List<FileInfo>> simple_files)
-        {
-            foreach (var item in simple_files)
-            {
-                Numbers.Add(item.Key, ConvertToNumbers(item.Value)); 
-            }
-        }
-                
-        private static List<int> ConvertToNumbers(List<FileInfo> protocol_type_list)
+    interface IProtocolNumbers
+    {        
+        private protected static List<int> ConvertToNumbers(List<FileInfo> protocols, string number_capture_pattern)
         {
             List<int> numbers = [];
 
-            foreach (var protocol in protocol_type_list)              
+            foreach (var protocol in protocols)
             {
-                Match match = number_capture.Match(protocol.Name);
+                Match match = Regex.Match(protocol.Name, number_capture_pattern);
 
                 if (match.Success)
                 {
-                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value));
+                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); // test number !! print
                 }
-                else 
-                { 
+
+                // нужно ли ??
+                else
+                {
                     Console.WriteLine("\nОшибка захвата номера протокола !"); // shutdown app ??
                 }
             }
 
             numbers.Sort();
             return numbers;
-        }        
+        }
+    }    
+
+
+    interface ISortedNames
+    {
+        // abs field number string ???
+        private protected static List<string> CreateSortedNames(List<int> numbers, List<FileInfo> protocols)
+        {
+            List<string> names = [];
+
+            foreach (int number in numbers)
+            {
+                foreach (FileInfo protocol in protocols)
+                {
+                    if (protocol.Name.StartsWith($"{number}")) // разное для еиас !!
+                    {
+                        names.Add(protocol.Name);
+                        break;
+                    }
+                }
+            }
+            return names;
+        }
+    }
+
+    
+    class SimpleProtocolsNumbers : IProtocolNumbers
+    {
+        public Dictionary<string, List<int>> Numbers { get; } = [];
+
+        public SimpleProtocolsNumbers(Dictionary<string, List<FileInfo>> files)
+        {
+            foreach (var item in files)
+            {                
+                Numbers.Add(item.Key, IProtocolNumbers.ConvertToNumbers(item.Value, AppConstants.simple_number_pattern));  
+            }
+        }  
     }
 
 
