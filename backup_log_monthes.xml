@@ -19,7 +19,7 @@
 			<misseds>0</misseds>
 			<unknowns>0</unknowns>
 		</sums>
-		<scan_names>
+		<protocol_names>
 			<EIAS></EIAS>
 			<f></f>
 			<fa></fa>
@@ -29,7 +29,7 @@
 			<ma></ma>
 			<misseds></misseds>
 			<unknowns></unknowns>
-		</scan_names>
+		</protocol_names>
 	</month>
 	
 	
