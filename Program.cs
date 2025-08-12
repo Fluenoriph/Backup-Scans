@@ -139,7 +139,7 @@ class BackupProcessMonth : BackupProcess
 
             // проверить файлы на ноль и копировать и лог соответственно
 
-
+            //MonthLogger logger = new(month_value, eias_files, simple_files, self_obj_sums);
 
 
 

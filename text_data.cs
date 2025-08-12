@@ -19,18 +19,16 @@
                                                            "Измерения мебели (Уссурийск)", "Измерения мебели (Арсеньев)"];
         
         public static List<string> types_short_names = ["ф", "фа", "р", "ра", "м", "ма"];
-        public static List<string> types_names_tags = ["f", "fa", "r", "ra", "m", "ma"];
-
+        
         public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
         public static List<string> others_sums_tags = ["FULL", "EIAS", "SIMPLE"];
 
         public static List<string> full_location_sums = ["Уссурийск всего", "Арсеньев всего"];
-        public static List<string> full_location_sums_tags = ["uss", "ars"];
-
+        
         public static List<string> full_type_sums = ["Физические факторы всего", "Радиационный контроль всего", "Измерения мебели всего"];
-        public static List<string> full_type_sums_tags = ["f_all", "r_all", "m_all"];
-
+        
         public static List<string> not_found_sums = ["Пропущенные", "Неизвестные"];
-        public static List<string> not_found_sums_tags = ["misseds", "unknowns"];
+        
+        public static List<string> simple_sums_tags = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
     }
 }

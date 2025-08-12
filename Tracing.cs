@@ -15,11 +15,20 @@ namespace Tracing
         {
             Dictionary<string, int> sums = [];
 
-            foreach (string item in AppConstants.others_sums)
-            {
-                sums.Add(item, 0);
-            }
+            AppConstants.others_sums.ForEach(item => sums.Add(item, 0));
+                        
             return sums;
+        }
+    }
+
+
+    readonly struct SimpleSumsNames
+    {
+        public static List<string> United_Names { get; }
+
+        static SimpleSumsNames()
+        {
+            United_Names = [.. AppConstants.full_location_sums, .. AppConstants.full_type_sums, .. AppConstants.types_full_names, .. AppConstants.not_found_sums];
         }
     }
 
@@ -30,19 +39,8 @@ namespace Tracing
         {
             Dictionary<string, int> sums = [];
 
-            void AddItem(List<string> list)
-            {
-                foreach (string item in list)
-                {
-                    sums.Add(item, 0);
-                }
-            }
-
-            AddItem(AppConstants.full_location_sums);
-            AddItem(AppConstants.full_type_sums);
-            AddItem(AppConstants.types_full_names);
-            AddItem(AppConstants.not_found_sums);
-
+            SimpleSumsNames.United_Names.ForEach(name => sums.Add(name, 0));
+                                         
             return sums;
         }
     }

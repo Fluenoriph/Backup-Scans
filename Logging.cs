@@ -34,80 +34,101 @@ namespace Logging
     abstract class MonthLogData : IProtocolNumbers, ISortedNames
     {
         private protected readonly XDocument xlog = XDocument.Load(AppConstants.logs_file); // interface ??
-        
-        private protected XElement? month_data;
-        private protected readonly List<FileInfo>? eias_files;
-        private protected readonly Dictionary<string, List<FileInfo>>? simple_files;
-        private protected MonthSums backup_sums;
-
-        private protected readonly List<string>? sorted_eias_names;
-        private protected readonly Dictionary<string, List<string>>? sorted_simple_names;
-
-        public MonthLogData((int month_value, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthSums backup_sums) full_backup)
+        //private protected XElement? month_data; // field ??
+        private protected XElement? sums;
+        private protected XElement? protocol_names;    
+             
+        public MonthLogData(int month_value, MonthSums backup_sums)
         {
-            month_data = xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{full_backup.month_value}");
-            
-            backup_sums = full_backup.backup_sums;
+            var month_data = xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value - 1}");
 
-            if (full_backup.eias_files is not null)
-            {
-                eias_files = full_backup.eias_files;
-
-                sorted_eias_names = ISortedNames.CreateSortedNames(IProtocolNumbers.ConvertToNumbers(eias_files, AppConstants.eias_number_pattern), eias_files);
-            }
-        
-            if (full_backup.simple_files is not null)
-            {
-                simple_files = full_backup.simple_files;
-                sorted_simple_names = [];
-
-                foreach (var item in simple_files!)
-                {
-                    var current_numbers = backup_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item.Key];
-                    var current_files = item.Value;
-
-                    sorted_simple_names.Add(item.Key, ISortedNames.CreateSortedNames(current_numbers, current_files));
-                }
-            }
-        }
-    }
-
-    // только на каждый месяц 
-    class MonthLogger : MonthLogData
-    {
-        public MonthLogger((int month_value, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthSums backup_sums) full_backup) : base(full_backup)
-        {
-            // write !
-            
             if (month_data is not null)
             {
-                var sums = month_data.Element("sums");
+                sums = month_data.Element("sums");
 
                 if (sums is not null)
                 {
                     var full_sum = sums.Element(AppConstants.others_sums_tags[0]);
                     if (full_sum is not null) full_sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[0]]}";
-
-
+                }
+                else
+                {
+                    // xml error
                 }
 
+                protocol_names = month_data.Element("protocol_names");
 
+                if (protocol_names is null)
+                {
+                    // xml error
+                }
             }
+            else
+            {
+                // xml error
+            }
+
+        }
+    }
+
+
+    class EIASLog : MonthLogData
+    {
+        private readonly List<string> sorted_names;
+
+        public EIASLog(int month_value, List<FileInfo> files, MonthSums backup_sums) : base(month_value, backup_sums)
+        {
+            var sum = sums!.Element(AppConstants.others_sums_tags[1]);
+            if (sum is not null) sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[1]]}";
+
+            sorted_names = ISortedNames.CreateSortedNames(IProtocolNumbers.ConvertToNumbers(files, AppConstants.eias_number_pattern), files);
+
+            // write names
+
+            xlog.Save(AppConstants.logs_file);
+        }
+    }
+
+
+    class SimpleLog : MonthLogData
+    {
+        private readonly Dictionary<string, List<string>> sorted_names = [];
+
+        public SimpleLog(int month_value, Dictionary<string, List<FileInfo>> files, MonthSums backup_sums) : base(month_value, backup_sums)
+        {
+            var sum = sums!.Element(AppConstants.others_sums_tags[2]);
+            if (sum is not null) sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[2]]}";
+
+            //for (int )
+
+
+
+                        
+            foreach (var item in files)
+            {
+                var current_numbers = backup_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item.Key];
+                var current_files = item.Value;
+
+                sorted_names.Add(item.Key, ISortedNames.CreateSortedNames(current_numbers, current_files));
+                // write names
+            }
+
+            xlog.Save(AppConstants.logs_file);
+        }
+    }
+
+
 
 
             
 
+                    
 
-        }
+                    
 
-             
+                
+            
 
-
-        
-
-
-
-
-    }
+    
 }
 
