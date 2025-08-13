@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
-using Tracing;
 using TextData;
+using Tracing;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace BackupBlock
@@ -45,70 +46,33 @@ namespace BackupBlock
             }
         }      
     }
-               
+           
         
-    interface IProtocolNumbers
-    {        
-        private protected static List<int> ConvertToNumbers(List<FileInfo> protocols, string number_capture_pattern)
-        {
-            List<int> numbers = [];
-
-            foreach (var protocol in protocols)
-            {
-                Match match = Regex.Match(protocol.Name, number_capture_pattern);
-
-                if (match.Success)
-                {
-                    numbers.Add(Convert.ToInt32(match.Groups["number"].Value)); // test number !! print
-                }
-
-                // нужно ли ??
-                else
-                {
-                    Console.WriteLine("\nОшибка захвата номера протокола !"); // shutdown app ??
-                }
-            }
-
-            numbers.Sort();
-            return numbers;
-        }
-    }    
-
-
-    interface ISortedNames
-    {
-        // abs field number string ???
-        private protected static List<string> CreateSortedNames(List<int> numbers, List<FileInfo> protocols)
-        {
-            List<string> names = [];
-
-            foreach (int number in numbers)
-            {
-                foreach (FileInfo protocol in protocols)
-                {
-                    if (protocol.Name.StartsWith($"{number}")) // разное для еиас !!
-                    {
-                        names.Add(protocol.Name);
-                        break;
-                    }
-                }
-            }
-            return names;
-        }
-    }
-
-    
-    class SimpleProtocolsNumbers : IProtocolNumbers
+    class SimpleProtocolsNumbers
     {
         public Dictionary<string, List<int>> Numbers { get; } = [];
 
         public SimpleProtocolsNumbers(Dictionary<string, List<FileInfo>> files)
         {
             foreach (var item in files)
-            {                
-                Numbers.Add(item.Key, IProtocolNumbers.ConvertToNumbers(item.Value, AppConstants.simple_number_pattern));  
+            {
+                List<int> type_numbers = [];
+
+                foreach (var protocol in item.Value)
+                {
+#pragma warning disable SYSLIB1045
+                    Match match = Regex.Match(protocol.Name, AppConstants.simple_number_pattern);
+#pragma warning restore SYSLIB1045
+                    if (match.Success)
+                    {
+                        type_numbers.Add(Convert.ToInt32(match.Groups["number"].Value));
+                    }
+                }
+                type_numbers.Sort();
+
+                Numbers.Add(item.Key, type_numbers);  
             }
-        }  
+        }
     }
 
 

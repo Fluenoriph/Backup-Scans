@@ -31,10 +31,9 @@ namespace Logging
     }
 
 
-    abstract class MonthLogData : IProtocolNumbers, ISortedNames
+    abstract class MonthLogData 
     {
         private protected readonly XDocument xlog = XDocument.Load(AppConstants.logs_file); // interface ??
-        //private protected XElement? month_data; // field ??
         private protected XElement? sums;
         private protected XElement? protocol_names;    
              
@@ -82,8 +81,13 @@ namespace Logging
             if (sum is not null) sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[1]]}";
 
             sorted_names = ISortedNames.CreateSortedNames(IProtocolNumbers.ConvertToNumbers(files, AppConstants.eias_number_pattern), files);
+            
+            sorted_names.ForEach(name => Console.WriteLine(name));
 
-            // write names
+            Console.WriteLine($"Names--{sorted_names.Count}");
+
+            //var names = protocol_names!.Element(AppConstants.others_sums_tags[1]);
+            //if (names is not null) names.Value = sorted_names[0];
 
             xlog.Save(AppConstants.logs_file);
         }
@@ -99,19 +103,47 @@ namespace Logging
             var sum = sums!.Element(AppConstants.others_sums_tags[2]);
             if (sum is not null) sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[2]]}";
 
-            //for (int )
 
 
 
+            for (int sum_index = 0; sum_index < AppConstants.simple_sums_tags.Count; sum_index++)
+            {
+                var type_sum = sums.Element(AppConstants.simple_sums_tags[sum_index]);
+                if (type_sum is not null) type_sum.Value = $"{backup_sums.Simple_Protocols_Sums![SimpleSumsNames.United_Names[sum_index]]}";
+            }
+
+
+            // method abs sorted names
                         
             foreach (var item in files)
             {
                 var current_numbers = backup_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item.Key];
                 var current_files = item.Value;
+                List<string> type_names = [];
 
-                sorted_names.Add(item.Key, ISortedNames.CreateSortedNames(current_numbers, current_files));
-                // write names
+                foreach (int number in current_numbers)
+                {
+                    foreach (FileInfo protocol in current_files)
+                    {
+                        if (protocol.Name.StartsWith($"{number}")) 
+                        {
+                            type_names.Add(protocol.Name);
+                            break;
+                        }
+                    }
+                }
+
+                sorted_names.Add(item.Key, type_names);
             }
+
+
+
+
+
+            /*foreach (var item in sorted_names)
+            {
+                item.Value.ForEach(name => Console.WriteLine($"{name}"));
+            }*/
 
             xlog.Save(AppConstants.logs_file);
         }

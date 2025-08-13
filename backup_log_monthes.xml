@@ -5,18 +5,18 @@
       <FULL>13</FULL>
       <EIAS>1</EIAS>
       <SIMPLE>12</SIMPLE>
-      <uss>0</uss>
-      <ars>0</ars>
-      <f_all>0</f_all>
-      <r_all>0</r_all>
-      <m_all>0</m_all>
-      <f>0</f>
-      <fa>0</fa>
-      <r>0</r>
-      <ra>0</ra>
-      <m>0</m>
+      <uss>6</uss>
+      <ars>6</ars>
+      <f_all>9</f_all>
+      <r_all>2</r_all>
+      <m_all>1</m_all>
+      <f>4</f>
+      <fa>5</fa>
+      <r>1</r>
+      <ra>1</ra>
+      <m>1</m>
       <ma>0</ma>
-      <misseds>0</misseds>
+      <misseds>87</misseds>
       <unknowns>0</unknowns>
     </sums>
     <protocol_names>

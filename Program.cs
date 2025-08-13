@@ -127,11 +127,7 @@ class BackupProcessMonth : BackupProcess
         else
         {
             self_obj_sums = new(eias_files, simple_files);                
-        }
-
-
-
-        // no check
+        }               
 
         if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
         {
@@ -139,7 +135,16 @@ class BackupProcessMonth : BackupProcess
 
             // проверить файлы на ноль и копировать и лог соответственно
 
-            //MonthLogger logger = new(month_value, eias_files, simple_files, self_obj_sums);
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] != 0)
+            {
+                EIASLog self_obj_eias_logger = new(month_value, eias_files!, self_obj_sums);
+
+            }
+
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] != 0)
+            {
+                SimpleLog self_obj_simples_logger = new(month_value, simple_files!, self_obj_sums);
+            }
 
 
 
@@ -149,9 +154,10 @@ class BackupProcessMonth : BackupProcess
 
 
 
-            // start log class !!
+
+            
             // >>>>>>>>>>> out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            foreach (var item in self_obj_sums.All_Protocols)
+            /*foreach (var item in self_obj_sums.All_Protocols)
             {
                 Console.WriteLine($"{item.Key}: {item.Value}");
             }
@@ -201,7 +207,7 @@ class BackupProcessMonth : BackupProcess
                 {
                     Console.WriteLine(item);
                 }
-            }
+            }*/
             // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         }
         else
