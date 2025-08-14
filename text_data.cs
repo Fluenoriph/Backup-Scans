@@ -7,7 +7,7 @@
         
         public static List<string> drive_type = ["SOURCE", "DESTINATION"];
         
-        public const string eias_number_pattern = "^(?<number>\\d{5})-(?<number>\\d{2})-(?<number>\\d{2})-";
+        public const string eias_number_pattern = "^(?<number>\\d{5}-\\d{2}-\\d{2})-";
         public const string simple_number_pattern = "^(?<number>\\d{1,4})-";
         
         public const string scan_file_type = "pdf";
@@ -21,7 +21,7 @@
         public static List<string> types_short_names = ["ф", "фа", "р", "ра", "м", "ма"];
         
         public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
-        public static List<string> others_sums_tags = ["FULL", "EIAS", "SIMPLE"];
+        public static List<string> others_sums_tags = ["full", "eias", "simple"];
 
         public static List<string> full_location_sums = ["Уссурийск всего", "Арсеньев всего"];
         

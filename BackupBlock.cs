@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Numerics;
+using System.Text.RegularExpressions;
 using TextData;
 using Tracing;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -8,16 +9,16 @@ namespace BackupBlock
 {
     struct CurrentYear
     {
-        public static string Year 
-        { 
+        public static string Year
+        {
             get
             {
                 DateTime current_date = DateTime.Now;
                 return current_date.Year.ToString();
             }
         }
-    }             
-                        
+    }
+
 
     class SourceFiles
     {
@@ -27,15 +28,15 @@ namespace BackupBlock
         public SourceFiles(string drive_directory)
         {
             DirectoryInfo directory = new(drive_directory);
-            files = directory.GetFiles($"*.{File_Type}");  
+            files = directory.GetFiles($"*.{File_Type}");
         }
-                
+
         public List<FileInfo>? GrabMatchedFiles(Regex pattern)
         {
             IEnumerable<FileInfo> backup_block = from file in files
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
-            
+
             if (backup_block.Any())
             {
                 return [.. backup_block];
@@ -44,9 +45,9 @@ namespace BackupBlock
             {
                 return null;
             }
-        }      
+        }
     }
-           
+
         
     class SimpleProtocolsNumbers
     {
@@ -65,16 +66,16 @@ namespace BackupBlock
 #pragma warning restore SYSLIB1045
                     if (match.Success)
                     {
-                        type_numbers.Add(Convert.ToInt32(match.Groups["number"].Value));
+                        type_numbers.Add(Convert.ToInt32(match.Groups[1].Value));
                     }
                 }
-                type_numbers.Sort();
 
-                Numbers.Add(item.Key, type_numbers);  
+                type_numbers.Sort();
+                Numbers.Add(item.Key, type_numbers);
             }
         }
     }
-
+         
 
     abstract class ExtremeNumbers(Dictionary<string, List<int>> protocol_type_numbers) 
     {

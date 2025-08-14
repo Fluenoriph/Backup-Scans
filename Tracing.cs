@@ -44,26 +44,7 @@ namespace Tracing
             return sums;
         }
     }
-        
-      
-    class FileTransfer(List<FileInfo> backup_files)
-    {
-        private readonly List<FileInfo> files = backup_files;
-          
-        public int CopyBackupFiles(string target_directory) // month dir
-        {
-            int files_count = 0;
-
-            for (int file_index = 0; file_index < files.Count; file_index++)
-            {
-                var new_file = files[file_index].CopyTo(target_directory, true);   // exception !!
-                Console.WriteLine($"\n{new_file.FullName} успешно скопирован !");
-                files_count++;
-            }
-            return files_count;
-        }
-    }
-                      
+    
         
     class MonthSums : IGeneralSums, ISimpleProtocolsSums
     {

@@ -1,4 +1,7 @@
 ﻿using BackupBlock;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using TextData;
 using Tracing;
@@ -35,8 +38,9 @@ namespace Logging
     {
         private protected readonly XDocument xlog = XDocument.Load(AppConstants.logs_file); // interface ??
         private protected XElement? sums;
-        private protected XElement? protocol_names;    
-             
+        private protected XElement? protocol_names;
+        private protected readonly string name_separator = ", ";
+
         public MonthLogData(int month_value, MonthSums backup_sums)
         {
             var month_data = xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value - 1}");
@@ -73,23 +77,54 @@ namespace Logging
 
     class EIASLog : MonthLogData
     {
-        private readonly List<string> sorted_names;
-
+        private readonly List<string> sorted_names = [];   // <T> field ??
+        private readonly string line = "-";
+        
         public EIASLog(int month_value, List<FileInfo> files, MonthSums backup_sums) : base(month_value, backup_sums)
         {
             var sum = sums!.Element(AppConstants.others_sums_tags[1]);
             if (sum is not null) sum.Value = $"{backup_sums.All_Protocols[AppConstants.others_sums[1]]}";
-
-            sorted_names = ISortedNames.CreateSortedNames(IProtocolNumbers.ConvertToNumbers(files, AppConstants.eias_number_pattern), files);
+            //////////////////
+            List<int> numbers = [];
             
-            sorted_names.ForEach(name => Console.WriteLine(name));
+            foreach (FileInfo protocol in files)
+            {
+                Match match = Regex.Match(protocol.Name, AppConstants.eias_number_pattern);
 
-            Console.WriteLine($"Names--{sorted_names.Count}");
+                if (match.Success)
+                {
+                    numbers.Add(Convert.ToInt32(match.Groups[1].Value.Replace(line, "")));
+                }
+            }
+            numbers.Sort();
 
-            //var names = protocol_names!.Element(AppConstants.others_sums_tags[1]);
-            //if (names is not null) names.Value = sorted_names[0];
+            foreach (int number in numbers)
+            {
+                foreach (FileInfo protocol in files)
+                {
+                    if (protocol.Name.StartsWith(CreateNumberName(number)))
+                    {
+                        sorted_names.Add(protocol.Name);
+                        break;
+                    }
+                }
+            }
+                                   
+
+            var names = protocol_names!.Element(AppConstants.others_sums_tags[1]);
+            if (names is not null) names.Value = string.Join(name_separator, sorted_names);
 
             xlog.Save(AppConstants.logs_file);
+        }
+
+        private string CreateNumberName(int number) // lambda ?
+        {
+            string number_name = number.ToString();
+
+            number_name = number_name.Insert(5, line);
+            number_name = number_name.Insert(8, line);
+
+            return number_name;
         }
     }
 
@@ -113,8 +148,7 @@ namespace Logging
             }
 
 
-            // method abs sorted names
-                        
+                                    
             foreach (var item in files)
             {
                 var current_numbers = backup_sums.Self_Obj_Currents_Type_Numbers!.Numbers[item.Key];
@@ -136,6 +170,25 @@ namespace Logging
                 sorted_names.Add(item.Key, type_names);
             }
 
+            //////////////////////////////
+                       
+            foreach (var item in sorted_names)
+            {
+                var names = protocol_names!.Element(AppConstants.simple_sums_tags.GetRange(5, 6)[AppConstants.types_full_names.IndexOf(item.Key)]);
+                if (names is not null) names.Value = string.Join(name_separator, item.Value);   // если null это неверный тэг //test !!
+            }
+
+            if (backup_sums.Simple_Protocols_Sums![AppConstants.not_found_sums[0]] != 0)
+            {
+                var names = protocol_names!.Element(AppConstants.simple_sums_tags[11]);
+                if (names is not null) names.Value = string.Join(name_separator, backup_sums.Missed_Protocols!);
+            }
+            // polymethod ???
+            if (backup_sums.Simple_Protocols_Sums![AppConstants.not_found_sums[1]] != 0)
+            {
+                var names = protocol_names!.Element(AppConstants.simple_sums_tags[12]);
+                if (names is not null) names.Value = string.Join(name_separator, backup_sums.Unknown_Protocols!);
+            }
 
 
 
@@ -147,6 +200,8 @@ namespace Logging
 
             xlog.Save(AppConstants.logs_file);
         }
+
+
     }
 
 

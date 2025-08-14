@@ -11,8 +11,6 @@ const string line = "- - - - - - - - - - - - - - -";
 Console.WriteLine($"{line}\n* Backup PDF v.1.0 * / Test 2025\n{line}\n");
 
 XMLConfig self_obj_drives_config = new();
-string source_directory = self_obj_drives_config.Drives[0].Directory;  // объект в классах ???
-//string destination_dir = drives_config.Drives[1].Directory;
 
 Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
 string backup_items_type = "1";//Console.ReadLine();   // отдельный класс для проверки пустой строки
@@ -22,17 +20,15 @@ switch (backup_items_type)
     case "1":
         // while ??
         // method ????? in class
-        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   // если год, это статическая структура даты
+        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   
         // должна быть проверка правильности ввода месяца
         string? current_period = Console.ReadLine();
 
         Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
-        
-        SourceFiles self_obj_pdf_files = new(source_directory);
-
+                
         if (AppConstants.month_names.Contains(current_period))
         {
-            BackupProcessMonth self_obj_backup_month = new(self_obj_pdf_files, current_period);
+            BackupProcessMonth self_obj_backup_month = new(self_obj_drives_config.Drives, current_period);
 
             if (self_obj_backup_month.Search_Status)
             {
@@ -47,7 +43,7 @@ switch (backup_items_type)
         {
             Console.WriteLine("\nЗапущено копирование за год !");
 
-            BackupProcessYear self_obj_backup_year = new(self_obj_pdf_files);
+            BackupProcessYear self_obj_backup_year = new(self_obj_drives_config.Drives);
         }
         else
         {
@@ -59,8 +55,9 @@ switch (backup_items_type)
 }
               
 
-abstract class BackupProcess(SourceFiles self_obj_source_files)
+abstract class BackupProcess(List<Drive> drives)
 {
+    private readonly SourceFiles self_obj_source_files = new(drives[0].Directory);
     private protected MonthSums? self_obj_sums;
     public bool Search_Status { get; set; } 
 
@@ -108,18 +105,44 @@ abstract class BackupProcess(SourceFiles self_obj_source_files)
             return null;
         }
     }
+
+    private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_directory)
+    {
+        int files_count = 0;
+
+        for (int file_index = 0; file_index < backup_files.Count; file_index++)        // создать подкаталог если не существует
+        {
+            backup_files[file_index].CopyTo($"{drives[1].Directory}{"\\"}{target_directory}{"\\"}{backup_files[file_index].Name}", true);   // exception !!
+
+            files_count++;
+        }
+
+        return files_count;
+    }
+
+    private protected int CopySimpleBlock(Dictionary<string, List<FileInfo>> files, string month)
+    {
+        int files_count = 0;
+
+        foreach (var item in files)
+        {
+            files_count += CopyBackupFiles(item.Value, $"{month}{"\\"}{item.Key}");
+        }
+
+        return files_count;
+    }
 }
 
-    // destination >>
+   
 class BackupProcessMonth : BackupProcess
 {
-    public BackupProcessMonth(SourceFiles self_obj_source_files, string target_month) : base(self_obj_source_files)
+    public BackupProcessMonth(List<Drive> drives, string target_month) : base(drives)
     {
         int month_value = AppConstants.month_names.IndexOf(target_month) + 1;
 
         var eias_files = GetEIASFiles(CreatePeriodPattern(month_value));
         var simple_files = GetSimpleFiles(CreatePeriodPattern(month_value));
-                                        
+                    
         if (month_value != 1)
         {
             self_obj_sums = new(eias_files, simple_files, GetSimpleFiles(CreatePeriodPattern(month_value - 1)));                
@@ -138,12 +161,29 @@ class BackupProcessMonth : BackupProcess
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] != 0)
             {
                 EIASLog self_obj_eias_logger = new(month_value, eias_files!, self_obj_sums);
-
+                                                
+                if (CopyBackupFiles(eias_files!, $"{target_month}{"\\"}{AppConstants.others_sums[1]}") == self_obj_sums.All_Protocols[AppConstants.others_sums[1]])
+                {
+                    Console.WriteLine("\nВсе файлы ЕИАС успешно скопированы !");
+                }
+                else
+                {
+                    Console.WriteLine("\nОшибка при копировании !");  // exit ??
+                }
             }
 
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] != 0)
             {
                 SimpleLog self_obj_simples_logger = new(month_value, simple_files!, self_obj_sums);
+
+                if (CopySimpleBlock(simple_files!, target_month) == self_obj_sums.All_Protocols[AppConstants.others_sums[2]])
+                {
+                    Console.WriteLine("\nВсе ПРОСТЫЕ файлы успешно скопированы !");
+                }
+                else
+                {
+                    Console.WriteLine("\nОшибка при копировании !");
+                }
             }
 
 
@@ -224,7 +264,7 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
     public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();  // --//--
     public Dictionary<string, int> Simple_Protocols { get; } = ISimpleProtocolsSums.CreateTable(); // рассчитать в классе логера
 
-    public BackupProcessYear(SourceFiles self_obj_source_files) : base(self_obj_source_files)
+    public BackupProcessYear(List<Drive> drives) : base(drives)
     {
         if (FindAllYearFiles())
         {
