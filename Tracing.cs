@@ -46,7 +46,7 @@ namespace Tracing
     }
     
         
-    class MonthSums : IGeneralSums, ISimpleProtocolsSums
+    class MonthSums
     {
         private Dictionary<string, int>? current_period_min_numbers;
         private readonly Func<string, string> GetShortTypeName = (key) => AppConstants.types_short_names[AppConstants.types_full_names.IndexOf(key)];

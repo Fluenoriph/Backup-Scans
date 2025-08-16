@@ -6,60 +6,39 @@ using System.Xml.Linq;
 using TextData;
 using Tracing;
 
-// class App
-const string line = "- - - - - - - - - - - - - - -";
-Console.WriteLine($"{line}\n* Backup PDF v.1.0 * / Test 2025\n{line}\n");
+
+//Console.WriteLine($"{line}\n* Backup PDF v.1.0 *\n{line}\n");
 
 XMLConfig self_obj_drives_config = new();
 
-Console.WriteLine("\nВыберите, что нужно копировать:\n[1] - Сканы протоколов");
-string backup_items_type = "1";//Console.ReadLine();   // отдельный класс для проверки пустой строки
-
-switch (backup_items_type)
+Console.WriteLine("\nВведите номер месяца, за который выполнить копирование:");   
+// должна быть проверка правильности ввода месяца
+var period = Console.ReadLine();
+int period_value = Convert.ToInt32(period);
+                                
+if (period_value >= 1 && period_value <= 12)
 {
-    case "1":
-        // while ??
-        // method ????? in class
-        Console.WriteLine("\nВведите месяц, за который выполнить копирование:");   
-        // должна быть проверка правильности ввода месяца
-        string? current_period = Console.ReadLine();
-
-        Action<string> MonthScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
-                
-        if (AppConstants.month_names.Contains(current_period))
-        {
-            BackupProcessMonth self_obj_backup_month = new(self_obj_drives_config.Drives, current_period);
-
-            if (self_obj_backup_month.Search_Status)
-            {
-                Console.WriteLine("\nМожно копировать !");
-            }
-            else
-            {
-                MonthScansNotFound(current_period);
-            }
-        }
-        else if (current_period is "год")
-        {
-            Console.WriteLine("\nЗапущено копирование за год !");
-
-            BackupProcessYear self_obj_backup_year = new(self_obj_drives_config.Drives);
-        }
-        else
-        {
-            Console.WriteLine("\nОшибка ввода периода !");
-            System.Environment.Exit(0);
-        }
-        
-    break;
+    BackupProcessMonth _ = new(self_obj_drives_config.Drives, period_value); 
 }
-              
+else if (period_value == 0)
+{
+    BackupProcessYear _ = new(self_obj_drives_config.Drives);
+}
+else
+{
+    Console.WriteLine("\nОшибка ввода периода !");
+    System.Environment.Exit(0);
+}
+             
 
+// any file
 abstract class BackupProcess(List<Drive> drives)
 {
-    private readonly SourceFiles self_obj_source_files = new(drives[0].Directory);
-    private protected MonthSums? self_obj_sums;
-    public bool Search_Status { get; set; } 
+    private readonly SourceFiles self_obj_source_files = new(drives[0].Directory.FullName);
+    private protected const char slash = '\\';
+    private protected ConsoleLogOut? log_show;
+
+    private protected readonly Action<string> ScansNotFound = (period) => Console.WriteLine($"\nЗа {period} сканов не найдено !");
 
     private protected static string CreatePeriodPattern(int month_value)
     {
@@ -74,7 +53,7 @@ abstract class BackupProcess(List<Drive> drives)
             month = month_value.ToString();
         }
 
-        return string.Concat("\\d{2}\\.", month, "\\.", CurrentYear.Year, "\\.", AppConstants.scan_file_type, "$");
+        return string.Concat(slash, "d{2}", slash, '.', month, slash, '.', CurrentYear.Year, slash, '.', AppConstants.scan_file_type, '$');
     }
 
     private protected List<FileInfo>? GetEIASFiles(string period_pattern)
@@ -110,9 +89,16 @@ abstract class BackupProcess(List<Drive> drives)
     {
         int files_count = 0;
 
-        for (int file_index = 0; file_index < backup_files.Count; file_index++)        // создать подкаталог если не существует
+        DirectoryInfo destination = new(string.Concat(drives[1].Directory.FullName, slash, target_directory)); 
+
+        if (!destination.Exists)
         {
-            backup_files[file_index].CopyTo($"{drives[1].Directory}{"\\"}{target_directory}{"\\"}{backup_files[file_index].Name}", true);   // exception !!
+            drives[1].Directory.CreateSubdirectory(target_directory);
+        }
+
+        for (int file_index = 0; file_index < backup_files.Count; file_index++)        
+        {
+            backup_files[file_index].CopyTo(string.Concat(destination, slash, backup_files[file_index].Name), true);   // exception !!
 
             files_count++;
         }
@@ -126,20 +112,47 @@ abstract class BackupProcess(List<Drive> drives)
 
         foreach (var item in files)
         {
-            files_count += CopyBackupFiles(item.Value, $"{month}{"\\"}{item.Key}");
+            files_count += CopyBackupFiles(item.Value, string.Concat(month, slash, item.Key));
         }
 
         return files_count;
+    }
+
+    private protected int BackupAndLog(int month_value, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthSums sums)
+    {
+        int backup_count = 0;
+        string target_month = AppConstants.month_names[month_value - 1];
+
+        if (sums.All_Protocols[AppConstants.others_sums[1]] != 0)
+        {
+            if (CopyBackupFiles(eias_files!, string.Concat(target_month, slash, AppConstants.others_sums[1])) == sums.All_Protocols[AppConstants.others_sums[1]])
+            {
+                backup_count += sums.All_Protocols[AppConstants.others_sums[1]];
+
+                _ = new EIASLog(month_value, eias_files!, sums);
+            }
+        }
+
+        if (sums.All_Protocols[AppConstants.others_sums[2]] != 0)
+        {
+            if (CopySimpleBlock(simple_files!, target_month) == sums.All_Protocols[AppConstants.others_sums[2]])
+            {
+                backup_count += sums.All_Protocols[AppConstants.others_sums[2]];
+
+                _ = new SimpleLog(month_value, sums);
+            }
+        }
+
+        return backup_count;
     }
 }
 
    
 class BackupProcessMonth : BackupProcess
 {
-    public BackupProcessMonth(List<Drive> drives, string target_month) : base(drives)
+    public BackupProcessMonth(List<Drive> drives, int month_value) : base(drives)
     {
-        int month_value = AppConstants.month_names.IndexOf(target_month) + 1;
-
+        MonthSums self_obj_sums;
         var eias_files = GetEIASFiles(CreatePeriodPattern(month_value));
         var simple_files = GetSimpleFiles(CreatePeriodPattern(month_value));
                     
@@ -154,148 +167,71 @@ class BackupProcessMonth : BackupProcess
 
         if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
         {
-            Search_Status = true;
-
-            // проверить файлы на ноль и копировать и лог соответственно
-
-            if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] != 0)
+            if (BackupAndLog(month_value, eias_files, simple_files, self_obj_sums) == self_obj_sums.All_Protocols[AppConstants.others_sums[0]])
             {
-                EIASLog self_obj_eias_logger = new(month_value, eias_files!, self_obj_sums);
-                                                
-                if (CopyBackupFiles(eias_files!, $"{target_month}{"\\"}{AppConstants.others_sums[1]}") == self_obj_sums.All_Protocols[AppConstants.others_sums[1]])
-                {
-                    Console.WriteLine("\nВсе файлы ЕИАС успешно скопированы !");
-                }
-                else
-                {
-                    Console.WriteLine("\nОшибка при копировании !");  // exit ??
-                }
+                Console.WriteLine($"\nУспех ! За {AppConstants.month_names[month_value - 1]} скопировано {self_obj_sums.All_Protocols[AppConstants.others_sums[0]]} файлов !\n");
+
+                log_show = new(self_obj_sums.All_Protocols, self_obj_sums.Simple_Protocols_Sums);
+                log_show.ShowLog();
             }
-
-            if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] != 0)
+            else
             {
-                SimpleLog self_obj_simples_logger = new(month_value, simple_files!, self_obj_sums);
-
-                if (CopySimpleBlock(simple_files!, target_month) == self_obj_sums.All_Protocols[AppConstants.others_sums[2]])
-                {
-                    Console.WriteLine("\nВсе ПРОСТЫЕ файлы успешно скопированы !");
-                }
-                else
-                {
-                    Console.WriteLine("\nОшибка при копировании !");
-                }
+                Console.WriteLine("\nCopy error");
             }
-
-
-
-
-
-
-
-
-
-
-            
-            // >>>>>>>>>>> out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            /*foreach (var item in self_obj_sums.All_Protocols)
-            {
-                Console.WriteLine($"{item.Key}: {item.Value}");
-            }
-
-            if (self_obj_sums.Simple_Protocols_Sums is not null)
-            {
-                foreach (var item in self_obj_sums.Simple_Protocols_Sums)
-                {
-                    Console.WriteLine($"{item.Key}: {item.Value}");
-                }
-            }
-            //Console.WriteLine("\n");
-            if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] > 0)
-            {
-                Console.WriteLine($"\n{AppConstants.others_sums[1]} >>>>>>>>>>>>>");
-                foreach (var file in eias_files!)
-                {
-                    Console.WriteLine(file.Name);
-                }
-            }
-
-
-
-
-
-            // в другом классе ?? in class logger !!
-            if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] > 0)
-            {
-                Console.WriteLine($"\n{AppConstants.others_sums[2]} >>>>>>>>>>>>>");
-                
-                
-            }
-            // *** missed & unknowns ***
-            if (self_obj_sums.Missed_Protocols is not null)
-            {
-                Console.WriteLine("\nПропущенные >>>>>>>>>>>>>");
-                foreach (var item in self_obj_sums.Missed_Protocols)
-                {
-                    Console.WriteLine(item);
-                }
-            }
-
-            if (self_obj_sums.Unknown_Protocols is not null)
-            {
-                Console.WriteLine("\nНеизвестные >>>>>>>>>>>>>");
-                foreach (var item in self_obj_sums.Unknown_Protocols)
-                {
-                    Console.WriteLine(item);
-                }
-            }*/
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         }
         else
         {
-            Search_Status = false;
+            ScansNotFound(AppConstants.month_names[month_value - 1]);
         }
     }
 }
 
-// test year results !!!
-class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
+
+class BackupProcessYear : BackupProcess
 {
     private readonly List<(int, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
-    public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();  // --//--
-    public Dictionary<string, int> Simple_Protocols { get; } = ISimpleProtocolsSums.CreateTable(); // рассчитать в классе логера
-
+    
     public BackupProcessYear(List<Drive> drives) : base(drives)
     {
         if (FindAllYearFiles())
         {
-            Search_Status = true;
-
             // copy and logging
 
+            var all_sums = IGeneralSums.CreateTable();
+            var simple_sums = ISimpleProtocolsSums.CreateTable();
 
-
-
-
-
-
-
-
-            // >>>>>>>>>>>>>>>>>>>>>>> out
-            Console.WriteLine("\n>>> Сумма за год >>> >>> >>> >>> >>>\n");
-            foreach (var item in All_Protocols!)
+            foreach (var month_item in year_full_backup)
             {
-                Console.WriteLine($"{item.Key}: {item.Value}");
+                foreach (var sum in month_item.Item4.All_Protocols)
+                {
+                    all_sums[sum.Key] += sum.Value;
+                }
+                                
+                if (month_item.Item4.Simple_Protocols_Sums is not null)
+                {
+                    foreach (var sum in month_item.Item4.Simple_Protocols_Sums)
+                    {
+                        simple_sums[sum.Key] += sum.Value;
+                    }
+                }
             }
-            foreach (var item in Simple_Protocols!)
-            {
-                Console.WriteLine($"{item.Key}: {item.Value}");
-            }
-            // >>>>>>>>>>>>>>>>>>>>>>>
 
+            if (YearBackupAndLog() == all_sums[AppConstants.others_sums[0]])
+            {
+                // ok!  log year data !!
+                _ = new YearLog(all_sums, simple_sums);
+                Console.WriteLine($" *** Полный отчет за {CurrentYear.Year} год ***");
+                ConsoleLogOut log_show = new(all_sums, simple_sums);
+                log_show.ShowLog();
+            }
+            else
+            {
+                // copy error
+            }
         }
         else
         {
-            Search_Status = false;
+            ScansNotFound(string.Concat(CurrentYear.Year, AppConstants.year));
         }
     }
 
@@ -305,6 +241,7 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 
         for (int month_index = 0; month_index < AppConstants.month_names.Count; month_index++)
         {
+            MonthSums self_obj_sums;
             var eias_files = GetEIASFiles(CreatePeriodPattern(month_index + 1));
             var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index + 1));
 
@@ -321,40 +258,7 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
 
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
             {
-                year_full_backup.Add((month_index, eias_files, simple_files, self_obj_sums)); // month index or string ??
-            }
-
-                                    
-            
-
-
-
-
-
-
-
-
-            if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] > 0)
-            {
-                // out console
-                var current_month = AppConstants.month_names[month_index]; // only out
-                Console.WriteLine($"\nУспех ! Найдено за {current_month} - {self_obj_sums.All_Protocols[AppConstants.others_sums[0]]} файлов !");
-                // test out >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                foreach (var item in self_obj_sums.All_Protocols)
-                {
-                    All_Protocols[item.Key] += item.Value;
-                    //Console.WriteLine($"{item.Key}: {item.Value}");
-                }
-
-                if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] > 0)
-                {
-                    foreach (var item in self_obj_sums.Simple_Protocols_Sums!)
-                    {
-                        Simple_Protocols[item.Key] += item.Value;
-                        //Console.WriteLine($"{item.Key}: {item.Value}");
-                    }
-                }
-                // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                year_full_backup.Add((month_index + 1, eias_files, simple_files, self_obj_sums)); 
             }
         }
 
@@ -366,6 +270,22 @@ class BackupProcessYear : BackupProcess, IGeneralSums, ISimpleProtocolsSums
         {
             return false;
         }
+    }
+        
+    private int YearBackupAndLog()
+    {
+        int backup_count = 0;
+
+        foreach (var month_item in year_full_backup)
+        {
+            if (BackupAndLog(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols[AppConstants.others_sums[0]])
+            {
+                Console.WriteLine($"\nУспех ! За {AppConstants.month_names[month_item.Item1 - 1]} скопировано {month_item.Item4.All_Protocols[AppConstants.others_sums[0]]} файлов !\n");
+                backup_count += month_item.Item4.All_Protocols[AppConstants.others_sums[0]];
+            }
+        }
+
+        return backup_count;
     }
 }
 

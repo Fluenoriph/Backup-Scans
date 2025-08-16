@@ -14,15 +14,15 @@ namespace DrivesControl
     }
 
     
-    class Drive(string type)
+    class Drive(string type, string directory)
     {
         public string Name { get; } = type;
-        public string Directory { get; set; } = "";
+        public DirectoryInfo Directory { get; } = new(directory);
         public bool Directory_Exist
         {
             get
             {   // проверка существования директории в системе
-                if (System.IO.Directory.Exists(Directory))
+                if (Directory.Exists)
                 {
                     return true;
                 }
@@ -37,25 +37,23 @@ namespace DrivesControl
 
     class XMLConfig
     {
-        public List<Drive> Drives { get; } = [new(AppConstants.drive_type[0]), new(AppConstants.drive_type[1])];
-        public bool Drives_Ready { get; private set; }
-
+        public List<Drive> Drives { get; } = new(2);
+        
         public XMLConfig()
         {
             // получаем конфигурацию
             XElement? drives_config = DrivesConfiguration.Config_Element;
-            List<string> dirs = [];
-
+            
             if (drives_config is not null)
             {
                 foreach (string drive_name in AppConstants.drive_type)
                 {
                     // получаем путь из диска
-                    string? directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
+                    var directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
 
                     if (directory is not null)
                     {
-                        dirs.Add(directory);
+                        Drives.Add(SetupDrive(drive_name, directory));
                     }
                     else
                     {
@@ -64,6 +62,8 @@ namespace DrivesControl
                         //SettingsStatus.DRIVE_CONFIG_ERROR;
                     }
                 }
+
+                Console.WriteLine("\nВсе готово к копированию !");
             }
             else
             {
@@ -71,34 +71,39 @@ namespace DrivesControl
                 System.Environment.Exit(0);
                 //(SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR;
             }
-            // установка директорий в диски
-            for (int drive_index = 0; drive_index < Drives.Count; drive_index++)
-            {
-                bool dir_status;
-                // проверка существования директории в системе
-                do
-                {
-                    Drives[drive_index].Directory = dirs[drive_index];
-
-                    dir_status = Drives[drive_index].Directory_Exist;
-
-                    if (dir_status)
-                    {
-                        Console.WriteLine($"\nДиректория {AppConstants.drive_type[drive_index]} успешно установлена !");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"\n{AppConstants.drive_type[drive_index]} - директория не существует ! Установите правильную >>");
-                        string new_path = Console.ReadLine();
-
-                        dirs[drive_index] = new_path;
-                        Logging.DrivesConfiguration.SetupDriveDirectory(AppConstants.drive_type[drive_index], new_path); // null !!
-                    }
-
-                } while (dir_status == false);
-            }
-
-            Console.WriteLine("\nВсе готово к копированию !");
         }
+
+        // установка директорий в диски
+        private static Drive SetupDrive(string drive_name, string directory)
+        {
+            string setup_directory = directory;
+            Drive drive;
+            bool dir_status;
+
+            // проверка существования директории в системе
+            do
+            {
+                drive = new(drive_name, setup_directory);
+
+                dir_status = drive.Directory_Exist;
+
+                if (dir_status)
+                {
+                    Console.WriteLine($"\nДиректория {drive_name} успешно установлена !");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine($"\n{drive_name} - директория не существует ! Установите правильную >>");
+                    string new_path = Console.ReadLine();
+
+                    setup_directory = new_path;
+                    Logging.DrivesConfiguration.SetupDriveDirectory(drive_name, new_path); // null !!
+                }
+
+            } while (dir_status == false);
+
+            return drive;
+        }                
     }
 }
