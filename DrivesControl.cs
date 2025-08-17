@@ -21,7 +21,7 @@ namespace DrivesControl
         public bool Directory_Exist
         {
             get
-            {   // проверка существования директории в системе
+            {   
                 if (Directory.Exists)
                 {
                     return true;
@@ -98,6 +98,7 @@ namespace DrivesControl
                     string new_path = Console.ReadLine();
 
                     setup_directory = new_path;
+
                     Logging.DrivesConfiguration.SetupDriveDirectory(drive_name, new_path); // null !!
                 }
 

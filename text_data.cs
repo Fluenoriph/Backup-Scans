@@ -1,4 +1,7 @@
-﻿namespace TextData
+﻿using System.Linq;
+using System.Xml.Linq;
+
+namespace TextData
 {
     struct AppConstants
     {
@@ -14,7 +17,7 @@
         
         public const string scan_file_type = "pdf";
 
-        public const string year = "год";
+        public const string year = "Год";
         public static List<string> month_names = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
 
         public static List<string> types_full_names = ["Физические факторы (Уссурийск)", "Физические факторы (Арсеньев)",
@@ -35,8 +38,6 @@
         public static List<string> simple_sums_tags = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
 
         public const char line = '-';
-
-        public static string text_line = new('<', 15);
     }
 
 
@@ -80,7 +81,66 @@
         }
     }
 
+    class AppInfoConsoleOut
+    {
+        private static readonly string star_line = new('*', 45);
+        private static readonly string text_line = new(AppConstants.line, 45);
+        
+        public static void ShowStarLine()
+        {
+            Console.WriteLine(star_line);
+        }
+
+        public static void ShowProgramInfo()
+        {
+            Console.WriteLine($"{star_line}\n\n >> Backup PDF v.2.0 <<\n\n{star_line}");
+        }
+
+        public static void ShowEnterPeriod()
+        {
+            List<string> value_info = [];
+
+            foreach (var month in AppConstants.month_names)
+            {
+                value_info.Add(string.Concat(month, AppConstants.line, $"\"{AppConstants.month_names.IndexOf(month) + 1}\""));
+            }
+
+            value_info.Add(string.Concat(AppConstants.year, AppConstants.line, $"\"0\""));
+
+            Console.WriteLine(" Введите значение периода, за который выполнить копирование:\n");
+            Console.WriteLine($" ({string.Join("; ", value_info)})");
+            Console.WriteLine(text_line);
+        }
+
+        public static void ShowNullTextError()
+        {
+            Console.WriteLine("Вы ничего не ввели, вводите заново !");
+        }
+        
 
 
+    }
 
+
+    class InputNoNullText
+    {
+        public static string GetRealText()
+        {
+            string? text;
+            bool real_text;
+
+            do
+            {
+                text = Console.ReadLine();
+                real_text = string.IsNullOrEmpty(text);
+
+                if (real_text)
+                {
+                    AppInfoConsoleOut.ShowNullTextError();
+                }
+            } while (real_text);
+
+            return text!;
+        }
+    }
 }

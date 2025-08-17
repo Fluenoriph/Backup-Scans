@@ -7,14 +7,21 @@ using TextData;
 using Tracing;
 
 
-//Console.WriteLine($"{line}\n* Backup PDF v.1.0 *\n{line}\n");
+AppInfoConsoleOut.ShowProgramInfo();
 
 XMLConfig self_obj_drives_config = new();
 
-Console.WriteLine("\nВведите номер месяца, за который выполнить копирование:");   
-// должна быть проверка правильности ввода месяца
-var period = Console.ReadLine();
-int period_value = Convert.ToInt32(period);
+AppInfoConsoleOut.ShowEnterPeriod();
+
+var input_text = InputNoNullText.GetRealText();
+if (!int.TryParse(input_text, out int _))
+{
+    Console.WriteLine("No number input !");
+    System.Environment.Exit(0);
+}
+
+
+/*int period_value = Convert.ToInt32(InputNoNullText.GetRealText());
                                 
 if (period_value >= 1 && period_value <= 12)
 {
@@ -26,9 +33,8 @@ else if (period_value == 0)
 }
 else
 {
-    Console.WriteLine("\nОшибка ввода периода !");
     System.Environment.Exit(0);
-}
+}*/
              
 
 // any file
@@ -67,7 +73,7 @@ abstract class BackupProcess(List<Drive> drives)
 
         for (int type_index = 0; type_index < AppConstants.types_full_names.Count; type_index++)
         {
-            var current_files = self_obj_source_files.GrabMatchedFiles(new(string.Concat($"{AppConstants.simple_number_pattern}{AppConstants.types_short_names[type_index]}-", period_pattern), RegexOptions.IgnoreCase));
+            var current_files = self_obj_source_files.GrabMatchedFiles(new(string.Concat(AppConstants.simple_number_pattern, AppConstants.types_short_names[type_index], AppConstants.line, period_pattern), RegexOptions.IgnoreCase));
 
             if (current_files is not null)
             {

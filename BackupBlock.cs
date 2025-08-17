@@ -93,7 +93,7 @@ namespace BackupBlock
         private protected override string NumberName(Match match)
         {
 #pragma warning disable CA1307
-            return match.Groups[1].Value.Replace(AppConstants.line.ToString(), "");
+            return match.Groups[1].Value.Replace(AppConstants.line.ToString(), string.Empty);
 #pragma warning restore CA1307
         }
     }
