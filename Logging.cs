@@ -9,49 +9,58 @@ using Tracing;
 
 namespace Logging
 {
-    class DrivesConfiguration
+    enum SettingsStatus   // is's need, if write to log_error_file
     {
-        static DrivesConfiguration()
-        {
-            XDocument doc = XDocument.Load(AppConstants.drives_config_file);
-            Config_Element = doc.Element("configuration");                 // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
-        }
-
-        public static XElement? Config_Element { get; set; }
-        
-        public static void SetupDriveDirectory(string drive_name, string path)
-        {
-            XElement? dir = Config_Element?.Element(drive_name);
-
-            if (dir is not null)
-            {
-                dir.Value = path;
-                Config_Element?.Save(AppConstants.drives_config_file);
-
-                Console.WriteLine($"\n{drive_name} is installed !!");     // out OK !!
-            } // else ??
-        }
+        UNKNOWN,
+        DRIVE_CONFIG_ERROR,
+        DIRECTORY_ERROR,
+        DIRECTORY_INSTALLED
     }
 
 
     interface IXmlLogFile
     {
-        static XDocument GetXdoc(string log_file) 
-        {
-            return XDocument.Load(log_file);  // System.IO.FileNotFoundException
-        }
-
-        static XElement? GetSectorSums(XContainer source_sector)
-        {
-            return source_sector.Element("sums");
-        }
+        XDocument Xdoc { get; }       // exception
     }
 
 
+    class DrivesConfiguration : IXmlLogFile
+    {
+        public XDocument Xdoc { get; } = XDocument.Load(AppConstants.drives_config_file);
+        public XElement? Config_Sector { get; }
+
+        public DrivesConfiguration()
+        {
+            Config_Sector = Xdoc.Element("configuration");
+            // errors check !!!
+            // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
+        }       
+        
+        public void SetupDriveDirectory(string drive_name, string path)
+        {
+            var directory = Config_Sector!.Element(drive_name);
+
+            if (directory is not null)
+            {
+                directory.Value = path;
+                Xdoc.Save(AppConstants.drives_config_file);
+            }
+            else
+            {
+                // xml error exit ??
+            }
+        }
+    }
+         
+
     abstract class SumsLog
     {
-        private protected XDocument? xlog;
         private protected XElement? Sums { get; set; }
+
+        private protected static XElement? GetSectorSums(XContainer source_sector)
+        {
+            return source_sector.Element("sums");
+        }
 
         private protected void WriteSums(string tag, int sum_value)
         {
@@ -69,12 +78,13 @@ namespace Logging
     }
 
 
-    class YearLog : SumsLog 
+    class YearLog : SumsLog, IXmlLogFile
     {
+        public XDocument Xdoc { get; } = XDocument.Load(AppConstants.year_log_file);
+
         public YearLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
         {
-            xlog = IXmlLogFile.GetXdoc(AppConstants.year_log_file);
-            Sums = IXmlLogFile.GetSectorSums(xlog);
+            Sums = GetSectorSums(Xdoc);
 
             if (Sums is not null)
             {
@@ -91,7 +101,7 @@ namespace Logging
                     }
                 }
 
-                xlog.Save(AppConstants.year_log_file);
+                Xdoc.Save(AppConstants.year_log_file);
             }
             else
             {
@@ -101,19 +111,19 @@ namespace Logging
     }
 
 
-    abstract class MonthLog : SumsLog
+    abstract class MonthLog : SumsLog, IXmlLogFile
     {
         private protected XElement? protocol_names;
-        
+        public XDocument Xdoc { get; } = XDocument.Load(AppConstants.month_logs_file);
+
         public MonthLog(int month_value, MonthSums backup_sums)
         {
-            xlog = IXmlLogFile.GetXdoc(AppConstants.month_logs_file);   // условный null ?. 
-
-            var month_data = xlog.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value - 1}");
+               // условный null ?. 
+            var month_data = Xdoc.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("value")?.Value == $"{month_value - 1}");
 
             if (month_data is not null)
             {
-                Sums = IXmlLogFile.GetSectorSums(month_data);
+                Sums = GetSectorSums(month_data);
 
                 if (Sums is not null)
                 {
@@ -164,7 +174,7 @@ namespace Logging
 
             WriteNames(AppConstants.others_sums_tags[1], self_obj_name_sort.Sorting(self_obj_number_convert.ConvertToNumbers(files), files));
                             
-            xlog!.Save(AppConstants.month_logs_file);
+            Xdoc.Save(AppConstants.month_logs_file);
         }
     }
 
@@ -197,7 +207,7 @@ namespace Logging
                 WriteNames(AppConstants.simple_sums_tags[12], backup_sums.Unknown_Protocols!);                
             }
                                    
-            xlog!.Save(AppConstants.month_logs_file);
+            Xdoc.Save(AppConstants.month_logs_file);
         }
     }
 

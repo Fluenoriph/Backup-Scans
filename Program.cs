@@ -10,6 +10,7 @@ using Tracing;
 AppInfoConsoleOut.ShowProgramInfo();
 
 XMLConfig self_obj_drives_config = new();
+AppInfoConsoleOut.ShowLine();
 
 AppInfoConsoleOut.ShowEnterPeriod();
 
@@ -17,11 +18,10 @@ var input_text = InputNoNullText.GetRealText();
 if (!int.TryParse(input_text, out int _))
 {
     Console.WriteLine("No number input !");
-    System.Environment.Exit(0);
+    Environment.Exit(0);
 }
 
-
-/*int period_value = Convert.ToInt32(InputNoNullText.GetRealText());
+int period_value = Convert.ToInt32(input_text);
                                 
 if (period_value >= 1 && period_value <= 12)
 {
@@ -33,8 +33,8 @@ else if (period_value == 0)
 }
 else
 {
-    System.Environment.Exit(0);
-}*/
+    Environment.Exit(0);
+}
              
 
 // any file

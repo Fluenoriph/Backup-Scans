@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using DrivesControl;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace TextData
@@ -11,7 +12,12 @@ namespace TextData
         public const string year_log_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\year_log.xml";
 
         public static List<string> drive_type = ["SOURCE", "DESTINATION"];
-        
+        public static Dictionary<string, string> drive_names = new()
+        {
+            [drive_type[0]] = "ИСХОДНАЯ",
+            [drive_type[1]] = "РЕЗЕРВНАЯ"
+        };
+
         public const string eias_number_pattern = "^(?<number>\\d{5}-\\d{2}-\\d{2})-";
         public const string simple_number_pattern = "^(?<number>\\d{1,4})-";
         
@@ -84,8 +90,12 @@ namespace TextData
     class AppInfoConsoleOut
     {
         private static readonly string star_line = new('*', 45);
-        private static readonly string text_line = new(AppConstants.line, 45);
-        
+                
+        public static void ShowLine()
+        {
+            Console.WriteLine(new string(AppConstants.line, 45));
+        }
+
         public static void ShowStarLine()
         {
             Console.WriteLine(star_line);
@@ -109,15 +119,28 @@ namespace TextData
 
             Console.WriteLine(" Введите значение периода, за который выполнить копирование:\n");
             Console.WriteLine($" ({string.Join("; ", value_info)})");
-            Console.WriteLine(text_line);
+            ShowLine();
         }
 
         public static void ShowNullTextError()
         {
-            Console.WriteLine("Вы ничего не ввели, вводите заново !");
+            Console.WriteLine(" # Вы ничего не ввели, вводите заново !");
         }
         
+        public static void ShowDirectorySetupTrue(string name, string directory)
+        {
+            Console.WriteLine($" * {AppConstants.drive_names[name]} директория: {directory}");
+        }
 
+        public static void ShowDirectoryExistFalse(string drive_type)
+        {
+            Console.WriteLine($" # {AppConstants.drive_names[drive_type]} директория не существует, установите правильную !");
+        }
+
+        public static void ShowInstallDirectory(string drive_type)
+        {
+            Console.WriteLine($" # {AppConstants.drive_names[drive_type]} директория успешно установлена !");
+        }
 
     }
 

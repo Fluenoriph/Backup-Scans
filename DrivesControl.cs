@@ -5,15 +5,6 @@ using Logging;
 
 namespace DrivesControl
 {
-    enum SettingsStatus   // is's need, if write to log_error_file
-    {
-        UNKNOWN,
-        DRIVE_CONFIG_ERROR,
-        DIRECTORY_ERROR,
-        DIRECTORY_INSTALLED
-    }
-
-    
     class Drive(string type, string directory)
     {
         public string Name { get; } = type;
@@ -37,19 +28,18 @@ namespace DrivesControl
 
     class XMLConfig
     {
+        private readonly DrivesConfiguration self_obj_drives_config = new();
         public List<Drive> Drives { get; } = new(2);
         
         public XMLConfig()
         {
-            // получаем конфигурацию
-            XElement? drives_config = DrivesConfiguration.Config_Element;
-            
-            if (drives_config is not null)
+            // получаем конфигурацию            
+            if (self_obj_drives_config.Config_Sector is not null)       // проверить на нулл в низкоуровневом классе
             {
                 foreach (string drive_name in AppConstants.drive_type)
                 {
-                    // получаем путь из диска
-                    var directory = drives_config.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
+                    // получаем путь из тэга диска
+                    var directory = self_obj_drives_config.Config_Sector.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
 
                     if (directory is not null)
                     {
@@ -58,53 +48,46 @@ namespace DrivesControl
                     else
                     {
                         Console.WriteLine($"\n{drive_name}: DRIVE_CONFIG_ERROR");
-                        System.Environment.Exit(0);
-                        //SettingsStatus.DRIVE_CONFIG_ERROR;
+                        Environment.Exit(0);
                     }
-                }
-
-                Console.WriteLine("\nВсе готово к копированию !");
+                }                
             }
             else
             {
                 Console.WriteLine("\nErrorCode.XML_CONFIG_FILE_ERROR");
-                System.Environment.Exit(0);
-                //(SettingsStatus)ConfigFiles.ErrorCode.XML_CONFIG_FILE_ERROR;
+                Environment.Exit(0);
             }
         }
-
         // установка директорий в диски
-        private static Drive SetupDrive(string drive_name, string directory)
+        private Drive SetupDrive(string drive_name, string directory)
         {
             string setup_directory = directory;
-            Drive drive;
-            bool dir_status;
-
+            Drive self_obj_drive;
+            bool directory_status;
             // проверка существования директории в системе
             do
             {
-                drive = new(drive_name, setup_directory);
+                self_obj_drive = new(drive_name, setup_directory);
+                directory_status = self_obj_drive.Directory_Exist;
 
-                dir_status = drive.Directory_Exist;
-
-                if (dir_status)
+                if (directory_status)
                 {
-                    Console.WriteLine($"\nДиректория {drive_name} успешно установлена !");
+                    AppInfoConsoleOut.ShowDirectorySetupTrue(drive_name, setup_directory);
                     break;
                 }
                 else
                 {
-                    Console.WriteLine($"\n{drive_name} - директория не существует ! Установите правильную >>");
-                    string new_path = Console.ReadLine();
-
-                    setup_directory = new_path;
-
-                    Logging.DrivesConfiguration.SetupDriveDirectory(drive_name, new_path); // null !!
+                    AppInfoConsoleOut.ShowDirectoryExistFalse(drive_name);
+                    
+                    setup_directory = InputNoNullText.GetRealText();
+                                        
+                    self_obj_drives_config.SetupDriveDirectory(drive_name, setup_directory);
+                    AppInfoConsoleOut.ShowInstallDirectory(drive_name);
                 }
 
-            } while (dir_status == false);
+            } while (directory_status == false);
 
-            return drive;
+            return self_obj_drive;
         }                
     }
 }
