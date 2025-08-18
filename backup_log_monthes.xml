@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <logs_data>
-  <month value="0">
+  <month name="Январь">
     <sums>
       <full>13</full>
       <eias>1</eias>
@@ -31,7 +31,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="1">
+  <month name="Февраль">
     <sums>
       <full>3</full>
       <eias>1</eias>
@@ -62,7 +62,7 @@
       <unknowns>16-ф, 17-ф, 18-ф, 19-ф, 20-ф, 21-ф, 22-ф, 23-ф, 24-ф, 25-ф, 26-ф, 27-ф, 28-ф, 29-ф, 30-ф, 31-ф, 32-ф, 33-ф, 34-ф, 35-ф, 36-ф, 37-ф, 38-ф, 39-ф, 40-ф, 41-ф, 42-ф, 43-ф, 44-ф, 45-ф, 46-ф</unknowns>
     </protocol_names>
   </month>
-  <month value="2">
+  <month name="Март">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -93,7 +93,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="3">
+  <month name="Апрель">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -124,7 +124,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="4">
+  <month name="Май">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -155,7 +155,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="5">
+  <month name="Июнь">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -186,7 +186,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="6">
+  <month name="Июль">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -217,7 +217,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="7">
+  <month name="Август">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -248,7 +248,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="8">
+  <month name="Сентябрь">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -279,7 +279,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="9">
+  <month name="Октябрь">
     <sums>
       <full>2</full>
       <eias>0</eias>
@@ -310,7 +310,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="10">
+  <month name="Ноябрь">
     <sums>
       <full>0</full>
       <eias>0</eias>
@@ -341,7 +341,7 @@
       <unknowns></unknowns>
     </protocol_names>
   </month>
-  <month value="11">
+  <month name="Декабрь">
     <sums>
       <full>1</full>
       <eias>0</eias>
@@ -363,37 +363,6 @@
     <protocol_names>
       <eias></eias>
       <f>47-ф-14.12.2025.pdf</f>
-      <fa></fa>
-      <r></r>
-      <ra></ra>
-      <m></m>
-      <ma></ma>
-      <misseds></misseds>
-      <unknowns></unknowns>
-    </protocol_names>
-  </month>
-  <month value="12">
-    <sums>
-      <full>0</full>
-      <eias>0</eias>
-      <simple>0</simple>
-      <uss>0</uss>
-      <ars>0</ars>
-      <f_all>0</f_all>
-      <r_all>0</r_all>
-      <m_all>0</m_all>
-      <f>0</f>
-      <fa>0</fa>
-      <r>0</r>
-      <ra>0</ra>
-      <m>0</m>
-      <ma>0</ma>
-      <misseds>0</misseds>
-      <unknowns>0</unknowns>
-    </sums>
-    <protocol_names>
-      <eias></eias>
-      <f></f>
       <fa></fa>
       <r></r>
       <ra></ra>

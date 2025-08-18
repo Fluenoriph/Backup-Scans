@@ -2,180 +2,276 @@
 using DrivesControl;
 using Logging;
 using TextData;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 
 namespace Tracing
 {
-    interface IGeneralSums   
+    abstract class BackupProcess(List<Drive> drives)
     {
-        static Dictionary<string, int> CreateTable()
+        private readonly SourceFiles self_obj_source_files = new(drives[0].Directory.FullName);
+        private protected string Period { get; set; } = string.Empty;
+        private protected const char slash = '\\';
+        private protected ConsoleOutFullLog? log_show;
+                
+        private protected static string CreatePeriodPattern(int month_index)
         {
-            Dictionary<string, int> sums = [];
+            string month;
+            int month_value = month_index + 1;
 
-            AppConstants.others_sums.ForEach(item => sums.Add(item, 0));
+            if (month_index < AppConstants.october_index)
+            {
+                month = $"0{month_value}";
+            }
+            else
+            {
+                month = month_value.ToString();
+            }
+
+            return string.Concat(slash, "d{2}", slash, '.', month, slash, '.', CurrentDate.Year, slash, '.', AppConstants.protocol_file_type, '$');
+        }
+
+        private protected List<FileInfo>? GetEIASFiles(string period_pattern)
+        {
+            return self_obj_source_files.GrabMatchedFiles(new(string.Concat(AppConstants.eias_number_pattern, period_pattern), RegexOptions.IgnoreCase));
+        }
+
+        private protected Dictionary<string, List<FileInfo>>? GetSimpleFiles(string period_pattern)
+        {
+            Dictionary<string, List<FileInfo>> files = [];
+
+            for (int type_index = 0; type_index < AppConstants.types_full_names.Count; type_index++)
+            {
+                var current_files = self_obj_source_files.GrabMatchedFiles(new(string.Concat(AppConstants.simple_number_pattern, AppConstants.types_short_names[type_index], AppConstants.line, period_pattern), RegexOptions.IgnoreCase));
+
+                if (current_files is not null)
+                {
+                    files.Add(AppConstants.types_full_names[type_index], current_files);
+                }
+            }
+
+            if (files.Count > 0)
+            {
+                return files;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_directory)
+        {
+            int files_count = 0;
+
+            DirectoryInfo destination = new(string.Concat(drives[1].Directory.FullName, slash, target_directory));
+
+            if (!destination.Exists)
+            {
+                drives[1].Directory.CreateSubdirectory(target_directory);
+            }
+
+            for (int file_index = 0; file_index < backup_files.Count; file_index++)
+            {
+                backup_files[file_index].CopyTo(string.Concat(destination, slash, backup_files[file_index].Name), true);   // exception !!
+
+                files_count++;
+            }
+
+            return files_count;
+        }
+
+        private protected int CopySimpleBlock(Dictionary<string, List<FileInfo>> files, string month)
+        {
+            int files_count = 0;
+
+            foreach (var item in files)
+            {
+                files_count += CopyBackupFiles(item.Value, string.Concat(month, slash, item.Key));
+            }
+
+            return files_count;
+        }
+
+        private protected int BackupAndLog(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthSums sums)
+        {
+            int backup_count = 0;
+                       
+            if (sums.All_Protocols[AppConstants.others_sums[1]] != 0)
+            {
+                if (CopyBackupFiles(eias_files!, string.Concat(target_month, slash, AppConstants.others_sums[1])) == sums.All_Protocols[AppConstants.others_sums[1]])
+                {
+                    backup_count += sums.All_Protocols[AppConstants.others_sums[1]];
+
+                    _ = new EIASLog(target_month, eias_files!, sums);
+                }
+            }
+
+            if (sums.All_Protocols[AppConstants.others_sums[2]] != 0)
+            {
+                if (CopySimpleBlock(simple_files!, target_month) == sums.All_Protocols[AppConstants.others_sums[2]])
+                {
+                    backup_count += sums.All_Protocols[AppConstants.others_sums[2]];
+
+                    _ = new SimpleLog(target_month, simple_files!, sums);
+                }
+            }
+
+            return backup_count;
+        }
+    }
+
+
+    class BackupProcessMonth : BackupProcess
+    {
+        public BackupProcessMonth(List<Drive> drives, string month) : base(drives)
+        {
+            Period = month;
+            MonthSums self_obj_sums;
+            int month_index = AppConstants.month_names.IndexOf(month);
+
+            var eias_files = GetEIASFiles(CreatePeriodPattern(month_index));
+            var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index));
+
+            if (month_index != AppConstants.january_index)
+            {
+                self_obj_sums = new(eias_files, simple_files, GetSimpleFiles(CreatePeriodPattern(month_index - 1)));
+            }
+            else
+            {
+                self_obj_sums = new(eias_files, simple_files);
+            }
                         
-            return sums;
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
+            {
+                if (BackupAndLog(Period, eias_files, simple_files, self_obj_sums) == self_obj_sums.All_Protocols[AppConstants.others_sums[0]])
+                {
+                    AppInfoConsoleOut.ShowResult();
+                    AppInfoConsoleOut.ShowStarLine();
+
+                    AppInfoConsoleOut.ShowLogHeader(Period);
+                    log_show = new(self_obj_sums.All_Protocols, self_obj_sums.Simple_Protocols_Sums);
+                    log_show.ShowLog();
+                }
+                else
+                {
+                    Console.WriteLine("\nCopy error");
+                }
+            }
+            else
+            {
+                AppInfoConsoleOut.ShowScansNotFound(Period); 
+            }
         }
     }
 
 
-    readonly struct SimpleSumsNames
+    class BackupProcessYear : BackupProcess
     {
-        public static List<string> United_Names { get; }
-
-        static SimpleSumsNames()
-        {
-            United_Names = [.. AppConstants.full_location_sums, .. AppConstants.full_type_sums, .. AppConstants.types_full_names, .. AppConstants.not_found_sums];
-        }
-    }
-
-
-    interface ISimpleProtocolsSums
-    {
-        static Dictionary<string, int> CreateTable()
-        {
-            Dictionary<string, int> sums = [];
-
-            SimpleSumsNames.United_Names.ForEach(name => sums.Add(name, 0));
-                                         
-            return sums;
-        }
-    }
-    
+        private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
         
-    class MonthSums
-    {
-        private Dictionary<string, int>? current_period_min_numbers;
-        private readonly Func<string, string> GetShortTypeName = (key) => AppConstants.types_short_names[AppConstants.types_full_names.IndexOf(key)];
-
-        public SimpleProtocolsNumbers? Self_Obj_Currents_Type_Numbers { get; }
-        public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
-        public Dictionary<string, int>? Simple_Protocols_Sums { get; }
-        public List<string>? Missed_Protocols { get; }
-        public List<string>? Unknown_Protocols { get; }
-                
-        public MonthSums(List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, Dictionary<string, List<FileInfo>>? previous_period_simple_files = null)
+        public BackupProcessYear(List<Drive> drives) : base(drives)
         {
-            if (eias_files is not null)
-            {
-                All_Protocols[AppConstants.others_sums[0]] += eias_files.Count;
-                All_Protocols[AppConstants.others_sums[1]] = eias_files.Count;
-            }
+            Period = string.Concat(CurrentDate.Year, AppConstants.year);
 
-            if (simple_files is not null)
+            if (FindAllYearFiles())
             {
-                Simple_Protocols_Sums = ISimpleProtocolsSums.CreateTable();
+                // copy and logging
+                var all_sums = IGeneralSums.CreateTable();
+                var simple_sums = ISimpleProtocolsSums.CreateTable();
 
-                foreach (var item in simple_files)
+                foreach (var month_item in year_full_backup)
                 {
-                    Simple_Protocols_Sums![item.Key] = item.Value.Count;
-                    All_Protocols[AppConstants.others_sums[2]] += item.Value.Count;
-                }
-                All_Protocols[AppConstants.others_sums[0]] += All_Protocols[AppConstants.others_sums[2]];
-
-                CalcProtocolTypeFullSum();
-                CalcProtocolLocationSums();
-
-                Self_Obj_Currents_Type_Numbers = new(simple_files);                             
-                Missed_Protocols = ComputeMissedProtocols();
-                              
-                if (previous_period_simple_files is not null)
-                {
-                    SimpleProtocolsNumbers self_obj_previous_type_numbers = new(previous_period_simple_files);
-                    MaximumNumbers self_obj_previous_max = new(self_obj_previous_type_numbers.Numbers);
-
-                    Unknown_Protocols = ComputeUnknownProtocols(self_obj_previous_max.Numbers);
-                }
-            }
-        }      
-                
-        private void CalcProtocolTypeFullSum()
-        {
-            for (int type_index = 0, calc_index = 0; type_index < AppConstants.full_type_sums.Count; type_index++)
-            {
-                Simple_Protocols_Sums![AppConstants.full_type_sums[type_index]] = Simple_Protocols_Sums[AppConstants.types_full_names[calc_index]] + Simple_Protocols_Sums[AppConstants.types_full_names[calc_index + 1]];
-                calc_index += 2;
-            }
-        }
-
-        private void CalcProtocolLocationSums()
-        {             
-            for (int city_index = 0, calc_index = 0; city_index < AppConstants.full_location_sums.Count; city_index++)
-            {
-                Simple_Protocols_Sums![AppConstants.full_location_sums[city_index]] = Simple_Protocols_Sums[AppConstants.types_full_names[calc_index]] + Simple_Protocols_Sums[AppConstants.types_full_names[calc_index + 2]] + Simple_Protocols_Sums[AppConstants.types_full_names[calc_index + 4]];
-                calc_index += 1;
-            }
-        }
-
-        private List<string>? ComputeMissedProtocols()
-        {
-            MinimumNumbers extreme_min = new(Self_Obj_Currents_Type_Numbers!.Numbers);
-            current_period_min_numbers = extreme_min.Numbers;
-
-            MaximumNumbers extreme_max = new(Self_Obj_Currents_Type_Numbers.Numbers);
-            Dictionary<string, int> max_numbers = extreme_max.Numbers;
-
-            List<string> missed_protocols = [];
-
-            foreach (var item in Self_Obj_Currents_Type_Numbers.Numbers)
-            {
-                if (item.Value.Count >= 2)
-                {
-                    var range = Enumerable.Range(current_period_min_numbers[item.Key] + 1, max_numbers[item.Key] - current_period_min_numbers[item.Key]);
-
-                    IEnumerable<int> missing = range.Except(item.Value);
-                    List<int> missing_numbers = [.. missing];
-
-                    foreach (int number in missing_numbers)
+                    foreach (var sum in month_item.Item4.All_Protocols)
                     {
-                        missed_protocols.Add($"{number}-{GetShortTypeName(item.Key)}");
+                        all_sums[sum.Key] += sum.Value;
+                    }
+
+                    if (month_item.Item4.Simple_Protocols_Sums is not null)
+                    {
+                        foreach (var sum in month_item.Item4.Simple_Protocols_Sums)
+                        {
+                            simple_sums[sum.Key] += sum.Value;
+                        }
                     }
                 }
-            }
 
-            if (missed_protocols.Count > 0)
-            {
-                Simple_Protocols_Sums![AppConstants.not_found_sums[0]] = missed_protocols.Count;
-                return missed_protocols;
+                if (YearBackupAndLog() == all_sums[AppConstants.others_sums[0]])
+                {
+                    _ = new YearLog(all_sums, simple_sums);
+
+                    AppInfoConsoleOut.ShowResult();
+                    AppInfoConsoleOut.ShowStarLine();
+
+                    AppInfoConsoleOut.ShowLogHeader(Period);
+                    log_show = new(all_sums, simple_sums);
+                    log_show.ShowLog();
+                }
+                else
+                {
+                    // copy error
+                }
             }
             else
             {
-                return null;
+                AppInfoConsoleOut.ShowScansNotFound(Period);
             }
         }
 
-        private List<string>? ComputeUnknownProtocols(Dictionary<string, int> previous_period_max_numbers)
+        private bool FindAllYearFiles()
         {
-            List<string> unknown_protocols = [];
+            List<Dictionary<string, List<FileInfo>>?> simple_files_trace = [];
 
-            foreach (var item in current_period_min_numbers!)
+            for (int month_index = 0; month_index < AppConstants.month_names.Count; month_index++)
             {
-                int min_number = previous_period_max_numbers[item.Key];
-                int max_number = item.Value;
+                MonthSums self_obj_sums;
 
-                bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
+                var eias_files = GetEIASFiles(CreatePeriodPattern(month_index));
+                var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index));
 
-                if (unknowns_ok)
+                simple_files_trace.Add(simple_files);
+
+                if (month_index != AppConstants.january_index)
                 {
-                    for (int start_num = min_number + 1; start_num < max_number; start_num++)
-                    {
-                        unknown_protocols.Add($"{start_num}-{GetShortTypeName(item.Key)}");
-                    }
+                    self_obj_sums = new(eias_files, simple_files, simple_files_trace[month_index - 1]);
+                }
+                else
+                {
+                    self_obj_sums = new(eias_files, simple_files);
+                }
+
+                if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
+                {
+                    year_full_backup.Add((AppConstants.month_names[month_index + 1], eias_files, simple_files, self_obj_sums));
                 }
             }
 
-            if (unknown_protocols.Count is not 0)
+            if (year_full_backup.Count != 0)
             {
-                Simple_Protocols_Sums![AppConstants.not_found_sums[1]] = unknown_protocols.Count;
-                return unknown_protocols;
+                return true;
             }
             else
             {
-                return null;
+                return false;
             }
-        }        
+        }
+
+        private int YearBackupAndLog()
+        {
+            int backup_count = 0;
+
+            foreach (var month_item in year_full_backup)
+            {
+                if (BackupAndLog(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols[AppConstants.others_sums[0]])
+                {
+                    AppInfoConsoleOut.ShowMonthBackupResult(month_item.Item1, month_item.Item4.All_Protocols[AppConstants.others_sums[0]]);
+                    AppInfoConsoleOut.ShowLine();
+
+                    backup_count += month_item.Item4.All_Protocols[AppConstants.others_sums[0]];
+                }
+            }
+
+            return backup_count;
+        }
     }
 }

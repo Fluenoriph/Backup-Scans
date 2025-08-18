@@ -1,8 +1,7 @@
 ﻿using System.Xml.Linq;
 using TextData;
-using Logging;
 
-
+// name rool disable
 namespace DrivesControl
 {
     class Drive(string type, string directory)
@@ -26,20 +25,26 @@ namespace DrivesControl
     }
 
 
-    class XMLConfig
+    class DrivesConfiguration
     {
-        private readonly DrivesConfiguration self_obj_drives_config = new();
+        private XDocument Xdoc { get; } = XDocument.Load(AppConstants.drives_config_file);
+        private XElement? Config_Sector { get; }
+
         public List<Drive> Drives { get; } = new(2);
         
-        public XMLConfig()
+        public DrivesConfiguration()
         {
+            Config_Sector = Xdoc.Element("configuration");
+            // errors check !!!
+            // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
+
             // получаем конфигурацию            
-            if (self_obj_drives_config.Config_Sector is not null)       // проверить на нулл в низкоуровневом классе
+            if (Config_Sector is not null)       // проверить на нулл в низкоуровневом классе
             {
                 foreach (string drive_name in AppConstants.drive_type)
                 {
                     // получаем путь из тэга диска
-                    var directory = self_obj_drives_config.Config_Sector.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
+                    var directory = Config_Sector.Element(drive_name)?.Value;      // проверить на исключение при повреждении имен дисков (тэга) -- exit
 
                     if (directory is not null)
                     {
@@ -81,13 +86,28 @@ namespace DrivesControl
                     
                     setup_directory = InputNoNullText.GetRealText();
                                         
-                    self_obj_drives_config.SetupDriveDirectory(drive_name, setup_directory);
+                    WriteDriveDirectory(drive_name, setup_directory);
                     AppInfoConsoleOut.ShowInstallDirectory(drive_name);
                 }
 
             } while (directory_status == false);
 
             return self_obj_drive;
-        }                
+        }
+
+        private void WriteDriveDirectory(string drive_name, string path)
+        {
+            var directory = Config_Sector!.Element(drive_name);
+
+            if (directory is not null)
+            {
+                directory.Value = path;
+                Xdoc.Save(AppConstants.drives_config_file);
+            }
+            else
+            {
+                // xml error exit ??
+            }
+        }
     }
 }
