@@ -13,7 +13,7 @@ AppInfoConsoleOut.ShowEnterPeriod();
 var period_value = InputNoNullText.GetRealText();
 if (!int.TryParse(period_value, out int _))
 {
-    Console.WriteLine("No number input !");
+    //Console.WriteLine("No number input !");
     Environment.Exit(0);
 }
 
@@ -33,8 +33,8 @@ else
 }
            
 
-// резервная папка исходная по году ./2025.....
+// резервная папка исходная по году ./2025..... ok
 // логи также по году
 // логи ошибок по дате и времени
 // исключения !!!
-// если копировать за месяц, то итеративно суммировать за год
+// когда бэкап за декабрь, то сложить все суммы и это будет год

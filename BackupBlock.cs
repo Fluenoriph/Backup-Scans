@@ -152,23 +152,7 @@ namespace BackupBlock
             return number_name;
         }
     }
-
-
-    class SimpleProtocolsNumbers   
-    {
-        public Dictionary<string, List<int>> Numbers { get; } = [];
-        
-        public SimpleProtocolsNumbers(Dictionary<string, List<FileInfo>> files)
-        {
-            SimpleConvert self_obj_number_converter = new();    
-            
-            foreach (var item in files)
-            {                
-                Numbers.Add(item.Key, self_obj_number_converter.ConvertToNumbers(item.Value));
-            }
-        }
-    }
-         
+                     
 
     abstract class ExtremeNumbers(Dictionary<string, List<int>> protocol_type_numbers) 
     {
@@ -208,17 +192,110 @@ namespace BackupBlock
     }
 
 
-    class MonthSums
+    class SimpleNotFoundProtocols
     {
-        private Dictionary<string, int>? current_period_min_numbers;
         private readonly Func<string, string> GetShortTypeName = (key) => AppConstants.types_short_names[AppConstants.types_full_names.IndexOf(key)];
-
-        public SimpleProtocolsNumbers? Self_Obj_Currents_Type_Numbers { get; }
-        public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
-        public Dictionary<string, int>? Simple_Protocols_Sums { get; }
+        private readonly Dictionary<string, int> current_period_min_numbers = [];
+        private readonly SimpleConvert self_obj_number_converter = new();
+        public Dictionary<string, List<int>> Type_Numbers { get; } = [];
         public List<string>? Missed_Protocols { get; }
         public List<string>? Unknown_Protocols { get; }
 
+        public SimpleNotFoundProtocols(Dictionary<string, List<FileInfo>> files)
+        {
+            Type_Numbers = GetProtocolNumbers(files);
+
+            MinimumNumbers self_obj_extreme_min = new(Type_Numbers);
+            current_period_min_numbers = self_obj_extreme_min.Numbers;
+
+            Missed_Protocols = ComputeMissedProtocols();
+        }
+
+        private Dictionary<string, List<int>> GetProtocolNumbers(Dictionary<string, List<FileInfo>> files)
+        {
+            Dictionary<string, List<int>> numbers = [];
+
+            foreach (var item in files)
+            {
+                numbers.Add(item.Key, self_obj_number_converter.ConvertToNumbers(item.Value));
+            }
+
+            return numbers;
+        }
+
+        private List<string>? ComputeMissedProtocols()
+        {
+            MaximumNumbers self_obj_extreme_max = new(Type_Numbers);
+            var max_numbers = self_obj_extreme_max.Numbers;
+
+            List<string> missed_protocols = [];
+
+            foreach (var item in Type_Numbers)
+            {
+                if (item.Value.Count >= 2)
+                {
+                    var range = Enumerable.Range(current_period_min_numbers[item.Key] + 1, max_numbers[item.Key] - current_period_min_numbers[item.Key]);
+
+                    IEnumerable<int> missed = range.Except(item.Value);
+                    List<int> missed_numbers = [.. missed];
+
+                    foreach (int number in missed_numbers)
+                    {
+                        missed_protocols.Add($"{number}-{GetShortTypeName(item.Key)}");
+                    }
+                }
+            }
+
+            if (missed_protocols.Count > 0)
+            {
+                return missed_protocols;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public List<string>? ComputeUnknownProtocols(Dictionary<string, List<FileInfo>> previous_period_files)
+        {
+            MaximumNumbers self_obj_previous_max = new(GetProtocolNumbers(previous_period_files));
+
+            List<string> unknown_protocols = [];
+
+            foreach (var item in current_period_min_numbers!)
+            {
+                int min_number = self_obj_previous_max.Numbers[item.Key];
+                int max_number = item.Value;
+
+                bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
+
+                if (unknowns_ok)
+                {
+                    for (int start_num = min_number + 1; start_num < max_number; start_num++)
+                    {
+                        unknown_protocols.Add($"{start_num}-{GetShortTypeName(item.Key)}");
+                    }
+                }
+            }
+
+            if (unknown_protocols.Count is not 0)
+            {
+                return unknown_protocols;
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+
+    class MonthSums
+    {
+        private readonly SimpleNotFoundProtocols? self_obj_simple_not_found;
+        public Dictionary<string, int> All_Protocols { get; } = IGeneralSums.CreateTable();
+        public Dictionary<string, int>? Simple_Protocols_Sums { get; }
+                       
         public MonthSums(List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, Dictionary<string, List<FileInfo>>? previous_period_simple_files = null)
         {
             if (eias_files is not null)
@@ -231,26 +308,28 @@ namespace BackupBlock
             {
                 Simple_Protocols_Sums = ISimpleProtocolsSums.CreateTable();
 
-                foreach (var item in simple_files)
-                {
-                    Simple_Protocols_Sums![item.Key] = item.Value.Count;
-                    All_Protocols[AppConstants.others_sums[2]] += item.Value.Count;
-                }
-                All_Protocols[AppConstants.others_sums[0]] += All_Protocols[AppConstants.others_sums[2]];
+                self_obj_simple_not_found = new(simple_files);
 
+                CalcProtocolTypeSums();
+                All_Protocols[AppConstants.others_sums[0]] += All_Protocols[AppConstants.others_sums[2]];
                 CalcProtocolTypeFullSum();
                 CalcProtocolLocationSums();
-
-                Self_Obj_Currents_Type_Numbers = new(simple_files);
-                Missed_Protocols = ComputeMissedProtocols();
-
+                                
                 if (previous_period_simple_files is not null)
                 {
-                    SimpleProtocolsNumbers self_obj_previous_type_numbers = new(previous_period_simple_files);
-                    MaximumNumbers self_obj_previous_max = new(self_obj_previous_type_numbers.Numbers);
-
-                    Unknown_Protocols = ComputeUnknownProtocols(self_obj_previous_max.Numbers);
+                    self_obj_simple_not_found.ComputeUnknownProtocols(previous_period_simple_files);
                 }
+
+                CalcNotFoundProtocolsSums();
+            }
+        }
+
+        private void CalcProtocolTypeSums()
+        {
+            foreach (var item in self_obj_simple_not_found!.Type_Numbers) 
+            {
+                Simple_Protocols_Sums![item.Key] = item.Value.Count;
+                All_Protocols[AppConstants.others_sums[2]] += item.Value.Count;
             }
         }
 
@@ -272,71 +351,16 @@ namespace BackupBlock
             }
         }
 
-        private List<string>? ComputeMissedProtocols()
+        private void CalcNotFoundProtocolsSums()
         {
-            MinimumNumbers extreme_min = new(Self_Obj_Currents_Type_Numbers!.Numbers);
-            current_period_min_numbers = extreme_min.Numbers;
-
-            MaximumNumbers extreme_max = new(Self_Obj_Currents_Type_Numbers.Numbers);
-            Dictionary<string, int> max_numbers = extreme_max.Numbers;
-
-            List<string> missed_protocols = [];
-
-            foreach (var item in Self_Obj_Currents_Type_Numbers.Numbers)
+            if (self_obj_simple_not_found!.Missed_Protocols is not null)
             {
-                if (item.Value.Count >= 2)
-                {
-                    var range = Enumerable.Range(current_period_min_numbers[item.Key] + 1, max_numbers[item.Key] - current_period_min_numbers[item.Key]);
-
-                    IEnumerable<int> missing = range.Except(item.Value);
-                    List<int> missing_numbers = [.. missing];
-
-                    foreach (int number in missing_numbers)
-                    {
-                        missed_protocols.Add($"{number}-{GetShortTypeName(item.Key)}");
-                    }
-                }
+                Simple_Protocols_Sums![AppConstants.not_found_sums[0]] = self_obj_simple_not_found.Missed_Protocols.Count;
             }
 
-            if (missed_protocols.Count > 0)
+            if (self_obj_simple_not_found.Unknown_Protocols is not null)
             {
-                Simple_Protocols_Sums![AppConstants.not_found_sums[0]] = missed_protocols.Count;
-                return missed_protocols;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private List<string>? ComputeUnknownProtocols(Dictionary<string, int> previous_period_max_numbers)
-        {
-            List<string> unknown_protocols = [];
-
-            foreach (var item in current_period_min_numbers!)
-            {
-                int min_number = previous_period_max_numbers[item.Key];
-                int max_number = item.Value;
-
-                bool unknowns_ok = (min_number < max_number) && ((max_number - 1) != min_number);
-
-                if (unknowns_ok)
-                {
-                    for (int start_num = min_number + 1; start_num < max_number; start_num++)
-                    {
-                        unknown_protocols.Add($"{start_num}-{GetShortTypeName(item.Key)}");
-                    }
-                }
-            }
-
-            if (unknown_protocols.Count is not 0)
-            {
-                Simple_Protocols_Sums![AppConstants.not_found_sums[1]] = unknown_protocols.Count;
-                return unknown_protocols;
-            }
-            else
-            {
-                return null;
+                Simple_Protocols_Sums![AppConstants.not_found_sums[1]] = self_obj_simple_not_found.Unknown_Protocols.Count;
             }
         }
     }

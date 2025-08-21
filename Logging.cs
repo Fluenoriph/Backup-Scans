@@ -5,83 +5,83 @@ using TextData;
 
 namespace Logging
 {
-    enum SettingsStatus   // is's need, if write to log_error_file
+    interface IXMLLogFile
     {
-        UNKNOWN,
-        DRIVE_CONFIG_ERROR,
-        DIRECTORY_ERROR,
-        DIRECTORY_INSTALLED
-    }
-         
-        
-    abstract class SumsLog
-    {
-        private protected XDocument? Xdoc { get; set; }  // exception
-        private protected XElement? Sums { get; set; }
-
-        private protected static XElement? GetSectorSums(XContainer source_sector)
-        {
-            return source_sector.Element("sums");
-        }
-
-        private protected void WriteSums(string tag, int sum_value)
-        {
-            var sum = Sums!.Element(tag);
-
-            if (sum is not null)
-            {
-                sum.Value = sum_value.ToString();
-            }
-            else
-            {
-                // xml error exit ??
-            }
-        }
+        XDocument Xdoc { get; }  // exception
     }
 
 
-    class YearLog : SumsLog
+    abstract class SumsSector : IXMLLogFile
     {
+        //public XDocument Xdoc { get; } = 
+        private const string sums_tag = "sums";
+
+        private protected XElement? Sums { get; }
+                        
+        private protected void Write(MonthSums backup_sums)  // field ?
+        {
+            for (int sum_index = 0; sum_index < AppConstants.others_sums_tags.Count; sum_index++)
+            {
+                var sum = Sums!.Element(AppConstants.others_sums_tags[sum_index])?.Value;
+                sum = backup_sums.All_Protocols[AppConstants.others_sums[sum_index]].ToString();
+
+
+
+                //Sums!.Element(AppConstants.others_sums_tags[sum_index]).Value = backup_sums.All_Protocols[AppConstants.others_sums[sum_index]].ToString();
+                //sums.e[AppConstants.others_sums_tag[sum_index]].Value = "jj";
+
+                //WriteSums(AppConstants.others_sums_tags[sum_index], all_sums[AppConstants.others_sums[sum_index]]);
+            }
+
+            if (backup_sums.Simple_Protocols_Sums is not null)
+            {
+                for (int sum_index = 0; sum_index < AppConstants.simple_sums_tags.Count; sum_index++)
+                {
+                    var sum = Sums!.Element(AppConstants.simple_sums_tags[sum_index]).Value;
+                    sum = backup_sums.All_Protocols[AppConstants.united_type_names[sum_index]].ToString();
+
+
+                    //WriteSums(AppConstants.simple_sums_tags[sum_index], simple_sums[AppConstants.united_type_names[sum_index]]);
+                }
+            }
+
+        }
+
+
+    }
+
+
+    class YearLog
+    {
+        private XDocument? Xdoc { get; }
+
         public YearLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
         {
             Xdoc = XDocument.Load(AppConstants.year_log_file);
 
-            Sums = GetSectorSums(Xdoc);
+            //var sums = Xdoc.Element("sums");
 
-            if (Sums is not null)
-            {
-                for (int sum_index = 0; sum_index < AppConstants.others_sums_tags.Count; sum_index++)
-                {
-                    WriteSums(AppConstants.others_sums_tags[sum_index], all_sums[AppConstants.others_sums[sum_index]]);
-                }
 
-                if (simple_sums is not null)
-                {
-                    for (int sum_index = 0; sum_index < AppConstants.simple_sums_tags.Count; sum_index++)
-                    {
-                        WriteSums(AppConstants.simple_sums_tags[sum_index], simple_sums[AppConstants.united_type_names[sum_index]]);
-                    }
-                }
 
-                Xdoc.Save(AppConstants.year_log_file);
-            }
-            else
-            {
-                // xml error exit ??
-            }
+
+            
+
+            Xdoc.Save(AppConstants.year_log_file);
         }
+
+               
     }
 
 
-    abstract class MonthLog : SumsLog
+    abstract class MonthLog : SumsSector
     {
         private protected XElement? protocol_names;
         
-        public MonthLog(string month, MonthSums backup_sums)
+        private protected MonthLog(string month, MonthSums backup_sums)
         {
             Xdoc = XDocument.Load(AppConstants.month_logs_file);
             // условный null ?. 
-            var month_data = Xdoc.Element("logs_data")?.Elements("month").FirstOrDefault(p => p.Attribute("name")?.Value == month);
+            var month_data = GetMonthSector(month);
 
             if (month_data is not null)
             {
@@ -108,7 +108,13 @@ namespace Logging
                 // xml error exit
             }
         }
-                
+
+        private protected XElement? GetMonthSector(string month)
+        {
+            return Xdoc!.Element("logs_data")?.Elements("month").     //FirstOrDefault(p => p.Attribute("name")?.Value == month);
+        }
+
+
         private protected void WriteNames(string tag, List<string> protocols)
         {
             var names = protocol_names!.Element(tag);
@@ -155,7 +161,7 @@ namespace Logging
             var type_tags = AppConstants.simple_sums_tags.GetRange(5, 6);
 
             SimpleSort self_obj_sorter = new();
-            foreach (var item in backup_sums.Self_Obj_Currents_Type_Numbers!.Numbers)
+            foreach (var item in backup_sums.Self_Obj_Currents_Type_Numbers!.Type_Numbers)
             {
                 WriteNames(type_tags[AppConstants.types_full_names.IndexOf(item.Key)], self_obj_sorter.Sorting(item.Value, files[item.Key]));                                
             }

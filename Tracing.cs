@@ -60,15 +60,17 @@ namespace Tracing
             }
         }
 
-        private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_directory)
+        private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_subdirectory)
         {
             int files_count = 0;
+            string year_backup_subdirectory = string.Concat(CurrentDate.Year, slash, target_subdirectory);
 
-            DirectoryInfo destination = new(string.Concat(drives[1].Directory.FullName, slash, target_directory));
+            // проверка существования поддиректорий --- может это отдельный метод ?
+            DirectoryInfo destination = new(string.Concat(drives[1].Directory.FullName, slash, year_backup_subdirectory));
 
             if (!destination.Exists)
             {
-                drives[1].Directory.CreateSubdirectory(target_directory);
+                drives[1].Directory.CreateSubdirectory(year_backup_subdirectory);
             }
 
             for (int file_index = 0; file_index < backup_files.Count; file_index++)
@@ -146,8 +148,10 @@ namespace Tracing
             {
                 if (BackupAndLog(Period, eias_files, simple_files, self_obj_sums) == self_obj_sums.All_Protocols[AppConstants.others_sums[0]])
                 {
+                    Console.WriteLine('\n');
                     AppInfoConsoleOut.ShowResult();
                     AppInfoConsoleOut.ShowStarLine();
+                    Console.WriteLine('\n');
 
                     AppInfoConsoleOut.ShowLogHeader(Period);
                     log_show = new(self_obj_sums.All_Protocols, self_obj_sums.Simple_Protocols_Sums);
