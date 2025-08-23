@@ -25,6 +25,29 @@ namespace DrivesControl
     }
 
 
+
+
+
+    class XLogFiles  // проверка
+    {
+        //public static XDocument x_doc_year = XDocument.Load(AppConstants.year_log_file);
+        //public static XDocument x_doc_monthes = XDocument.Load(AppConstants.month_logs_file);
+        public static XDocument x_doc_
+    }
+
+
+
+
+    abstract class DrivesConfigurationnew
+    {
+        private protected XDocument? X_doc_drives_config;
+
+
+
+
+    }
+
+    // по одной директории
     class DrivesConfiguration
     {
         private XDocument Xdoc { get; } = XDocument.Load(AppConstants.drives_config_file);
@@ -39,7 +62,7 @@ namespace DrivesControl
             // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
 
             // получаем конфигурацию            
-            if (Config_Sector is not null)       // проверить на нулл в низкоуровневом классе
+            if (Config_Sector is not null)       
             {
                 foreach (string drive_name in AppConstants.drive_type)
                 {

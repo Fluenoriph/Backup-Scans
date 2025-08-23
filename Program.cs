@@ -23,7 +23,7 @@ if (month_index >= AppConstants.january_index && month_index <= AppConstants.dec
 {
     BackupProcessMonth _ = new(self_obj_drives_config.Drives, AppConstants.month_names[month_index]); 
 }
-else if (month_index == CurrentDate.Year)
+else if (period_value == CurrentDate.Year.ToString())
 {
     BackupProcessYear _ = new(self_obj_drives_config.Drives);
 }
@@ -37,4 +37,5 @@ else
 // логи также по году
 // логи ошибок по дате и времени
 // исключения !!!
+
 // когда бэкап за декабрь, то сложить все суммы и это будет год

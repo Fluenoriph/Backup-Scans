@@ -5,178 +5,138 @@ using TextData;
 
 namespace Logging
 {
-    interface IXMLLogFile
+    struct XMonthData
     {
-        XDocument Xdoc { get; }  // exception
+        public static IEnumerable<XElement>? x_monthes = XLogFiles.x_doc_monthes.Element("logs_data")?.Elements("month");
     }
 
 
-    abstract class SumsSector : IXMLLogFile
+    abstract class XSumsData
     {
-        //public XDocument Xdoc { get; } = 
-        private const string sums_tag = "sums";
-
-        private protected XElement? Sums { get; }
-                        
-        private protected void Write(MonthSums backup_sums)  // field ?
-        {
-            for (int sum_index = 0; sum_index < AppConstants.others_sums_tags.Count; sum_index++)
-            {
-                var sum = Sums!.Element(AppConstants.others_sums_tags[sum_index])?.Value;
-                sum = backup_sums.All_Protocols[AppConstants.others_sums[sum_index]].ToString();
-
-
-
-                //Sums!.Element(AppConstants.others_sums_tags[sum_index]).Value = backup_sums.All_Protocols[AppConstants.others_sums[sum_index]].ToString();
-                //sums.e[AppConstants.others_sums_tag[sum_index]].Value = "jj";
-
-                //WriteSums(AppConstants.others_sums_tags[sum_index], all_sums[AppConstants.others_sums[sum_index]]);
-            }
-
-            if (backup_sums.Simple_Protocols_Sums is not null)
-            {
-                for (int sum_index = 0; sum_index < AppConstants.simple_sums_tags.Count; sum_index++)
-                {
-                    var sum = Sums!.Element(AppConstants.simple_sums_tags[sum_index]).Value;
-                    sum = backup_sums.All_Protocols[AppConstants.united_type_names[sum_index]].ToString();
-
-
-                    //WriteSums(AppConstants.simple_sums_tags[sum_index], simple_sums[AppConstants.united_type_names[sum_index]]);
-                }
-            }
-
-        }
-
-
-    }
-
-
-    class YearLog
-    {
-        private XDocument? Xdoc { get; }
-
-        public YearLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
-        {
-            Xdoc = XDocument.Load(AppConstants.year_log_file);
-
-            //var sums = Xdoc.Element("sums");
-
-
-
-
-            
-
-            Xdoc.Save(AppConstants.year_log_file);
-        }
-
-               
-    }
-
-
-    abstract class MonthLog : SumsSector
-    {
-        private protected XElement? protocol_names;
+        private protected XElement? Sums_Sector { get; set; }
         
-        private protected MonthLog(string month, MonthSums backup_sums)
+        private protected void WriteSums(List<string> tags, Dictionary<string, int>? sums = null, List<string>? sums_names = null)
         {
-            Xdoc = XDocument.Load(AppConstants.month_logs_file);
-            // условный null ?. 
-            var month_data = GetMonthSector(month);
-
-            if (month_data is not null)
+            for (int sum_index = 0; sum_index < tags.Count; sum_index++)
             {
-                Sums = GetSectorSums(month_data);
+                var sum = Sums_Sector!.Element(tags[sum_index]);
 
-                if (Sums is not null)
+                if (sum is not null)
                 {
-                    WriteSums(AppConstants.others_sums_tags[0], backup_sums.All_Protocols[AppConstants.others_sums[0]]);
+                    if ((sums is not null) && (sums_names is not null))
+                    {
+                        sum.Value = sums[sums_names[sum_index]].ToString();
+                    }
+                    else
+                    {
+                        sum.Value = '0'.ToString();
+                    }
                 }
                 else
                 {
-                    // xml error exit
-                }
-
-                protocol_names = month_data.Element("protocol_names");
-
-                if (protocol_names is null)
-                {
-                    // xml error exit
+                    // error
                 }
             }
-            else
-            {
-                // xml error exit
-            }
-        }
-
-        private protected XElement? GetMonthSector(string month)
-        {
-            return Xdoc!.Element("logs_data")?.Elements("month").     //FirstOrDefault(p => p.Attribute("name")?.Value == month);
-        }
-
-
-        private protected void WriteNames(string tag, List<string> protocols)
-        {
-            var names = protocol_names!.Element(tag);
-
-            if (names is not null)
-            {
-                names.Value = string.Join(", ", protocols);
-            }
-            else
-            {
-                // xml error exit ??
-            }
-        }
+        }                
     }
 
-
-    class EIASLog : MonthLog
+        
+    class YearLogger : XSumsData
     {
-        public EIASLog(string month, List<FileInfo> files, MonthSums backup_sums) : base(month, backup_sums)
+        public YearLogger(Dictionary<string, int> all_sums, Dictionary<string, int> simple_sums)
         {
-            WriteSums(AppConstants.others_sums_tags[1], backup_sums.All_Protocols[AppConstants.others_sums[1]]);
+            Sums_Sector = XLogFiles.x_doc_year.Element(AppConstants.sums_tag);
+
+            WriteSums(AppConstants.others_sums_tags, all_sums, AppConstants.others_sums);
+            WriteSums(AppConstants.simple_sums_tags, simple_sums, AppConstants.united_type_names);
                         
-            EIASConvert self_obj_number_convert = new();
-            EIASSort self_obj_name_sort = new();
-
-            WriteNames(AppConstants.others_sums_tags[1], self_obj_name_sort.Sorting(self_obj_number_convert.ConvertToNumbers(files), files));
-                            
-            Xdoc!.Save(AppConstants.month_logs_file);
-        }
+            XLogFiles.x_doc_year.Save(AppConstants.year_log_file);
+        }       
     }
 
+    
+    class MonthLogger : XSumsData
+    {        
+        private XElement? Protocol_Names_Sector { get; set; }
 
-    class SimpleLog : MonthLog
-    {
-        public SimpleLog(string month, Dictionary<string, List<FileInfo>> files, MonthSums backup_sums) : base(month, backup_sums)
-        {
-            WriteSums(AppConstants.others_sums_tags[2], backup_sums.All_Protocols[AppConstants.others_sums[2]]);
+        public MonthLogger(string month, MonthBackupSums self_obj_sums, List<FileInfo>? eias_files)
+        {        
+            var month_sector = XMonthData.x_monthes?.FirstOrDefault(x_month => x_month.Attribute("name")?.Value == month);
 
-            for (int sum_index = 0; sum_index < AppConstants.simple_sums_tags.Count; sum_index++)
+            Sums_Sector = month_sector?.Element(AppConstants.sums_tag);       
+            Protocol_Names_Sector = month_sector?.Element(AppConstants.names_tag);
+
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] != 0)
             {
-                WriteSums(AppConstants.simple_sums_tags[sum_index], backup_sums.Simple_Protocols_Sums![AppConstants.united_type_names[sum_index]]);
+                WriteSums(AppConstants.others_sums_tags, self_obj_sums.All_Protocols, AppConstants.others_sums);
+
+                EIASConvert self_obj_number_convert = new();
+                EIASSort self_obj_name_sort = new();
+
+                WriteNames(AppConstants.others_sums_tags[1], self_obj_name_sort.Sorting(self_obj_number_convert.ConvertToNumbers(eias_files!), eias_files!));
+            }
+            else
+            {
+                WriteSums(AppConstants.others_sums_tags);
+                WriteNames(AppConstants.others_sums_tags[1]);
             }
 
-            var type_tags = AppConstants.simple_sums_tags.GetRange(5, 6);
+            if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] != 0)
+            {
+                WriteSums(AppConstants.simple_sums_tags, self_obj_sums.Simple_Protocols_Sums, AppConstants.united_type_names);
+                                
+                foreach (string name in AppConstants.types_full_names)
+                {
+                    var target_x_tag = AppConstants.type_tags[AppConstants.types_full_names.IndexOf(name)];
 
-            SimpleSort self_obj_sorter = new();
-            foreach (var item in backup_sums.Self_Obj_Currents_Type_Numbers!.Type_Numbers)
+                    if (self_obj_sums.self_obj_names!.Sorted_Names.TryGetValue(name, out List<string>? value))
+                    {
+                        WriteNames(target_x_tag, value);
+                    }
+                    else
+                    {
+                        WriteNames(target_x_tag);
+                    }
+                }
+
+                WriteNames(AppConstants.simple_sums_tags[11], self_obj_sums.self_obj_names!.Missed_Protocols);
+                WriteNames(AppConstants.simple_sums_tags[12], self_obj_sums.self_obj_names!.Unknown_Protocols);
+            }
+            else
             {
-                WriteNames(type_tags[AppConstants.types_full_names.IndexOf(item.Key)], self_obj_sorter.Sorting(item.Value, files[item.Key]));                                
+                WriteSums(AppConstants.simple_sums_tags);
+
+                foreach (var tag in AppConstants.type_tags)
+                {
+                    WriteNames(tag);
+                }
+
+                WriteNames(AppConstants.simple_sums_tags[11]);
+                WriteNames(AppConstants.simple_sums_tags[12]);
             }
 
-            if (backup_sums.Simple_Protocols_Sums![AppConstants.not_found_sums[0]] != 0)
-            {
-                WriteNames(AppConstants.simple_sums_tags[11], backup_sums.Missed_Protocols!);                
-            }
-            
-            if (backup_sums.Simple_Protocols_Sums![AppConstants.not_found_sums[1]] != 0)
-            {
-                WriteNames(AppConstants.simple_sums_tags[12], backup_sums.Unknown_Protocols!);                
-            }
-                                   
-            Xdoc!.Save(AppConstants.month_logs_file);
+            XLogFiles.x_doc_monthes.Save(AppConstants.month_logs_file);
         }
-    }                 
+
+        private void WriteNames(string tag, List<string>? names = null)
+        {
+            var x_names = Protocol_Names_Sector?.Element(tag);
+
+            if (x_names is not null)
+            {
+                if (names is not null)
+                {
+                    x_names.Value = string.Join(", ", names);
+                }
+                else
+                {
+                    x_names.Value = string.Empty;
+                }
+            }
+            else
+            {
+                // xml error
+            }
+        }
+    }
 }

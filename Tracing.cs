@@ -63,6 +63,9 @@ namespace Tracing
         private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_subdirectory)
         {
             int files_count = 0;
+
+
+
             string year_backup_subdirectory = string.Concat(CurrentDate.Year, slash, target_subdirectory);
 
             // проверка существования поддиректорий --- может это отдельный метод ?
@@ -72,7 +75,7 @@ namespace Tracing
             {
                 drives[1].Directory.CreateSubdirectory(year_backup_subdirectory);
             }
-
+            ///////////////
             for (int file_index = 0; file_index < backup_files.Count; file_index++)
             {
                 backup_files[file_index].CopyTo(string.Concat(destination, slash, backup_files[file_index].Name), true);   // exception !!
@@ -94,8 +97,8 @@ namespace Tracing
 
             return files_count;
         }
-
-        private protected int BackupAndLog(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthSums sums)
+        // backup only not logging
+        private protected int Backuping(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthBackupSums sums)
         {
             int backup_count = 0;
                        
@@ -103,23 +106,19 @@ namespace Tracing
             {
                 if (CopyBackupFiles(eias_files!, string.Concat(target_month, slash, AppConstants.others_sums[1])) == sums.All_Protocols[AppConstants.others_sums[1]])
                 {
-                    backup_count += sums.All_Protocols[AppConstants.others_sums[1]];
-
-                    _ = new EIASLog(target_month, eias_files!, sums);
+                    backup_count += sums.All_Protocols[AppConstants.others_sums[1]];                    
                 }
             }
-
+            
             if (sums.All_Protocols[AppConstants.others_sums[2]] != 0)
             {
                 if (CopySimpleBlock(simple_files!, target_month) == sums.All_Protocols[AppConstants.others_sums[2]])
                 {
-                    backup_count += sums.All_Protocols[AppConstants.others_sums[2]];
-
-                    _ = new SimpleLog(target_month, simple_files!, sums);
+                    backup_count += sums.All_Protocols[AppConstants.others_sums[2]];                    
                 }
             }
 
-            return backup_count;
+            return backup_count;  
         }
     }
 
@@ -129,7 +128,7 @@ namespace Tracing
         public BackupProcessMonth(List<Drive> drives, string month) : base(drives)
         {
             Period = month;
-            MonthSums self_obj_sums;
+            MonthBackupSums self_obj_sums;
             int month_index = AppConstants.month_names.IndexOf(month);
 
             var eias_files = GetEIASFiles(CreatePeriodPattern(month_index));
@@ -146,12 +145,14 @@ namespace Tracing
                         
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
             {
-                if (BackupAndLog(Period, eias_files, simple_files, self_obj_sums) == self_obj_sums.All_Protocols[AppConstants.others_sums[0]])
+                if (Backuping(Period, eias_files, simple_files, self_obj_sums) == self_obj_sums.All_Protocols[AppConstants.others_sums[0]])
                 {
                     Console.WriteLine('\n');
                     AppInfoConsoleOut.ShowResult();
                     AppInfoConsoleOut.ShowStarLine();
                     Console.WriteLine('\n');
+
+                    _ = new MonthLogger(Period, self_obj_sums, eias_files);
 
                     AppInfoConsoleOut.ShowLogHeader(Period);
                     log_show = new(self_obj_sums.All_Protocols, self_obj_sums.Simple_Protocols_Sums);
@@ -172,7 +173,7 @@ namespace Tracing
 
     class BackupProcessYear : BackupProcess
     {
-        private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthSums)> year_full_backup = [];
+        private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthBackupSums)> year_full_backup = [];
         
         public BackupProcessYear(List<Drive> drives) : base(drives)
         {
@@ -202,7 +203,7 @@ namespace Tracing
 
                 if (YearBackupAndLog() == all_sums[AppConstants.others_sums[0]])
                 {
-                    _ = new YearLog(all_sums, simple_sums);
+                    _ = new YearLogger(all_sums, simple_sums);           // простых может и не быть
 
                     AppInfoConsoleOut.ShowResult();
                     AppInfoConsoleOut.ShowStarLine();
@@ -228,7 +229,7 @@ namespace Tracing
 
             for (int month_index = 0; month_index < AppConstants.month_names.Count; month_index++)
             {
-                MonthSums self_obj_sums;
+                MonthBackupSums self_obj_sums;
 
                 var eias_files = GetEIASFiles(CreatePeriodPattern(month_index));
                 var simple_files = GetSimpleFiles(CreatePeriodPattern(month_index));
@@ -246,7 +247,7 @@ namespace Tracing
 
                 if (self_obj_sums.All_Protocols[AppConstants.others_sums[0]] != 0)
                 {
-                    year_full_backup.Add((AppConstants.month_names[month_index + 1], eias_files, simple_files, self_obj_sums));
+                    year_full_backup.Add((AppConstants.month_names[month_index], eias_files, simple_files, self_obj_sums));
                 }
             }
 
@@ -266,12 +267,14 @@ namespace Tracing
 
             foreach (var month_item in year_full_backup)
             {
-                if (BackupAndLog(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols[AppConstants.others_sums[0]])
+                if (Backuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols[AppConstants.others_sums[0]])
                 {
                     AppInfoConsoleOut.ShowMonthBackupResult(month_item.Item1, month_item.Item4.All_Protocols[AppConstants.others_sums[0]]);
                     AppInfoConsoleOut.ShowLine();
 
                     backup_count += month_item.Item4.All_Protocols[AppConstants.others_sums[0]];
+
+                    _ = new MonthLogger(month_item.Item1, month_item.Item4, month_item.Item2);
                 }
             }
 

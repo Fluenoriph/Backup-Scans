@@ -2,10 +2,10 @@
 {
     struct AppConstants
     {
-        public const string drives_config_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\drives_config.xml"; // !! ..\xml
+        public const string drives_config_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\drives_config.xml"; // !! относит.
         
-        public const string month_logs_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\backup_log_monthes.xml";
-        public const string year_log_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\year_log.xml";
+        public const string month_logs_file = "backup_log_monthes.xml";
+        public const string year_log_file = "year_log.xml";
 
         public static List<string> drive_type = ["SOURCE", "DESTINATION"];
         public static Dictionary<string, string> drive_names = new()
@@ -33,6 +33,9 @@
         
         public static List<string> types_short_names = ["ф", "фа", "р", "ра", "м", "ма"];
         
+        public const string sums_tag = "sums";
+        public const string names_tag = "protocol_names";
+
         public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
         public static List<string> others_sums_tags = ["full", "eias", "simple"];
 
@@ -43,6 +46,7 @@
         public static List<string> not_found_sums = ["Пропущенные", "Неизвестные"];
         
         public static List<string> simple_sums_tags = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
+        public static List<string> type_tags = simple_sums_tags.GetRange(5, 6);
 
         public const char line = '-';
 
