@@ -1,17 +1,19 @@
 ﻿namespace TextData
 {
-    struct AppConstants
+    struct AppConstants        // можно разделить по классификации
     {
         public const string drives_config_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\drives_config.xml"; // !! относит.
         
         public const string month_logs_file = "backup_log_monthes.xml";
         public const string year_log_file = "year_log.xml";
 
-        public static List<string> drive_type = ["SOURCE", "DESTINATION"];
+        public static List<string> drive_tags = ["SOURCE", "DESTINATION", "XML_LOG"];
+                
         public static Dictionary<string, string> drive_names = new()
         {
-            [drive_type[0]] = "ИСХОДНАЯ",
-            [drive_type[1]] = "РЕЗЕРВНАЯ"
+            [drive_tags[0]] = "ИСХОДНАЯ",
+            [drive_tags[1]] = "РЕЗЕРВНАЯ",
+            [drive_tags[2]] = "ОТЧЕТНАЯ"
         };
 
         public const string number_group = "^(?<number>";
@@ -32,10 +34,11 @@
                                                            "Измерения мебели (Уссурийск)", "Измерения мебели (Арсеньев)"];
         
         public static List<string> types_short_names = ["ф", "фа", "р", "ра", "м", "ма"];
-        
+
+        public const string drives_config_tag = "configuration";
         public const string sums_tag = "sums";
         public const string names_tag = "protocol_names";
-
+        
         public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
         public static List<string> others_sums_tags = ["full", "eias", "simple"];
 
@@ -150,9 +153,9 @@
             Console.WriteLine($" {grille} Вы ничего не ввели, вводите заново !");
         }
         
-        public static void ShowDirectorySetupTrue(string name, string directory)
+        public static void ShowDirectorySetupTrue(string drive_type, string directory)
         {
-            Console.WriteLine($" {star} {AppConstants.drive_names[name]} директория: {directory}");
+            Console.WriteLine($" {star} {AppConstants.drive_names[drive_type]} директория: {directory}");    
         }
 
         public static void ShowDirectoryExistFalse(string drive_type)
@@ -185,6 +188,11 @@
         {
             Console.WriteLine($" {star} За {period} успешно скопировано _{file_count}_ файл(ов) !");
         }
+
+        /*public static void ShowSetupDirectory(string drive_type)
+        {
+            Console.WriteLine($" {grille} Установите {AppConstants.drive_names[drive_type]} директорию !");
+        }*/
     }
 
 

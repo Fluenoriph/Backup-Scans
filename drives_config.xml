@@ -1,11 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <configuration>
-	<backup>
-		<SOURCE>C:\Users\Mahabhara\Desktop\сканы</SOURCE>
-		<DESTINATION>C:\Users\Mahabhara\Desktop\result_test</DESTINATION>
-	</backup>
-	<log>
-		<DESTINATION>C:\Users\Mahabhara\source\repos\Fluenoriph\Backup-Scans</DESTINATION>
-	</log>
+  <SOURCE>C:\Users\Mahabhara\Desktop\сканы</SOURCE>
+  <DESTINATION>C:\Users\Mahabhara\Desktop\result_test</DESTINATION>
+  <XML_LOG>C:\Users\Mahabhara\Desktop\logs</XML_LOG>
 </configuration>
-

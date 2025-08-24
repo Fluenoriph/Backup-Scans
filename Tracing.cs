@@ -1,5 +1,4 @@
 ﻿using BackupBlock;
-using DrivesControl;
 using Logging;
 using TextData;
 using System.Text.RegularExpressions;
@@ -9,11 +8,14 @@ namespace Tracing
 {
     abstract class BackupProcess(List<Drive> drives)
     {
-        private readonly SourceFiles self_obj_source_files = new(drives[0].Directory.FullName);
+        private readonly SourceFiles self_obj_source_files = new(drives[0].Directory!.FullName);
+        private readonly DirectoryInfo backup_directory = CheckYearSubdirectory(drives[1].Directory!);
+        private protected readonly DirectoryInfo log_directory = CheckYearSubdirectory(drives[2].Directory!);
+
         private protected string Period { get; set; } = string.Empty;
-        private protected const char slash = '\\';
+        private protected const char slash = '\\';        // in text data
         private protected ConsoleOutFullLog? log_show;
-                
+                      
         private protected static string CreatePeriodPattern(int month_index)
         {
             string month;
@@ -60,25 +62,27 @@ namespace Tracing
             }
         }
 
-        private protected int CopyBackupFiles(List<FileInfo> backup_files, string target_subdirectory)
+        private protected static DirectoryInfo CheckYearSubdirectory(DirectoryInfo directory)
         {
-            int files_count = 0;
-
-
-
-            string year_backup_subdirectory = string.Concat(CurrentDate.Year, slash, target_subdirectory);
-
-            // проверка существования поддиректорий --- может это отдельный метод ?
-            DirectoryInfo destination = new(string.Concat(drives[1].Directory.FullName, slash, year_backup_subdirectory));
+            string year_backup_subdirectory = CurrentDate.Year.ToString();
+                        
+            DirectoryInfo destination = new(string.Concat(directory, slash, year_backup_subdirectory));
 
             if (!destination.Exists)
             {
-                drives[1].Directory.CreateSubdirectory(year_backup_subdirectory);
+                directory.CreateSubdirectory(year_backup_subdirectory);
             }
-            ///////////////
+            
+            return destination;
+        }
+
+        private protected int CopyBackupFiles(List<FileInfo> backup_files, string month_and_type_subdir)
+        {
+            int files_count = 0;                     
+
             for (int file_index = 0; file_index < backup_files.Count; file_index++)
             {
-                backup_files[file_index].CopyTo(string.Concat(destination, slash, backup_files[file_index].Name), true);   // exception !!
+                backup_files[file_index].CopyTo(string.Concat(backup_directory, slash, month_and_type_subdir, slash, backup_files[file_index].Name), true);   // exception !!
 
                 files_count++;
             }
@@ -97,7 +101,7 @@ namespace Tracing
 
             return files_count;
         }
-        // backup only not logging
+        
         private protected int Backuping(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthBackupSums sums)
         {
             int backup_count = 0;
@@ -151,8 +155,8 @@ namespace Tracing
                     AppInfoConsoleOut.ShowResult();
                     AppInfoConsoleOut.ShowStarLine();
                     Console.WriteLine('\n');
-
-                    _ = new MonthLogger(Period, self_obj_sums, eias_files);
+                    // var log file
+                    _ = new MonthLogger(log_directory, Period, self_obj_sums, eias_files);
 
                     AppInfoConsoleOut.ShowLogHeader(Period);
                     log_show = new(self_obj_sums.All_Protocols, self_obj_sums.Simple_Protocols_Sums);
@@ -203,7 +207,7 @@ namespace Tracing
 
                 if (YearBackupAndLog() == all_sums[AppConstants.others_sums[0]])
                 {
-                    _ = new YearLogger(all_sums, simple_sums);           // простых может и не быть
+                    _ = new YearLogger(log_directory, all_sums, simple_sums);           // простых может и не быть
 
                     AppInfoConsoleOut.ShowResult();
                     AppInfoConsoleOut.ShowStarLine();
@@ -273,8 +277,8 @@ namespace Tracing
                     AppInfoConsoleOut.ShowLine();
 
                     backup_count += month_item.Item4.All_Protocols[AppConstants.others_sums[0]];
-
-                    _ = new MonthLogger(month_item.Item1, month_item.Item4, month_item.Item2);
+                    // каждый раз проверка файла лога ??
+                    _ = new MonthLogger(log_directory, month_item.Item1, month_item.Item4, month_item.Item2);
                 }
             }
 
