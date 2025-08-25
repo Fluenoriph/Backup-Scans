@@ -4,6 +4,7 @@ using Tracing;
 
 
 AppInfoConsoleOut.ShowProgramInfo();
+Console.WriteLine('\n');
 
 List<Drive> drives = [];
 
@@ -12,8 +13,6 @@ foreach (string drive_type in AppConstants.drive_tags)
     DrivesControl self_obj_drives_control = new(drive_type);
     drives.Add(self_obj_drives_control.Drive);
 }
-
-AppInfoConsoleOut.ShowLine();
 
 AppInfoConsoleOut.ShowEnterPeriod();
 var period_value = InputNoNullText.GetRealText();
@@ -40,9 +39,7 @@ else
 }
            
 
-// резервная папка исходная по году ./2025..... ok
-// логи также по году
+
 // логи ошибок по дате и времени
 // исключения !!!
-
-// когда бэкап за декабрь, то сложить все суммы и это будет год
+// LogsData разделить

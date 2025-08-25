@@ -53,7 +53,7 @@
 
         public const char line = '-';
 
-        public static List<string> united_type_names = [.. full_location_sums, .. full_type_sums, .. types_full_names, .. not_found_sums];
+        public static List<string> united_simple_type_names = [.. full_location_sums, .. full_type_sums, .. types_full_names, .. not_found_sums];
     }
 
 
@@ -70,10 +70,22 @@
     }
 
         
-    class ConsoleOutFullLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
+    class ConsoleOutFullLog
     {
-        private readonly Action<string> AllSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {all_sums[sum_name]}");
-        private readonly Action<string> SimpleSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {simple_sums![sum_name]}");
+        public Dictionary<string, int>? All_Sums { get; set; }
+        public Dictionary<string, int>? Simple_Sums { get; set; }
+
+        private readonly Action<string> AllSumsLineLogOut; //= (sum_name) => Console.WriteLine($"> {sum_name}: {all_sums[sum_name]}");
+        private readonly Action<string> SimpleSumsLineLogOut; // = (sum_name) => Console.WriteLine($"> {sum_name}: {simple_sums![sum_name]}");
+
+        public ConsoleOutFullLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
+        {
+            All_Sums = all_sums;
+            Simple_Sums = simple_sums;
+
+            AllSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {All_Sums[sum_name]}");
+            SimpleSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {Simple_Sums![sum_name]}");
+        }
 
         public void ShowLog()
         {
@@ -83,29 +95,41 @@
             }
 
             SeparateString();
+
             AllSumsLineLogOut(AppConstants.others_sums[0]);
             AllSumsLineLogOut(AppConstants.others_sums[1]);
+            
             SeparateString();
+
             AllSumsLineLogOut(AppConstants.others_sums[2]);
 
-            if (simple_sums is not null)
+            if (Simple_Sums is not null)
             {
                 AppConstants.full_location_sums.ForEach(name => SimpleSumsLineLogOut(name));
+                
                 SeparateString();
+
                 SimpleSumsLineLogOut(AppConstants.full_type_sums[0]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[0]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[1]);
+                
                 SeparateString();
+
                 SimpleSumsLineLogOut(AppConstants.full_type_sums[1]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[2]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[3]);
+                
                 SeparateString();
+
                 SimpleSumsLineLogOut(AppConstants.full_type_sums[2]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[4]);
                 SimpleSumsLineLogOut(AppConstants.types_full_names[5]);
+                
                 SeparateString();
+
                 AppConstants.not_found_sums.ForEach(name => SimpleSumsLineLogOut(name));
-            }            
+            }
+            
             SeparateString();
         }
     }
@@ -143,8 +167,10 @@
 
             value_info.Add(string.Concat(AppConstants.year, AppConstants.line, $"\"{CurrentDate.Year}\""));
 
-            Console.WriteLine(" Введите значение периода, за который выполнить копирование:\n");
-            Console.WriteLine($" ({string.Join("; ", value_info)})");
+            Console.WriteLine(">>> Введите значение периода, за который выполнить копирование >>>\n");
+            Console.WriteLine($" | {string.Join("; ", value_info)} |");
+
+            Console.WriteLine('\n');
             ShowLine();
         }
 
@@ -188,11 +214,6 @@
         {
             Console.WriteLine($" {star} За {period} успешно скопировано _{file_count}_ файл(ов) !");
         }
-
-        /*public static void ShowSetupDirectory(string drive_type)
-        {
-            Console.WriteLine($" {grille} Установите {AppConstants.drive_names[drive_type]} директорию !");
-        }*/
     }
 
 

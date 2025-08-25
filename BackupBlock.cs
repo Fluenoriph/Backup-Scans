@@ -23,7 +23,7 @@ namespace BackupBlock
         {
             Dictionary<string, int> sums = [];
 
-            AppConstants.united_type_names.ForEach(name => sums.Add(name, 0));
+            AppConstants.united_simple_type_names.ForEach(name => sums.Add(name, 0));
 
             return sums;
         }

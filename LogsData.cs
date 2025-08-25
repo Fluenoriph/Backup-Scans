@@ -1,7 +1,6 @@
 ﻿using BackupBlock;
 using System.Xml.Linq;
 using TextData;
-using static System.Net.Mime.MediaTypeNames;
 
 
 namespace Logging
@@ -24,17 +23,20 @@ namespace Logging
 
     struct SumsSector : IXMLSector
     {
-        public static XElement sums = IXMLSector.Create(AppConstants.sums_tag, [.. AppConstants.others_sums_tags, .. AppConstants.simple_sums_tags]);
+        public static List<string> United_Tags = [.. AppConstants.others_sums_tags, .. AppConstants.simple_sums_tags];
+        public static XElement sums = IXMLSector.Create(AppConstants.sums_tag, United_Tags);
     }
 
 
     abstract class LogFile
     {
-        public XDocument? Document { get; }
+        public XDocument Document { get; }
+        public string Filename { get; }
         abstract private protected XElement? Root { get; }
                 
         public LogFile(string file)
         {
+            Filename = file;
             FileInfo log_file = new(file);
 
             if (log_file.Exists)
@@ -45,7 +47,7 @@ namespace Logging
             {
                 Document = new();
                 Document.Add(Root);
-                Document.Save(log_file.FullName);   // System.UnauthorizedAccessException  Access denied !
+                Document.Save(log_file.FullName);   
             }
         }        
     }
@@ -63,15 +65,14 @@ namespace Logging
     }
 
 
-    class XMonthLogFile : LogFile, IXMLSector
+    class XMonthLogFile(string file) : LogFile(file), IXMLSector
     {
         private protected override XElement? Root { get; } = CreateMonthLevels();
-        public IEnumerable<XElement>? X_Monthes { get; } 
 
-        public XMonthLogFile(string file) : base(file)
+        public XElement? GetMonthData(string month)
         {
-            X_Monthes = Document!.Root?.Elements("month");
-        }
+            return Document.Root!.Elements("month").FirstOrDefault(x_month => x_month.Attribute("name")?.Value == month);
+        }       
 
         private static XElement CreateMonthLevels()
         {
@@ -136,6 +137,7 @@ namespace Logging
             // если повреждение тэга, то исключение, если просто другое имя то 'null' -- exit
             // проверить на исключение при повреждении имен дисков (тэга) -- exit
             // получаем конфигурацию
+
             XDrivesConfigFile self_obj_x_drives = new(AppConstants.drives_config_file);
             var root_level = self_obj_x_drives.Document!.Root;
 
@@ -143,7 +145,9 @@ namespace Logging
             var directory = target_x_drive?.Value;
 
             bool directory_status;
-                // проверка существования директории в системе
+
+            // проверка существования директории в системе
+
             do
             {
                 Drive = new(drive_type, directory);
@@ -152,6 +156,8 @@ namespace Logging
                 if (directory_status)
                 {
                     AppInfoConsoleOut.ShowDirectorySetupTrue(drive_type, directory!);
+                    Console.WriteLine('\n');
+
                     break;
                 }
                 else
@@ -201,17 +207,14 @@ namespace Logging
         
     class YearLogger : XSumsData
     {
-        public YearLogger(DirectoryInfo log_file_dir, Dictionary<string, int> all_sums, Dictionary<string, int> simple_sums)
+        public YearLogger(XYearLogFile log_file, Dictionary<string, int> all_sums, Dictionary<string, int> simple_sums)
         {
-            string log_file = string.Concat(log_file_dir.FullName, '\\', AppConstants.year_log_file);
-            XYearLogFile self_obj_log_file = new(log_file);
-
-            Sums_Sector = self_obj_log_file.Document!.Root;
+            Sums_Sector = log_file.Document.Root;   
 
             WriteSums(AppConstants.others_sums_tags, all_sums, AppConstants.others_sums);
-            WriteSums(AppConstants.simple_sums_tags, simple_sums, AppConstants.united_type_names);
+            WriteSums(AppConstants.simple_sums_tags, simple_sums, AppConstants.united_simple_type_names);
 
-            self_obj_log_file.Document.Save(log_file);
+            log_file.Document.Save(log_file.Filename);
         }       
     }
 
@@ -220,20 +223,17 @@ namespace Logging
     {        
         private XElement? Protocol_Names_Sector { get; set; }
 
-        public MonthLogger(DirectoryInfo log_file_dir, string month, MonthBackupSums self_obj_sums, List<FileInfo>? eias_files)
+        public MonthLogger(XMonthLogFile log_file, string month, MonthBackupSums self_obj_sums, List<FileInfo>? eias_files)
         {
-            string log_file = string.Concat(log_file_dir.FullName, '\\', AppConstants.month_logs_file);
-            XMonthLogFile self_obj_log_file = new(log_file);
-
-            var month_sector = self_obj_log_file.X_Monthes?.FirstOrDefault(x_month => x_month.Attribute("name")?.Value == month);
+            var month_sector = log_file.GetMonthData(month);
 
             Sums_Sector = month_sector?.Element(AppConstants.sums_tag);       
             Protocol_Names_Sector = month_sector?.Element(AppConstants.names_tag);
 
+            WriteSums(AppConstants.others_sums_tags, self_obj_sums.All_Protocols, AppConstants.others_sums);
+
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[1]] != 0)
             {
-                WriteSums(AppConstants.others_sums_tags, self_obj_sums.All_Protocols, AppConstants.others_sums);
-
                 EIASConvert self_obj_number_convert = new();
                 EIASSort self_obj_name_sort = new();
 
@@ -241,13 +241,12 @@ namespace Logging
             }
             else
             {
-                WriteSums(AppConstants.others_sums_tags);
                 WriteNames(AppConstants.others_sums_tags[1]);
             }
 
             if (self_obj_sums.All_Protocols[AppConstants.others_sums[2]] != 0)
             {
-                WriteSums(AppConstants.simple_sums_tags, self_obj_sums.Simple_Protocols_Sums, AppConstants.united_type_names);
+                WriteSums(AppConstants.simple_sums_tags, self_obj_sums.Simple_Protocols_Sums, AppConstants.united_simple_type_names);
                                 
                 foreach (string name in AppConstants.types_full_names)
                 {
@@ -279,7 +278,7 @@ namespace Logging
                 WriteNames(AppConstants.simple_sums_tags[12]);
             }
 
-            self_obj_log_file.Document!.Save(log_file);
+            log_file.Document.Save(log_file.Filename);
         }
 
         private void WriteNames(string tag, List<string>? names = null)
@@ -301,6 +300,71 @@ namespace Logging
             {
                 // xml error
             }
+        }
+    }
+
+
+    class YearLogResultCalculate
+    {
+        private readonly List<int> calculated_sums = [];
+        
+        public YearLogResultCalculate(XMonthLogFile x_month_file, XYearLogFile x_year_file)
+        {
+            foreach (string sum_tag in SumsSector.United_Tags)
+            {
+                int sum_count = 0;
+
+                foreach (string month_name in AppConstants.month_names)
+                {
+                    var current_month_sum_value = x_month_file.GetMonthData(month_name)?.Element(AppConstants.sums_tag)?.Element(sum_tag)?.Value;
+                                        
+                    bool is_value = (current_month_sum_value is not null) && (current_month_sum_value is not "0") && (current_month_sum_value is not "");
+
+                    if (is_value)
+                    {
+                        sum_count += Convert.ToInt32(current_month_sum_value!);
+                    }
+                }
+                                
+                var current_year_sum = x_year_file.Document.Root?.Element(sum_tag);
+
+                if (current_year_sum is not null)
+                {
+                    current_year_sum.Value = sum_count.ToString();
+                }
+                else
+                {
+                    // xml error exit ??
+                }
+
+                calculated_sums.Add(sum_count);
+            }
+
+            x_year_file.Document.Save(x_year_file.Filename);
+        }
+
+        public (Dictionary<string, int>, Dictionary<string, int>?) GetYearSums()
+        {
+            var all_sums = IGeneralSums.CreateTable();
+            
+            for (int sum_index = 0; sum_index < all_sums.Count; sum_index++)
+            {
+                all_sums[AppConstants.others_sums[sum_index]] = calculated_sums.GetRange(0, 3)[sum_index];
+            }
+
+            Dictionary<string, int>? simple_sums = null;  
+
+            if (calculated_sums[2] != 0)
+            {
+                simple_sums = ISimpleProtocolsSums.CreateTable();
+
+                for (int sum_index = 0; sum_index < simple_sums.Count; sum_index++)
+                {
+                    simple_sums[AppConstants.united_simple_type_names[sum_index]] = calculated_sums.GetRange(3, 13)[sum_index];
+                }
+            }
+                    
+            return (all_sums, simple_sums);
         }
     }
 }
