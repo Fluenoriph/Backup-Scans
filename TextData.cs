@@ -2,7 +2,7 @@
 {
     struct AppConstants        // можно разделить по классификации
     {
-        public const string drives_config_file = "C:\\Users\\Mahabhara\\source\\repos\\Fluenoriph\\Backup-Scans\\drives_config.xml"; // !! относит.
+        public static string drives_config_file = string.Concat(Directory.GetCurrentDirectory(), '\\', "drives_config.xml"); 
         
         public const string month_logs_file = "backup_log_monthes.xml";
         public const string year_log_file = "year_log.xml";

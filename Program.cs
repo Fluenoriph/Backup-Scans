@@ -1,4 +1,6 @@
-﻿using Logging;
+﻿using ErrorsLog;
+using Logging;
+using System.Globalization;
 using TextData;
 using Tracing;
 
@@ -11,6 +13,10 @@ List<Drive> drives = [];
 foreach (string drive_type in AppConstants.drive_tags)
 {
     DrivesControl self_obj_drives_control = new(drive_type);
+
+    AppInfoConsoleOut.ShowDirectorySetupTrue(drive_type, self_obj_drives_control.Drive.Directory_Name!);
+    Console.WriteLine('\n');
+
     drives.Add(self_obj_drives_control.Drive);
 }
 
@@ -23,13 +29,13 @@ if (!int.TryParse(period_value, out int _))
     Environment.Exit(0);
 }
 
-int month_index = Convert.ToInt32(period_value) - 1;
+int month_index = Convert.ToInt32(period_value, CultureInfo.CurrentCulture) - 1;
                                 
 if (month_index >= AppConstants.january_index && month_index <= AppConstants.december_index)
 {
     BackupProcessMonth _ = new(drives, AppConstants.month_names[month_index]); 
 }
-else if (period_value == CurrentDate.Year.ToString())
+else if (period_value == CurrentDate.Year.ToString(CultureInfo.CurrentCulture))
 {
     BackupProcessYear _ = new(drives);
 }

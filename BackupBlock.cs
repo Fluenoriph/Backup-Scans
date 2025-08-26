@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using TextData;
 
 
@@ -73,7 +74,7 @@ namespace BackupBlock
 
                 if (match.Success)
                 {
-                    numbers.Add(Convert.ToInt32(NumberName(match)));             
+                    numbers.Add(Convert.ToInt32(NumberName(match), CultureInfo.CurrentCulture));             
                 }
             }
 
@@ -119,7 +120,9 @@ namespace BackupBlock
             {
                 foreach (FileInfo protocol in files)
                 {
+#pragma warning disable CA1310
                     if (protocol.Name.StartsWith(GetNumberName(number)))
+#pragma warning restore CA1310
                     {
                         names.Add(protocol.Name);
                         break;
@@ -135,7 +138,7 @@ namespace BackupBlock
     {
         private protected override string GetNumberName(int number)
         {
-            return number.ToString();
+            return number.ToString(CultureInfo.CurrentCulture);
         }
     }
 
@@ -144,7 +147,7 @@ namespace BackupBlock
     {
         private protected override string GetNumberName(int number)
         {
-            string number_name = number.ToString();
+            string number_name = number.ToString(CultureInfo.CurrentCulture);
 
             number_name = number_name.Insert(5, AppConstants.line.ToString());
             number_name = number_name.Insert(8, AppConstants.line.ToString());

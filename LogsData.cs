@@ -1,4 +1,5 @@
 ﻿using BackupBlock;
+using System.Globalization;
 using System.Xml.Linq;
 using TextData;
 
@@ -97,32 +98,32 @@ namespace Logging
 
     class Drive
     {
-        public string? Name { get; }
-        public DirectoryInfo? Directory { get; }
-        public bool Directory_Exist { get; }
+        public string? Directory_Name { get; set; }
+        public DirectoryInfo? Directory { get; set; }
         
-        public Drive(string type, string? directory)
-        {
-            Name = type;
-
-            var dir_check = string.IsNullOrEmpty(directory);
-
-            if (!dir_check)
+        public bool Directory_Exist 
+        { 
+            get
             {
-                Directory = new(directory!);
+                var dir_check = string.IsNullOrEmpty(Directory_Name);
 
-                if (Directory.Exists)
+                if (!dir_check)
                 {
-                    Directory_Exist = true;
+                    Directory = new(Directory_Name!);
+
+                    if (Directory.Exists)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
-                    Directory_Exist = false;
+                    return false;
                 }
-            }
-            else
-            {
-                Directory_Exist = false;
             }
         }
     }
@@ -148,28 +149,28 @@ namespace Logging
 
             // проверка существования директории в системе
 
+            Drive = new();
+
             do
             {
-                Drive = new(drive_type, directory);
+                Drive.Directory_Name = directory;
                 directory_status = Drive.Directory_Exist;
-                                                
-                if (directory_status)
-                {
-                    AppInfoConsoleOut.ShowDirectorySetupTrue(drive_type, directory!);
-                    Console.WriteLine('\n');
-
-                    break;
-                }
-                else
+                                
+                if (!directory_status)
                 {
                     AppInfoConsoleOut.ShowDirectoryExistFalse(drive_type);
+                    AppInfoConsoleOut.ShowLine();
+
                     directory = InputNoNullText.GetRealText();
-                                        
+
                     target_x_drive!.Value = directory;
                     self_obj_x_drives.Document.Save(AppConstants.drives_config_file);
+
+                    Console.WriteLine('\n');
                     AppInfoConsoleOut.ShowInstallDirectory(drive_type);
-                } 
-                
+                    Console.WriteLine('\n');
+                }
+                 
             } while (directory_status == false);   
         }
     }
@@ -189,7 +190,7 @@ namespace Logging
                 {
                     if ((sums is not null) && (sums_names is not null))
                     {
-                        sum.Value = sums[sums_names[sum_index]].ToString();
+                        sum.Value = sums[sums_names[sum_index]].ToString(CultureInfo.CurrentCulture);
                     }
                     else
                     {
@@ -322,7 +323,7 @@ namespace Logging
 
                     if (is_value)
                     {
-                        sum_count += Convert.ToInt32(current_month_sum_value!);
+                        sum_count += Convert.ToInt32(current_month_sum_value!, CultureInfo.CurrentCulture);
                     }
                 }
                                 
@@ -330,7 +331,7 @@ namespace Logging
 
                 if (current_year_sum is not null)
                 {
-                    current_year_sum.Value = sum_count.ToString();
+                    current_year_sum.Value = sum_count.ToString(CultureInfo.CurrentCulture);
                 }
                 else
                 {

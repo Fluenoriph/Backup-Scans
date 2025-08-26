@@ -2,6 +2,7 @@
 using Logging;
 using TextData;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 
 namespace Tracing
@@ -12,7 +13,7 @@ namespace Tracing
         private readonly DirectoryInfo backup_directory;
         private protected readonly DirectoryInfo log_directory;
 
-        private protected string current_year_print = string.Concat(CurrentDate.Year, " ", AppConstants.year.ToLower(System.Globalization.CultureInfo.CurrentCulture));
+        private protected string current_year_print = string.Concat(CurrentDate.Year, " ", AppConstants.year.ToLower(CultureInfo.CurrentCulture));
         private protected const char slash = '\\';        // in text data
         private protected ConsoleOutFullLog? self_obj_log_show;
         private protected XYearLogFile? self_obj_year_log_file;
@@ -40,7 +41,7 @@ namespace Tracing
             }
             else
             {
-                month = month_value.ToString();
+                month = month_value.ToString(CultureInfo.CurrentCulture);
             }
 
             return string.Concat(slash, "d{2}", slash, '.', month, slash, '.', CurrentDate.Year, slash, '.', AppConstants.protocol_file_type, '$');
@@ -77,7 +78,7 @@ namespace Tracing
 
         private protected static DirectoryInfo CheckYearSubdirectory(DirectoryInfo directory)
         {
-            string year_backup_subdirectory = CurrentDate.Year.ToString();
+            string year_backup_subdirectory = CurrentDate.Year.ToString(CultureInfo.CurrentCulture);
                         
             DirectoryInfo destination = new(string.Concat(directory, slash, year_backup_subdirectory));
 
