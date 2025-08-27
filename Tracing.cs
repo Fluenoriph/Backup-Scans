@@ -15,9 +15,9 @@ namespace Tracing
 
         private protected string current_year_print = string.Concat(CurrentDate.Year, " ", AppConstants.year.ToLower(CultureInfo.CurrentCulture));
         private protected const char slash = '\\';        // in text data
-        private protected ConsoleOutFullLog? self_obj_log_show;
-        private protected XYearLogFile? self_obj_year_log_file;
-        private protected XMonthLogFile? self_obj_month_log_file;
+        private protected PrintFullLog? self_obj_log_show;
+        private protected YearLogFile? self_obj_year_log_file;
+        private protected MonthLogFile? self_obj_month_log_file;
 
         public BackupProcess(List<Drive> drives)
         {

@@ -1,14 +1,14 @@
-﻿namespace ErrorsLog
+﻿enum ErrorsCodes
 {
-    class LogError
+
+}
+
+
+class ErrorsLog
+{
+    public ErrorsLog()   // enum errors
     {
-        public LogError()   // enum errors
-        {
-            using StreamWriter errors_file = new("C:\\Users\\Mahabhara\\Desktop\\error.txt", true);
-                errors_file.WriteLine("103");
-        }
+        using StreamWriter errors_file = new("C:\\Users\\Mahabhara\\Desktop\\error.txt", true);    // current program dir !!
+            errors_file.WriteLine("103");
     }
-
-
-
 }

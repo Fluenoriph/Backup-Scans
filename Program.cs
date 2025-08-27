@@ -1,6 +1,4 @@
-﻿using ErrorsLog;
-using Logging;
-using System.Globalization;
+﻿using System.Globalization;
 using TextData;
 using Tracing;
 
@@ -25,7 +23,7 @@ var period_value = InputNoNullText.GetRealText();
 
 if (!int.TryParse(period_value, out int _))
 {
-    //Console.WriteLine("No number input !");
+    //Console.WriteLine("No number input !");        // error 
     Environment.Exit(0);
 }
 

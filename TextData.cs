@@ -1,84 +1,137 @@
-﻿namespace TextData
+﻿struct XmlTags
 {
-    struct AppConstants        // можно разделить по классификации
-    {
-        public static string drives_config_file = string.Concat(Directory.GetCurrentDirectory(), '\\', "drives_config.xml"); 
-        
-        public const string month_logs_file = "backup_log_monthes.xml";
-        public const string year_log_file = "year_log.xml";
+    public static List<string> DRIVE_TAGS = ["SOURCE", "DESTINATION", "XML_LOG"];
 
-        public static List<string> drive_tags = ["SOURCE", "DESTINATION", "XML_LOG"];
+    public const string DRIVES_CONFIG_TAG = "configuration";
+
+    public const string SUMS_TAG = "sums";
+
+    public const string MONTH_LOG_ROOT_TAG = "logs_data";
+
+    public const string MONTH_TAG = "month";
+
+    public const string PROTOCOL_NAMES_TAG = "protocol_names";
+
+    public const string MONTH_NAME_TAG = "name";
+
+    public static List<string> OTHERS_SUMS_TAGS = ["full", "eias", "simple"];
+
+    public static List<string> SIMPLE_SUMS_TAGS = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
+
+    public static List<string> TYPE_TAGS = SIMPLE_SUMS_TAGS.GetRange(5, 6);
+}
+
+
+struct LogFiles
+{
+    public static string DRIVES_CONFIG_FILE = string.Concat(Directory.GetCurrentDirectory(), '\\', "drives_config.xml");
+
+    public const string MONTH_LOG_FILE = "backup_log_monthes.xml";
+
+    public const string YEAR_LOG_FILE = "year_log.xml";
+}
+
+
+struct FilePatterns
+{
+    public const string NUMBER_GROUP = "^(?<number>";
+
+    public static string EIAS_NUMBER_PATTERN = string.Concat(NUMBER_GROUP, "\\d{5}-\\d{2}-\\d{2})-");
+
+    public static string SIMPLE_NUMBER_PATTERN = string.Concat(NUMBER_GROUP, "\\d{1,4})-");
+
+    public const string PROTOCOL_SCAN_TYPE = "pdf";
+}
+
+
+struct PeriodsNames
+{
+    public const string YEAR = "Год";
+
+    public static List<string> MONTHES = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+    public const int JANUARY_INDEX = 0;
+    public const int OCTOBER_INDEX = 9;
+    public const int DECEMBER_INDEX = 11;
+}
+
+
+struct ProtocolTypesSums
+{
+    public static List<string> TYPES_FULL_NAMES = ["Физические факторы (Уссурийск)", "Физические факторы (Арсеньев)",
+                                                           "Радиационный контроль (Уссурийск)", "Радиационный контроль (Арсеньев)",
+                                                           "Измерения мебели (Уссурийск)", "Измерения мебели (Арсеньев)"];
+
+    public static List<string> TYPES_SHORT_NAMES = ["ф", "фа", "р", "ра", "м", "ма"];
+
+    public static List<string> OTHERS_SUMS = ["Всего", "ЕИАС", "Простые"];
+
+    public static List<string> FULL_LOCATION_SUMS = ["Уссурийск всего", "Арсеньев всего"];
+
+    public static List<string> FULL_TYPE_SUMS = ["Физические факторы всего", "Радиационный контроль всего", "Измерения мебели всего"];
+
+    public static List<string> NOT_FOUND_SUMS = ["Пропущенные", "Неизвестные"];
+
+    public static List<string> UNITED_SIMPLE_TYPE_NAMES = [.. FULL_LOCATION_SUMS, .. FULL_TYPE_SUMS, .. TYPES_FULL_NAMES, .. NOT_FOUND_SUMS];
+}
+
+
+
+
+
+
+
+
+
+
+
+namespace TextData
+{
+    struct AppConstants        
+    {
+        
+
+        
                 
-        public static Dictionary<string, string> drive_names = new()
+        public static Dictionary<string, string> drive_names = new()      // print out
         {
             [drive_tags[0]] = "ИСХОДНАЯ",
             [drive_tags[1]] = "РЕЗЕРВНАЯ",
             [drive_tags[2]] = "ОТЧЕТНАЯ"
         };
 
-        public const string number_group = "^(?<number>";
-        public static string eias_number_pattern = string.Concat(number_group, "\\d{5}-\\d{2}-\\d{2})-");
-        public static string simple_number_pattern = string.Concat(number_group, "\\d{1,4})-");
         
-        public const string protocol_file_type = "pdf";
 
-        public const int january_index = 0;
-        public const int october_index = 9;
-        public const int december_index = 11;
+        
 
-        public const string year = "Год";
-        public static List<string> month_names = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        
 
-        public static List<string> types_full_names = ["Физические факторы (Уссурийск)", "Физические факторы (Арсеньев)",
-                                                           "Радиационный контроль (Уссурийск)", "Радиационный контроль (Арсеньев)",
-                                                           "Измерения мебели (Уссурийск)", "Измерения мебели (Арсеньев)"];
         
-        public static List<string> types_short_names = ["ф", "фа", "р", "ра", "м", "ма"];
-
-        public const string drives_config_tag = "configuration";
-        public const string sums_tag = "sums";
-        public const string names_tag = "protocol_names";
         
-        public static List<string> others_sums = ["Всего", "ЕИАС", "Простые"];
-        public static List<string> others_sums_tags = ["full", "eias", "simple"];
-
-        public static List<string> full_location_sums = ["Уссурийск всего", "Арсеньев всего"];
         
-        public static List<string> full_type_sums = ["Физические факторы всего", "Радиационный контроль всего", "Измерения мебели всего"];
         
-        public static List<string> not_found_sums = ["Пропущенные", "Неизвестные"];
-        
-        public static List<string> simple_sums_tags = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
-        public static List<string> type_tags = simple_sums_tags.GetRange(5, 6);
 
         public const char line = '-';
 
-        public static List<string> united_simple_type_names = [.. full_location_sums, .. full_type_sums, .. types_full_names, .. not_found_sums];
+        
     }
 
 
-    struct CurrentDate
-    {
-        public static int Year   // day....
-        {
-            get
-            {
-                DateTime current_date = DateTime.Now;
-                return current_date.Year;
-            }
-        }
-    }
+    
+
+
+
 
         
-    class ConsoleOutFullLog
+    class PrintFullLog
     {
         public Dictionary<string, int>? All_Sums { get; set; }
         public Dictionary<string, int>? Simple_Sums { get; set; }
 
-        private readonly Action<string> AllSumsLineLogOut; //= (sum_name) => Console.WriteLine($"> {sum_name}: {all_sums[sum_name]}");
-        private readonly Action<string> SimpleSumsLineLogOut; // = (sum_name) => Console.WriteLine($"> {sum_name}: {simple_sums![sum_name]}");
+        private readonly Action<string> AllSumsLineLogOut; 
+        private readonly Action<string> SimpleSumsLineLogOut; 
 
-        public ConsoleOutFullLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
+        public PrintFullLog(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
         {
             All_Sums = all_sums;
             Simple_Sums = simple_sums;
@@ -133,6 +186,8 @@
             SeparateString();
         }
     }
+
+
 
     class AppInfoConsoleOut           // можно классифицировать и разделить
     {
