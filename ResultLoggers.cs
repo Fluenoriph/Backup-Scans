@@ -1,5 +1,4 @@
-﻿using BackupBlock;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Xml.Linq;
 
 
@@ -21,7 +20,7 @@ abstract class SumsData
                 }
                 else
                 {
-                    sum_lcl.Value = '0'.ToString();     // 1 char_null
+                    sum_lcl.Value = Symbols.NULL;     
                 }
             }
             else
@@ -40,7 +39,7 @@ class YearLogger : SumsData
         Sums_Sector_in = file.Document_in.Root;
 
         WriteSums(XmlTags.OTHERS_SUMS_TAGS, all_protocols_sums, ProtocolTypesSums.OTHERS_SUMS);
-        WriteSums(XmlTags.SIMPLE_SUMS_TAGS, simple_protocols_sums, ProtocolTypesSums.UNITED_SIMPLE_TYPE_NAMES);
+        WriteSums(XmlTags.SIMPLE_SUMS_TAGS, simple_protocols_sums, ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
         file.Document_in.Save(file.Filename_in);
     }
@@ -58,29 +57,29 @@ class MonthLogger : SumsData
         Sums_Sector_in = month_sector_lcl?.Element(XmlTags.SUMS_TAG);
         Protocol_Names_Sector_in = month_sector_lcl?.Element(XmlTags.PROTOCOL_NAMES_TAG);
 
-        WriteSums(XmlTags.OTHERS_SUMS_TAGS, backup_sums.All_Protocols, ProtocolTypesSums.OTHERS_SUMS);
+        WriteSums(XmlTags.OTHERS_SUMS_TAGS, backup_sums.All_Protocols_Sums_in, ProtocolTypesSums.OTHERS_SUMS);
 
-        if (backup_sums.All_Protocols[ProtocolTypesSums.OTHERS_SUMS[1]] != 0)
+        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[1]] != 0)
         {
-            EIASConvert number_convert_self_obj = new();
-            EIASSort name_sort_self_obj = new();
+            EIASConvert number_convert_lcl = new();
+            EIASSort name_sort_lcl = new();
 
-            WriteNames(XmlTags.OTHERS_SUMS_TAGS[1], name_sort_self_obj.Sorting(number_convert_self_obj.ConvertToNumbers(eias_files!), eias_files!));
+            WriteNames(XmlTags.OTHERS_SUMS_TAGS[1], name_sort_lcl.Sorting(number_convert_lcl.ConvertToNumbers(eias_files!), eias_files!));
         }
         else
         {
             WriteNames(XmlTags.OTHERS_SUMS_TAGS[1]);
         }
 
-        if (backup_sums.All_Protocols[ProtocolTypesSums.OTHERS_SUMS[2]] != 0)
+        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[2]] != 0)
         {
-            WriteSums(XmlTags.SIMPLE_SUMS_TAGS, backup_sums.Simple_Protocols_Sums, ProtocolTypesSums.UNITED_SIMPLE_TYPE_NAMES);
+            WriteSums(XmlTags.SIMPLE_SUMS_TAGS, backup_sums.Simple_Protocols_Sums_in, ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
             foreach (string name in ProtocolTypesSums.TYPES_FULL_NAMES)
             {
                 var target_tag_lcl = XmlTags.TYPE_TAGS[ProtocolTypesSums.TYPES_FULL_NAMES.IndexOf(name)];
 
-                if (backup_sums.self_obj_names!.Sorted_Names.TryGetValue(name, out List<string>? value))
+                if (backup_sums.names_in!.Sorted_Names_in.TryGetValue(name, out List<string>? value))
                 {
                     WriteNames(target_tag_lcl, value);
                 }
@@ -90,8 +89,8 @@ class MonthLogger : SumsData
                 }
             }
 
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[11], backup_sums.self_obj_names!.Missed_Protocols);
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[12], backup_sums.self_obj_names!.Unknown_Protocols);
+            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[11], backup_sums.names_in!.Missed_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[12], backup_sums.names_in!.Unknown_Protocols_in);
         }
         else
         {
@@ -165,9 +164,9 @@ class YearLogResultCalculate
     {
         var sum_value_lcl = month_log_file_in.GetMonthData(month_name)?.Element(XmlTags.SUMS_TAG)?.Element(sum_tag)?.Value;
 
-        bool real_value = (sum_value_lcl is not null) && (sum_value_lcl is not "0") && (sum_value_lcl is not "");   // 2 char null
+        bool real_value_status = (sum_value_lcl is not null) && (sum_value_lcl is not Symbols.NULL) && (sum_value_lcl is not "");   
 
-        if (real_value)
+        if (real_value_status)
         {
             sum_count_in += Convert.ToInt32(sum_value_lcl!, CultureInfo.CurrentCulture);
         }
@@ -193,7 +192,7 @@ class YearLogResultCalculate
 
     public (Dictionary<string, int>, Dictionary<string, int>?) GetYearSums()
     {
-        var all_protocol_sums_lcl = IGeneralSums.CreateTable();
+        var all_protocol_sums_lcl = ISums.CreateTable(ProtocolTypesSums.OTHERS_SUMS);
 
         for (int sum_index = 0; sum_index < all_protocol_sums_lcl.Count; sum_index++)
         {
@@ -204,11 +203,11 @@ class YearLogResultCalculate
 
         if (calculated_sums_in[2] != 0)
         {
-            simple_protocol_sums_lcl = ISimpleProtocolsSums.CreateTable();
+            simple_protocol_sums_lcl = ISums.CreateTable(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
             for (int sum_index = 0; sum_index < simple_protocol_sums_lcl.Count; sum_index++)
             {
-                simple_protocol_sums_lcl[ProtocolTypesSums.UNITED_SIMPLE_TYPE_NAMES[sum_index]] = calculated_sums_in.GetRange(3, 13)[sum_index];
+                simple_protocol_sums_lcl[ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS[sum_index]] = calculated_sums_in.GetRange(3, 13)[sum_index];
             }
         }
 

@@ -1,11 +1,23 @@
-﻿struct CurrentDate
+﻿using System.Globalization;
+
+
+readonly struct CurrentDate
 {
-    public static int Year   // day....
+    private static readonly DateTime current_date_in = DateTime.Now;
+
+    public static int Year   
     {
         get
         {
-            DateTime current_date = DateTime.Now;
-            return current_date.Year;
+            return current_date_in.Year;
+        }
+    }
+
+    public static string DateAndTime
+    {
+        get
+        {
+            return current_date_in.ToString(CultureInfo.CurrentCulture);
         }
     }
 }

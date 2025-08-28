@@ -28,19 +28,19 @@ abstract class LogFile
 }
 
 
-class DrivesConfigurationFile(string file_path) : LogFile(file_path), IXmlLevel
+class DrivesConfigurationFile(string file_path) : LogFile(file_path) 
 {
     private protected override XElement Root_Sector_in { get; } = IXmlLevel.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
 }
 
 
-class YearLogFile(string file_path) : LogFile(file_path), IXmlLevel
+class YearLogFile(string file_path) : LogFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = SumsSector.sums;
 }
 
 
-class MonthLogFile(string file_path) : LogFile(file_path), IXmlLevel
+class MonthLogFile(string file_path) : LogFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = CreateMonthLevels();
 
