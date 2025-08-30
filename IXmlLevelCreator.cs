@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 
 
-interface IXmlLevel
+interface IXmlLevelCreator
 {
     static XElement Create(string sector, List<string> tags)
     {

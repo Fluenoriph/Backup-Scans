@@ -15,12 +15,12 @@ abstract class BackupProcess
     private protected YearLogFile? year_log_file_in;
     private protected MonthLogFile? month_log_file_in;
 
-    public BackupProcess(List<DirectoryInfo> work_drives)
+    public BackupProcess(List<DriveControl> work_drives)
     {
-        source_files_in = new(work_drives[0].FullName);
+        source_files_in = new(work_drives[0].Work_Directory_in!.FullName);
 
-        backup_directory_in = CheckYearSubdirectory(work_drives[1]);
-        log_directory_in = CheckYearSubdirectory(work_drives[2]);
+        backup_directory_in = CheckYearSubdirectory(work_drives[1].Work_Directory_in!);
+        log_directory_in = CheckYearSubdirectory(work_drives[2].Work_Directory_in!);
 
         month_log_file_in = new(string.Concat(log_directory_in.FullName, Symbols.SLASH, LogFiles.MONTH_LOG_FILE));
         year_log_file_in = new(string.Concat(log_directory_in.FullName, Symbols.SLASH, LogFiles.YEAR_LOG_FILE));
@@ -92,9 +92,17 @@ abstract class BackupProcess
 
         for (int file_index = 0; file_index < backup_files.Count; file_index++)
         {
-            backup_files[file_index].CopyTo(string.Concat(backup_directory_in, Symbols.SLASH, month_and_type_subdir, Symbols.SLASH, backup_files[file_index].Name), true);   // exception !!
-
-            backuping_files_count_lcl++;
+            try
+            {
+                backup_files[file_index].CopyTo(string.Concat(backup_directory_in, Symbols.SLASH, month_and_type_subdir, Symbols.SLASH, backup_files[file_index].Name), true);
+                
+                backuping_files_count_lcl++;
+            }
+            catch (IOException error)
+            {
+                _ = new ProgramStop(ErrorCodes.COPY_FILES_ERROR, error.Message);
+                BackupInfo.ShowCopyError();
+            } 
         }
 
         return backuping_files_count_lcl;
@@ -112,7 +120,7 @@ abstract class BackupProcess
         return backuping_files_count_lcl;
     }
 
-    private protected int Backuping(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthBackupSums sums)
+    private protected int MonthBackuping(string target_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthBackupSums sums)
     {
         int backup_count_lcl = 0;
 
@@ -139,7 +147,7 @@ abstract class BackupProcess
 
 class BackupProcessMonth : BackupProcess
 {
-    public BackupProcessMonth(List<DirectoryInfo> work_drives, string month) : base(work_drives)
+    public BackupProcessMonth(List<DriveControl> work_drives, string month) : base(work_drives)
     {
         MonthBackupSums sums_lcl;
         int month_index_lcl = PeriodsNames.MONTHES.IndexOf(month);
@@ -158,11 +166,11 @@ class BackupProcessMonth : BackupProcess
 
         if (sums_lcl.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]] != 0)
         {
-            if (Backuping(month, eias_files_lcl, simple_files_lcl, sums_lcl) == sums_lcl.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]])
+            if (MonthBackuping(month, eias_files_lcl, simple_files_lcl, sums_lcl) == sums_lcl.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]])
             {
                 Console.WriteLine('\n');
                 BackupInfo.ShowResult();
-                AnyInfo.ShowStarLine();
+                GeneralInfo.ShowStarLine();
                 Console.WriteLine('\n');
 
                 _ = new MonthLogger(month_log_file_in!, month, sums_lcl, eias_files_lcl);
@@ -176,7 +184,7 @@ class BackupProcessMonth : BackupProcess
                     YearLogResultCalculate year_calc_result_lcl = new(month_log_file_in!, year_log_file_in!);
 
                     Console.WriteLine('\n');
-                    AnyInfo.ShowStarLine();
+                    GeneralInfo.ShowStarLine();
                     Console.WriteLine('\n');
 
                     BackupInfo.ShowLogHeader(current_year_print_in);
@@ -191,7 +199,7 @@ class BackupProcessMonth : BackupProcess
             }
             else
             {
-                BackupInfo.ShowCopyError();
+                _ = new ProgramShutDown(ErrorCodes.COPY_SUMS_FATAL_ERROR);
             }
         }
         else
@@ -206,12 +214,12 @@ class BackupProcessYear : BackupProcess
 {
     private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthBackupSums)> year_full_backup_in = [];
 
-    public BackupProcessYear(List<DirectoryInfo> work_drives) : base(work_drives)
+    public BackupProcessYear(List<DriveControl> work_drives) : base(work_drives)
     {
         if (FindAllYearFiles())
         {
-            var all_sums_lcl = ISums.CreateTable(ProtocolTypesSums.OTHERS_SUMS);
-            var simple_sums_lcl = ISums.CreateTable(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
+            var all_sums_lcl = ISumsTableCreator.Create(ProtocolTypesSums.OTHERS_SUMS);
+            var simple_sums_lcl = ISumsTableCreator.Create(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
             foreach (var month_item in year_full_backup_in)
             {
@@ -234,7 +242,7 @@ class BackupProcessYear : BackupProcess
                 _ = new YearLogger(year_log_file_in!, all_sums_lcl, simple_sums_lcl);
 
                 BackupInfo.ShowResult();
-                AnyInfo.ShowStarLine();
+                GeneralInfo.ShowStarLine();
 
                 BackupInfo.ShowLogHeader(current_year_print_in);
                 log_show_in = new(all_sums_lcl, simple_sums_lcl);
@@ -242,7 +250,7 @@ class BackupProcessYear : BackupProcess
             }
             else
             {
-                BackupInfo.ShowCopyError();
+                _ = new ProgramShutDown(ErrorCodes.COPY_SUMS_FATAL_ERROR);
             }
         }
         else
@@ -295,10 +303,10 @@ class BackupProcessYear : BackupProcess
 
         foreach (var month_item in year_full_backup_in)
         {
-            if (Backuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]])
+            if (MonthBackuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]])
             {
                 BackupInfo.ShowMonthBackupResult(month_item.Item1, month_item.Item4.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]]);
-                AnyInfo.ShowLine();
+                GeneralInfo.ShowLine();
 
                 backup_count_lcl += month_item.Item4.All_Protocols_Sums_in[ProtocolTypesSums.OTHERS_SUMS[0]];
 

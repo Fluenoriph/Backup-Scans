@@ -1,31 +1,27 @@
-﻿using Aspose.Words;
-using System.Runtime.InteropServices.Marshalling;
-
-enum ErrorsCodes
+﻿enum ErrorCodes
 {
     XML_ELEMENT_ACCESS_ERROR = 101,
     INPUT_VALUE_ERROR = 301,
-    COPY_FILES_ERROR = 501
+    COPY_FILES_ERROR = 501,
+    COPY_SUMS_FATAL_ERROR = 601
 }
 
 
-class ErrorLog
+class ProgramShutDown
 {
-    private static readonly string date_border_in = new(Symbols.LINE, 3);
-    private static ErrorsCodes code_in;
-
-    public ErrorLog(ErrorsCodes code)   
+    public ProgramShutDown(ErrorCodes code)
     {
-        code_in = code;
-
-        using StreamWriter errors_file = new(string.Concat(Directory.GetCurrentDirectory(), '\\', "errors.txt"), true);    
-            errors_file.WriteLine($"{date_border_in} {CurrentDate.DateAndTime} {date_border_in} {LogErrorType()}");
+        IErrorsWriter.Write($"| Critical_Error | Program_Shut_Down | Code: {(int)code}");
 
         Environment.Exit(0);
     }
+}
 
-    private protected virtual string LogErrorType()
+
+class ProgramStop
+{
+    public ProgramStop(ErrorCodes code, string exception_message)
     {
-        return $"| Error Type: {code_in};";
+        IErrorsWriter.Write($"| Program_Stop | Error_Code: {(int)code} | Report: {exception_message}");
     }
 }

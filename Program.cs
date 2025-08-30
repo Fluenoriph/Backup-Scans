@@ -1,47 +1,97 @@
 ﻿using System.Globalization;
 
 
-AnyInfo.ShowProgramInfo();
-Console.WriteLine('\n');
+GeneralInfo.ShowProgramInfo();
 
-List<DirectoryInfo> work_drives = [];
+List<DriveControl> work_drives = [];
 
 foreach (string drive_type in XmlTags.DRIVE_TAGS)
 {
-    DrivesControl drives_control = new(drive_type);
+    DriveControl drive = new(drive_type);
 
-    DirectoriesInfo.ShowDirectorySetupTrue(drive_type, drives_control.Work_Directory_in!.FullName);
+    WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!.FullName);
     Console.WriteLine('\n');
 
-    work_drives.Add(drives_control.Work_Directory_in);
+    work_drives.Add(drive);
 }
 
-AnyInfo.ShowEnterPeriod();
-var period_value = InputNoNullText.GetRealText();
+bool program_menu_restart = false;       
 
-if (!int.TryParse(period_value, out int _))
+do
 {
-    //Console.WriteLine("No number input !");        // input error 
-    Environment.Exit(0);
-}
+    GeneralInfo.ShowLine();
+    Console.WriteLine('\n');
 
-int month_index = Convert.ToInt32(period_value, CultureInfo.CurrentCulture) - 1;
-                                
-if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
-{
-    BackupProcessMonth _ = new(work_drives, PeriodsNames.MONTHES[month_index]); 
-}
-else if (period_value == CurrentDate.Year.ToString(CultureInfo.CurrentCulture))
-{
-    BackupProcessYear _ = new(work_drives);
-}
-else
-{
-    Environment.Exit(0);
-}
-           
+    GeneralInfo.ShowProgramMenu();
+    var parameter = InputNoNullText.GetRealText();
+
+    if (int.TryParse(parameter, out int _))
+    {
+        int month_index = Convert.ToInt32(parameter, CultureInfo.CurrentCulture) - 1;
+
+        if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
+        {
+            BackupProcessMonth _ = new(work_drives, PeriodsNames.MONTHES[month_index]);
+
+            program_menu_restart = GeneralInfo.RestartOrExitProgram();
+        }
+        else if (parameter == CurrentDate.Year.ToString(CultureInfo.CurrentCulture))
+        {
+            BackupProcessYear _ = new(work_drives);
+
+            program_menu_restart = GeneralInfo.RestartOrExitProgram();
+        }
+        else
+        {
+            _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+        }
+    }
+    else
+    {
+        if (parameter is Symbols.CHANGE_DIRECTORY_FUNCTION)
+        {
+            Console.WriteLine('\n');
+
+            WorkDirectoriesInfo.ShowEnterDirectoryType();
+            var drive_index = DriveIndex.Index_in;     
+
+            bool change_status;
+
+            do
+            {
+                WorkDirectoriesInfo.ShowEnterTheDirectory();
+                GeneralInfo.ShowLine();
+                var new_directory = InputNoNullText.GetRealText();
+
+                change_status = work_drives[drive_index].ChangeWorkDirectory(new_directory);
+
+                if (change_status)
+                {
+                    Console.WriteLine('\n');
+                    WorkDirectoriesInfo.ShowInstallDirectory(XmlTags.DRIVE_TAGS[drive_index]);
+                }
+                else
+                {
+                    WorkDirectoriesInfo.ShowDirectoryExistFalse(XmlTags.DRIVE_TAGS[drive_index]);
+                    GeneralInfo.ShowLine();                    
+                }
+
+            } while (change_status == false);
+
+            program_menu_restart = true;
+        }
+        else
+        {
+            _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+        }
+    }
+
+} while (program_menu_restart == true);
 
 
-// логи ошибок по дате и времени
-// исключения !!!
 
+
+
+
+
+// exe dir - C:\Users\Mahabhara\source\repos\Fluenoriph\Backup-Scans\bin\Debug\net9.0

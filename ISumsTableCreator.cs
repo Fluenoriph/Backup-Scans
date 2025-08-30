@@ -1,6 +1,6 @@
-﻿interface ISums
+﻿interface ISumsTableCreator
 {
-    static Dictionary<string, int> CreateTable(List<string> sums_type)
+    static Dictionary<string, int> Create(List<string> sums_type)
     {
         Dictionary<string, int> sums_lcl = [];
 

@@ -21,13 +21,55 @@
 }
 
 
-class AnyInfo
+class DriveIndex
 {
-    private static readonly string star_line = new(Symbols.STAR, 45);
+    public static int Index_in { get; }
 
+    static DriveIndex()
+    {
+        var input_symbol = Console.ReadKey(intercept: true).Key;
+
+        if (input_symbol is (ConsoleKey.D1 or ConsoleKey.NumPad1))
+        {
+            Index_in = 0;
+        }
+        else if (input_symbol is (ConsoleKey.D2 or ConsoleKey.NumPad2))
+        {
+            Index_in = 1;
+        }
+        else if (input_symbol is (ConsoleKey.D3 or ConsoleKey.NumPad3))
+        {
+            Index_in = 2;
+        }
+        else
+        {
+            _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+        }
+    }
+}
+
+
+class ParameterTemplates
+{
+    public static void ShowParameters(List<string> out_info)
+    {
+        Console.WriteLine($" | {string.Join("; ", out_info)} |");
+    }
+
+    public static string CreateParameterDigit(List<string> parameters_type, string indexing_value)
+    {
+        return $"\"{parameters_type.IndexOf(indexing_value) + 1}\"";
+    }
+}
+
+
+class GeneralInfo
+{
+    private static readonly string star_line = new(Symbols.STAR, 60);
+            
     public static void ShowLine()
     {
-        Console.WriteLine(new string(Symbols.LINE, 45));
+        Console.WriteLine(new string(Symbols.LINE, 60));
     }
 
     public static void ShowStarLine()
@@ -37,32 +79,50 @@ class AnyInfo
 
     public static void ShowProgramInfo()
     {
-        Console.WriteLine($"{star_line}\n\n >> Backup PDF v.2.0 <<\n\n{star_line}");
+        Console.WriteLine($"{star_line}\n\n >> Backup PDF v.2.0 <<\n\n{star_line}\n");
     }
 
-    public static void ShowEnterPeriod()
+    public static void ShowProgramMenu()
     {
         List<string> value_info_lcl = [];
 
         foreach (var month in PeriodsNames.MONTHES)
         {
-            value_info_lcl.Add(string.Concat(month, Symbols.LINE, $"\"{PeriodsNames.MONTHES.IndexOf(month) + 1}\""));
+            value_info_lcl.Add(string.Concat(month, Symbols.LINE, ParameterTemplates.CreateParameterDigit(PeriodsNames.MONTHES, month)));
         }
 
         value_info_lcl.Add(string.Concat(PeriodsNames.YEAR, Symbols.LINE, $"\"{CurrentDate.Year}\""));
 
-        Console.WriteLine(">>> Введите значение периода, за который выполнить копирование >>>\n");
-        Console.WriteLine($" | {string.Join("; ", value_info_lcl)} |");
+        Console.WriteLine($" {Symbols.STAR} МЕНЮ\n");
+
+        Console.WriteLine($"{Symbols.FLOW_RIGHT} Чтобы изменить директорию, введите: \"{Symbols.CHANGE_DIRECTORY_FUNCTION}\"\n");
+        Console.WriteLine($"{Symbols.FLOW_RIGHT} Для запуска копирования, введите значение периода {Symbols.FLOW_RIGHT}\n");
+        ParameterTemplates.ShowParameters(value_info_lcl);               
 
         Console.WriteLine('\n');
         ShowLine();
     }
+
+    public static bool RestartOrExitProgram()
+    {
+        Console.WriteLine($"\n\n {new string('/', 3)} Для выхода в главное меню нажмите <пробел>, чтобы завершить работу программы нажмите любую клавишу {new string('\\', 3)}");
+                
+        if (Console.ReadKey(intercept: true).Key is ConsoleKey.Spacebar)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
 
 
-class DirectoriesInfo
+class WorkDirectoriesInfo
 {
     private const string DIR_in = "директория";
+    private const string DIR_EXAMPLE = "Пример: C:\\Folder\\Target";
 
     public static void ShowDirectorySetupTrue(string drive_type, string directory)
     {
@@ -71,12 +131,31 @@ class DirectoriesInfo
 
     public static void ShowDirectoryExistFalse(string drive_type)
     {
-        Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} {DIR_in} не существует, установите правильную !");
+        Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} {DIR_in} не существует, установите правильную !\n\n   {DIR_EXAMPLE}");
     }
 
     public static void ShowInstallDirectory(string drive_type)
     {
         Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} {DIR_in} успешно установлена !");
+    }
+
+    public static void ShowEnterDirectoryType()
+    {
+        List<string> dir_type_info_lcl = [];
+
+        foreach (var drive in XmlTags.DRIVE_TAGS)
+        {
+            dir_type_info_lcl.Add(string.Concat(ParameterTemplates.CreateParameterDigit(XmlTags.DRIVE_TAGS, drive), Symbols.LINE, WorkDirectories.NAMES[drive]));
+        }
+
+        Console.WriteLine($" {Symbols.STAR} Выберите тип {DIR_in.Replace('я', 'и')} {Symbols.FLOW_RIGHT}\n");
+        ParameterTemplates.ShowParameters(dir_type_info_lcl);
+        GeneralInfo.ShowLine();
+    }
+
+    public static void ShowEnterTheDirectory()
+    {
+        Console.WriteLine($"\n{Symbols.FLOW_RIGHT} Введите директорию:\n\n {DIR_EXAMPLE}");
     }
 }
 

@@ -1,9 +1,10 @@
-﻿using System.Xml.Linq;
+﻿using System.Xml;
+using System.Xml.Linq;
 
 
 abstract class LogFile
 {
-    public XDocument Document_in { get; }
+    public XDocument? Document_in { get; }
     public string Filename_in { get; }
 
     abstract private protected XElement? Root_Sector_in { get; }
@@ -12,11 +13,18 @@ abstract class LogFile
     {
         Filename_in = file_path;
 
-        FileInfo file_lcl = new(file_path);
+        FileInfo file_lcl = new(file_path);   // exc
 
         if (file_lcl.Exists)
         {
-            Document_in = XDocument.Load(file_lcl.FullName);
+            try
+            {
+                Document_in = XDocument.Load(file_lcl.FullName);  
+            }
+            catch (XmlException)
+            {
+                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+            }
         }
         else
         {
@@ -30,13 +38,13 @@ abstract class LogFile
 
 class DrivesConfigurationFile(string file_path) : LogFile(file_path) 
 {
-    private protected override XElement Root_Sector_in { get; } = IXmlLevel.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
+    private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
 }
 
 
 class YearLogFile(string file_path) : LogFile(file_path)
 {
-    private protected override XElement Root_Sector_in { get; } = SumsSector.sums;
+    private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS);
 }
 
 
@@ -54,8 +62,8 @@ class MonthLogFile(string file_path) : LogFile(file_path)
             XAttribute current_month = new(XmlTags.MONTH_NAME_TAG, month);
 
             x_month.Add(current_month);
-            x_month.Add(SumsSector.sums);
-            x_month.Add(IXmlLevel.Create(XmlTags.PROTOCOL_NAMES_TAG, [XmlTags.OTHERS_SUMS_TAGS[1], .. XmlTags.TYPE_TAGS, XmlTags.SIMPLE_SUMS_TAGS[11], XmlTags.SIMPLE_SUMS_TAGS[12]]));
+            x_month.Add(IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS));
+            x_month.Add(IXmlLevelCreator.Create(XmlTags.PROTOCOL_NAMES_TAG, [XmlTags.OTHERS_SUMS_TAGS[1], .. XmlTags.TYPE_TAGS, XmlTags.SIMPLE_SUMS_TAGS[11], XmlTags.SIMPLE_SUMS_TAGS[12]]));
 
             root.Add(x_month);
         }

@@ -1,7 +1,7 @@
 ﻿class MonthBackupSums
 {
     public readonly SimpleProtocolNames? names_in;
-    public Dictionary<string, int> All_Protocols_Sums_in { get; } = ISums.CreateTable(ProtocolTypesSums.OTHERS_SUMS);
+    public Dictionary<string, int> All_Protocols_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesSums.OTHERS_SUMS);
     public Dictionary<string, int>? Simple_Protocols_Sums_in { get; }
 
     public MonthBackupSums(List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, Dictionary<string, List<FileInfo>>? previous_period_simple_files = null)
@@ -14,7 +14,7 @@
 
         if (simple_files is not null)
         {
-            Simple_Protocols_Sums_in = ISums.CreateTable(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
+            Simple_Protocols_Sums_in = ISumsTableCreator.Create(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
             foreach (var item in simple_files)
             {

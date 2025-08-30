@@ -25,7 +25,7 @@ abstract class SumsData
             }
             else
             {
-                // error  ошибка доступа к элементу xml файла -- item.tostring ??  101
+                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
             }
         }
     }
@@ -125,7 +125,7 @@ class MonthLogger : SumsData
         }
         else
         {
-            // xml error   101
+            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
         }
     }
 }
@@ -145,7 +145,7 @@ class YearLogResultCalculate
         month_log_file_in = month_log_file;
         year_log_file_in = year_log_file;
 
-        foreach (string sum_tag in SumsSector.tags)
+        foreach (string sum_tag in XmlTags.UNITED_SUMS_TAGS)
         {
             foreach (string month_name in PeriodsNames.MONTHES)
             {
@@ -172,7 +172,7 @@ class YearLogResultCalculate
         }
         else
         {
-            // err 101
+            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
         }
     }
 
@@ -186,13 +186,13 @@ class YearLogResultCalculate
         }
         else
         {
-            // xml error exit ??   101
+            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
         }
     }
 
     public (Dictionary<string, int>, Dictionary<string, int>?) GetYearSums()
     {
-        var all_protocol_sums_lcl = ISums.CreateTable(ProtocolTypesSums.OTHERS_SUMS);
+        var all_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesSums.OTHERS_SUMS);
 
         for (int sum_index = 0; sum_index < all_protocol_sums_lcl.Count; sum_index++)
         {
@@ -203,7 +203,7 @@ class YearLogResultCalculate
 
         if (calculated_sums_in[2] != 0)
         {
-            simple_protocol_sums_lcl = ISums.CreateTable(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
+            simple_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
 
             for (int sum_index = 0; sum_index < simple_protocol_sums_lcl.Count; sum_index++)
             {

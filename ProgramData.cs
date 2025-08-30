@@ -19,6 +19,8 @@
     public static List<string> SIMPLE_SUMS_TAGS = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
 
     public static List<string> TYPE_TAGS = SIMPLE_SUMS_TAGS.GetRange(5, 6);
+
+    public static List<string> UNITED_SUMS_TAGS = [.. OTHERS_SUMS_TAGS, .. SIMPLE_SUMS_TAGS];
 }
 
 
@@ -35,7 +37,7 @@ struct WorkDirectories
 
 struct LogFiles
 {
-    public static string DRIVES_CONFIG_FILE = string.Concat(Directory.GetCurrentDirectory(), '\\', "drives_config.xml");
+    public static string DRIVES_CONFIG_FILE = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
 
     public const string MONTH_LOG_FILE = "backup_log_monthes.xml";
 
@@ -98,4 +100,8 @@ struct Symbols
     public const char GRILLE = '#';
 
     public const string NULL = "0";
+
+    public const string CHANGE_DIRECTORY_FUNCTION = "d";
+
+    public const string FLOW_RIGHT = ">>>";
 }
