@@ -196,7 +196,7 @@ namespace InfoOut
 
         public static void ShowMonthBackupResult(string period, int file_count)
         {
-            Console.WriteLine($" {Symbols.STAR} За {period} успешно скопировано _{file_count}_ файл(ов)");
+            Console.WriteLine($" {Symbols.STAR} За {period} успешно скопировано < {file_count} > файл(ов)");
         }
 
         public static void ShowCopyError()
