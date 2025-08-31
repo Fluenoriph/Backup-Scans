@@ -6,8 +6,8 @@
     private readonly Dictionary<string, List<int>> type_numbers_in;
 
     public Dictionary<string, List<string>> Sorted_Names_in { get; } = [];
-    public List<string>? Missed_Protocols_in { get; }
-    public List<string>? Unknown_Protocols_in { get; }
+    public List<string>? Missed_Protocols_in { get; set; }
+    public List<string>? Unknown_Protocols_in { get; set; }
 
     public SimpleProtocolNames(Dictionary<string, List<FileInfo>> files)
     {
@@ -23,7 +23,7 @@
             Sorted_Names_in.Add(item.Key, sorter_lcl.Sorting(type_numbers_in[item.Key], item.Value));
         }
 
-        Missed_Protocols_in = ComputeMissedProtocols();
+        ComputeMissedProtocols();
     }
 
     private Dictionary<string, List<int>> GetProtocolNumbers(Dictionary<string, List<FileInfo>> files)
@@ -38,7 +38,7 @@
         return numbers_lcl;
     }
 
-    private List<string>? ComputeMissedProtocols()
+    private void ComputeMissedProtocols()
     {
         MaximumNumbers extreme_max_lcl = new(type_numbers_in);
         var max_numbers_lcl = extreme_max_lcl.Numbers_in;
@@ -61,17 +61,17 @@
             }
         }
 
-        if (missed_protocols_lcl.Count > 0)
+        if (missed_protocols_lcl.Count != 0)
         {
-            return missed_protocols_lcl;
+            Missed_Protocols_in = missed_protocols_lcl;
         }
         else
         {
-            return null;
+            Missed_Protocols_in = null;
         }
     }
 
-    public List<string>? ComputeUnknownProtocols(Dictionary<string, List<FileInfo>> previous_period_files)
+    public void ComputeUnknownProtocols(Dictionary<string, List<FileInfo>> previous_period_files)
     {
         MaximumNumbers previous_extreme_max_lcl = new(GetProtocolNumbers(previous_period_files));
         var numbers_lcl = previous_extreme_max_lcl.Numbers_in;
@@ -94,13 +94,13 @@
             }
         }
 
-        if (unknown_protocols_lcl.Count is not 0)
+        if (unknown_protocols_lcl.Count != 0)
         {
-            return unknown_protocols_lcl;
+            Unknown_Protocols_in = unknown_protocols_lcl;
         }
         else
         {
-            return null;
+            Unknown_Protocols_in = null;
         }
     }
 }

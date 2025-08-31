@@ -10,22 +10,20 @@ abstract class SumsData
     {
         for (int sum_index = 0; sum_index < tags.Count; sum_index++)
         {
-            var sum_lcl = Sums_Sector_in?.Element(tags[sum_index]);   // exception test
+            var sum_lcl = Sums_Sector_in?.Element(tags[sum_index]);
 
-            if (sum_lcl is not null)
+            if (sum_lcl is null)
             {
-                if ((sums is not null) && (names is not null))
-                {
-                    sum_lcl.Value = sums[names[sum_index]].ToString(CultureInfo.CurrentCulture);
-                }
-                else
-                {
-                    sum_lcl.Value = Symbols.NULL;     
-                }
+                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+            }
+
+            if ((sums is not null) && (names is not null))
+            {
+                sum_lcl!.Value = sums[names[sum_index]].ToString(CultureInfo.CurrentCulture);
             }
             else
             {
-                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+                sum_lcl!.Value = Symbols.NULL;
             }
         }
     }
@@ -36,7 +34,7 @@ class YearLogger : SumsData
 {
     public YearLogger(YearLogFile file, Dictionary<string, int> all_protocols_sums, Dictionary<string, int> simple_protocols_sums)
     {
-        Sums_Sector_in = file.Document_in.Root;
+        Sums_Sector_in = file.Document_in!.Element(XmlTags.SUMS_TAG);  
 
         WriteSums(XmlTags.OTHERS_SUMS_TAGS, all_protocols_sums, ProtocolTypesSums.OTHERS_SUMS);
         WriteSums(XmlTags.SIMPLE_SUMS_TAGS, simple_protocols_sums, ProtocolTypesSums.UNITED_SIMPLE_TYPE_SUMS);
@@ -52,10 +50,10 @@ class MonthLogger : SumsData
 
     public MonthLogger(MonthLogFile file, string month_name, MonthBackupSums backup_sums, List<FileInfo>? eias_files)
     {
-        var month_sector_lcl = file.GetMonthData(month_name);
+        var current_month_sector_lcl = file.GetMonthData(month_name);
 
-        Sums_Sector_in = month_sector_lcl?.Element(XmlTags.SUMS_TAG);
-        Protocol_Names_Sector_in = month_sector_lcl?.Element(XmlTags.PROTOCOL_NAMES_TAG);
+        Sums_Sector_in = current_month_sector_lcl?.Element(XmlTags.SUMS_TAG);
+        Protocol_Names_Sector_in = current_month_sector_lcl?.Element(XmlTags.PROTOCOL_NAMES_TAG);
 
         WriteSums(XmlTags.OTHERS_SUMS_TAGS, backup_sums.All_Protocols_Sums_in, ProtocolTypesSums.OTHERS_SUMS);
 
@@ -105,33 +103,31 @@ class MonthLogger : SumsData
             WriteNames(XmlTags.SIMPLE_SUMS_TAGS[12]);
         }
 
-        file.Document_in.Save(file.Filename_in);
+        file.Document_in!.Save(file.Filename_in);
     }
 
     private void WriteNames(string tag, List<string>? names = null)
     {
         var names_lcl = Protocol_Names_Sector_in?.Element(tag);
 
-        if (names_lcl is not null)
+        if (names_lcl is null)
         {
-            if (names is not null)
-            {
-                names_lcl.Value = string.Join(", ", names);
-            }
-            else
-            {
-                names_lcl.Value = string.Empty;
-            }
+            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+        }
+        
+        if (names is not null)
+        {
+            names_lcl!.Value = string.Join(", ", names);
         }
         else
         {
-            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+            names_lcl!.Value = string.Empty;
         }
     }
 }
 
 
-class YearLogResultCalculate
+class CalculateTotalLogSumsToYear
 {
     private int sum_count_in;
 
@@ -140,13 +136,15 @@ class YearLogResultCalculate
 
     private readonly List<int> calculated_sums_in = [];
 
-    public YearLogResultCalculate(MonthLogFile month_log_file, YearLogFile year_log_file)
+    public CalculateTotalLogSumsToYear(MonthLogFile month_log_file, YearLogFile year_log_file)
     {
         month_log_file_in = month_log_file;
         year_log_file_in = year_log_file;
 
         foreach (string sum_tag in XmlTags.UNITED_SUMS_TAGS)
         {
+            sum_count_in = 0;
+
             foreach (string month_name in PeriodsNames.MONTHES)
             {
                 AddSum(month_name, sum_tag);
@@ -157,28 +155,29 @@ class YearLogResultCalculate
             calculated_sums_in.Add(sum_count_in);
         }
 
-        year_log_file.Document_in.Save(year_log_file.Filename_in);
+        year_log_file.Document_in!.Save(year_log_file.Filename_in);
     }
 
     private void AddSum(string month_name, string sum_tag)
     {
         var sum_value_lcl = month_log_file_in.GetMonthData(month_name)?.Element(XmlTags.SUMS_TAG)?.Element(sum_tag)?.Value;
 
-        bool real_value_status = (sum_value_lcl is not null) && (sum_value_lcl is not Symbols.NULL) && (sum_value_lcl is not "");   
+        if (sum_value_lcl is null)
+        {
+            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
+        }
+
+        bool real_value_status = (sum_value_lcl is not Symbols.NULL) && (sum_value_lcl is not "");   
 
         if (real_value_status)
         {
             sum_count_in += Convert.ToInt32(sum_value_lcl!, CultureInfo.CurrentCulture);
         }
-        else
-        {
-            _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
-        }
     }
 
     private void WriteYearSum(string sum_tag)
     {
-        var sum_value_lcl = year_log_file_in.Document_in.Root?.Element(sum_tag);
+        var sum_value_lcl = year_log_file_in.Document_in!.Element(XmlTags.SUMS_TAG)?.Element(sum_tag);
 
         if (sum_value_lcl is not null)
         {

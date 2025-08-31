@@ -13,7 +13,7 @@ abstract class LogFile
     {
         Filename_in = file_path;
 
-        FileInfo file_lcl = new(file_path);   // exc
+        FileInfo file_lcl = new(file_path);   
 
         if (file_lcl.Exists)
         {
@@ -73,6 +73,6 @@ class MonthLogFile(string file_path) : LogFile(file_path)
 
     public XElement? GetMonthData(string month)
     {
-        return Document_in.Root?.Elements(XmlTags.MONTH_TAG).FirstOrDefault(x_month => x_month.Attribute(XmlTags.MONTH_NAME_TAG)?.Value == month);
+        return Document_in!.Element(XmlTags.MONTH_LOG_ROOT_TAG)?.Elements(XmlTags.MONTH_TAG).FirstOrDefault(x_month => x_month.Attribute(XmlTags.MONTH_NAME_TAG)?.Value == month);
     }
 }

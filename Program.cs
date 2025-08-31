@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using InfoOut;
+using InputValidate;
+using System.Globalization;
 
 
 GeneralInfo.ShowProgramInfo();
@@ -15,7 +17,7 @@ foreach (string drive_type in XmlTags.DRIVE_TAGS)
     work_drives.Add(drive);
 }
 
-bool program_menu_restart = false;       
+bool program_menu_restart = false;
 
 do
 {
@@ -72,7 +74,7 @@ do
                 }
                 else
                 {
-                    WorkDirectoriesInfo.ShowDirectoryExistFalse(XmlTags.DRIVE_TAGS[drive_index]);
+                    WorkDirectoriesInfo.ShowDirectoryExistFalse(XmlTags.DRIVE_TAGS[drive_index], new_directory);
                     GeneralInfo.ShowLine();                    
                 }
 
