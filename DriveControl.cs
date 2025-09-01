@@ -4,6 +4,12 @@ using InfoOut;
 using System.Security;
 
 
+class DrivesConfigurationFile(string file_path) : XmlDataFile(file_path)
+{
+    private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
+}
+
+
 class DriveControl
 {
     public DirectoryInfo? Work_Directory_in { get; set; }  

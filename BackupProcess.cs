@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 
 abstract class BackupProcess
 {
-    private readonly SourceFiles source_files_in;
+    private readonly SourceFiles? source_files_in;
 
-    private readonly DirectoryInfo backup_directory_in;
+    private readonly DirectoryInfo? backup_directory_in;
     private protected readonly DirectoryInfo log_directory_in;
 
     private protected string current_year_print_in = string.Concat(CurrentDate.Year, " ", PeriodsNames.YEAR.ToLower(CultureInfo.CurrentCulture));
@@ -19,12 +19,21 @@ abstract class BackupProcess
 
     public BackupProcess(List<DriveControl> work_drives)
     {
-        source_files_in = new(work_drives[0].Work_Directory_in!.FullName);
+        try
+        {
+            source_files_in = new(work_drives[0].Work_Directory_in!);
 
-        backup_directory_in = work_drives[1].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture)); 
-        log_directory_in = work_drives[2].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));                                                                          
+            backup_directory_in = work_drives[1].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));  
 
-        month_log_file_in = new(string.Concat(log_directory_in.FullName, Symbols.SLASH, LogFiles.MONTH_LOG_FILE));
+            log_directory_in = work_drives[2].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+        }
+        catch (IOException error)
+        {
+            _ = new ProgramShutDown(ErrorCodes.DRIVE_RESOURCE_UNAVAILABLE, error.Message);
+        }
+                                                                            
+        month_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFiles.MONTH_LOG_FILE));
+
         year_log_file_in = new(string.Concat(log_directory_in.FullName, Symbols.SLASH, LogFiles.YEAR_LOG_FILE));
     }
 
@@ -47,7 +56,7 @@ abstract class BackupProcess
 
     private protected List<FileInfo>? GetEIASFiles(string period_pattern)
     {
-        return source_files_in.GrabMatchedFiles(new(string.Concat(FilePatterns.EIAS_NUMBER_PATTERN, period_pattern), RegexOptions.IgnoreCase));
+        return source_files_in!.GrabMatchedFiles(new(string.Concat(FilePatterns.EIAS_NUMBER_PATTERN, period_pattern), RegexOptions.IgnoreCase));
     }
 
     private protected Dictionary<string, List<FileInfo>>? GetSimpleFiles(string period_pattern)
@@ -56,7 +65,7 @@ abstract class BackupProcess
 
         for (int type_index = 0; type_index < ProtocolTypesSums.TYPES_FULL_NAMES.Count; type_index++)
         {
-            var current_files_lcl = source_files_in.GrabMatchedFiles(new(string.Concat(FilePatterns.SIMPLE_NUMBER_PATTERN, ProtocolTypesSums.TYPES_SHORT_NAMES[type_index], Symbols.LINE, period_pattern), RegexOptions.IgnoreCase));
+            var current_files_lcl = source_files_in!.GrabMatchedFiles(new(string.Concat(FilePatterns.SIMPLE_NUMBER_PATTERN, ProtocolTypesSums.TYPES_SHORT_NAMES[type_index], Symbols.LINE, period_pattern), RegexOptions.IgnoreCase));
 
             if (current_files_lcl is not null)
             {
@@ -82,7 +91,7 @@ abstract class BackupProcess
         {
             try
             {
-                backup_files[file_index].CopyTo(string.Concat(backup_directory_in.CreateSubdirectory(month_and_type_subdir), Symbols.SLASH, backup_files[file_index].Name), true);
+                backup_files[file_index].CopyTo(string.Concat(backup_directory_in!.CreateSubdirectory(month_and_type_subdir), Symbols.SLASH, backup_files[file_index].Name), true);
                 
                 backuping_files_count_lcl++;
             }

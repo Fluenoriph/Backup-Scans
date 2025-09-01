@@ -1,54 +1,13 @@
-﻿using System.Xml;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 
-abstract class LogFile
-{
-    public XDocument? Document_in { get; }
-    public string Filename_in { get; }
-
-    abstract private protected XElement? Root_Sector_in { get; }
-
-    public LogFile(string file_path)
-    {
-        Filename_in = file_path;
-
-        FileInfo file_lcl = new(file_path);   
-
-        if (file_lcl.Exists)
-        {
-            try
-            {
-                Document_in = XDocument.Load(file_lcl.FullName);  
-            }
-            catch (XmlException)
-            {
-                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
-            }
-        }
-        else
-        {
-            Document_in = new();
-            Document_in.Add(Root_Sector_in);
-            Document_in.Save(file_lcl.FullName);
-        }
-    }
-}
-
-
-class DrivesConfigurationFile(string file_path) : LogFile(file_path) 
-{
-    private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
-}
-
-
-class YearLogFile(string file_path) : LogFile(file_path)
+class YearLogFile(string file_path) : XmlDataFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS);
 }
 
 
-class MonthLogFile(string file_path) : LogFile(file_path)
+class MonthLogFile(string file_path) : XmlDataFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = CreateMonthLevels();
 

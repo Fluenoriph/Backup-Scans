@@ -3,12 +3,18 @@
 
 class SourceFiles
 {
-    private readonly FileInfo[] files;
+    private readonly FileInfo[]? files;  
 
-    public SourceFiles(string drive_directory)
+    public SourceFiles(DirectoryInfo drive_directory)
     {
-        DirectoryInfo directory_lcl = new(drive_directory);
-        files = directory_lcl.GetFiles($"*.{FilePatterns.PROTOCOL_SCAN_TYPE}");
+        try
+        {
+            files = drive_directory.GetFiles($"*.{FilePatterns.PROTOCOL_SCAN_TYPE}");
+        }
+        catch (DirectoryNotFoundException error)
+        {
+            _ = new ProgramShutDown(ErrorCodes.DRIVE_DIRECTORY_NOT_FOUND_ERROR, error.Message);
+        }
     }
 
     public List<FileInfo>? GrabMatchedFiles(Regex pattern)
