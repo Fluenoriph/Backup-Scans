@@ -57,28 +57,9 @@ do
             WorkDirectoriesInfo.ShowEnterDirectoryType();
             var drive_index = DriveIndex.Index_in;     
 
-            bool change_status;
 
-            do
-            {
-                WorkDirectoriesInfo.ShowEnterTheDirectory();
-                GeneralInfo.ShowLine();
-                var new_directory = InputNoNullText.GetRealText();
 
-                change_status = work_drives[drive_index].ChangeWorkDirectory(new_directory);
-
-                if (change_status)
-                {
-                    Console.WriteLine('\n');
-                    WorkDirectoriesInfo.ShowInstallDirectory(XmlTags.DRIVE_TAGS[drive_index]);
-                }
-                else
-                {
-                    WorkDirectoriesInfo.ShowDirectoryExistFalse(XmlTags.DRIVE_TAGS[drive_index], new_directory);
-                    GeneralInfo.ShowLine();                    
-                }
-
-            } while (change_status == false);
+            
 
             program_menu_restart = true;
         }

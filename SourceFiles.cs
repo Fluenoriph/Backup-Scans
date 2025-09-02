@@ -5,7 +5,7 @@ class SourceFiles
 {
     private readonly FileInfo[]? files;  
 
-    public SourceFiles(DirectoryInfo drive_directory)
+    public SourceFiles(DirectoryInfo drive_directory) // new dirinfo
     {
         try
         {

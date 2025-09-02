@@ -127,7 +127,7 @@ class MonthLogger : SumsData
 }
 
 
-class CalculateTotalLogSumsToYear
+class TotalLogSumsToYearCalculator
 {
     private int sum_count_in;
 
@@ -136,7 +136,7 @@ class CalculateTotalLogSumsToYear
 
     private readonly List<int> calculated_sums_in = [];
 
-    public CalculateTotalLogSumsToYear(MonthLogFile month_log_file, YearLogFile year_log_file)
+    public TotalLogSumsToYearCalculator(MonthLogFile month_log_file, YearLogFile year_log_file)
     {
         month_log_file_in = month_log_file;
         year_log_file_in = year_log_file;

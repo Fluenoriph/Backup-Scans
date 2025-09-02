@@ -4,105 +4,80 @@ using InfoOut;
 using System.Security;
 
 
+// * Класс файла настройки рабочих директорий. *
+
 class DrivesConfigurationFile(string file_path) : XmlDataFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
 }
 
 
+// * Класс для получения, проверки и установки рабочей директории ("диска"). *
+
 class DriveControl
 {
-    public DirectoryInfo? Work_Directory_in { get; set; }  
+    public string Work_Directory_in { get; set; }  
 
     private string? Drive_Type_in { get; }
     private readonly DrivesConfigurationFile config_file_in = new(LogFiles.DRIVES_CONFIG_FILE);
-    private XElement? X_Drive_in { get; }
+    private XElement? Drive_Directory_Sector_in { get; }
     private bool Real_Directory_status { get; set; }
 
+    // Входной параметр: имя типа "диска".
+
     public DriveControl(string drive_type)
-    {
-        Drive_Type_in = drive_type;
-        
-        X_Drive_in = config_file_in.Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(Drive_Type_in!);
+    {        
+        Drive_Directory_Sector_in = config_file_in.Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(drive_type);
                 
-        if (X_Drive_in is null)
+        if (Drive_Directory_Sector_in is null)
         {
             _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR);
         }
 
-        var directory_lcl = X_Drive_in!.Value;
+        /* Проверка, полученной из файла настройки, директории. Если она существует, то устанавливаем рабочую директорию.
+         * Если нет, то получаем новую, в данном случае, методом ввода из консоли, и записываем в файл. */
+
+        Work_Directory_in = Drive_Directory_Sector_in!.Value;
                 
+        
+
+        
+    }
+
+    public void CheckWorkDirectory() // drive local ??
+    {
         do
         {
-            Real_Directory_status = CheckDirectory(directory_lcl);
-
-            if (Real_Directory_status)
+            Real_Directory_status = CheckNoneDirectoryValue() && CheckRealDirectory();                        // real local ??
+                        
+            if (!Real_Directory_status)
             {
-                CreateAndCheckAccessDriveDirectory(directory_lcl);
-            }
-            else
-            {
-                WorkDirectoriesInfo.ShowDirectoryExistFalse(Drive_Type_in!, directory_lcl);
-                GeneralInfo.ShowLine();
+                do
+                {
+                    WorkDirectoriesInfo.ShowDirectoryExistFalse(Drive_Type_in!, Work_Directory_in);
+                    GeneralInfo.ShowLine();
 
-                directory_lcl = InputNoNullText.GetRealText();
+                    Real_Directory_status = PrepareAndWriteDirectory();
 
-                WriteDirectory(directory_lcl);
-                
-                Console.WriteLine('\n');
+                    Console.WriteLine('\n');
+
+                } while (Real_Directory_status == false); 
             }
 
         } while (Real_Directory_status == false);
     }
 
-    private void CreateAndCheckAccessDriveDirectory(string directory)
+    private bool PrepareAndWriteDirectory()
     {
-        try
+        WorkDirectoriesInfo.ShowEnterTheDirectory();
+        GeneralInfo.ShowLine();
+
+        Work_Directory_in = InputNoNullText.GetRealText();
+
+        if (CheckRealDirectory())
         {
-            Work_Directory_in = new(directory);
-        }
-        catch (SecurityException error)
-        {
-            _ = new ProgramCrash(ErrorCodes.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);
-
-            WorkDirectoriesInfo.ShowResourceDenied(Drive_Type_in!);
-        } 
-    }
-
-    private void WriteDirectory(string directory)
-    {
-        X_Drive_in!.Value = directory;
-        config_file_in.Document_in!.Save(LogFiles.DRIVES_CONFIG_FILE);
-    }
-
-    private static bool CheckDirectory(string directory_full_name)
-    {
-        if (directory_full_name is not "")
-        {
-            if (Directory.Exists(directory_full_name))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public bool ChangeWorkDirectory(string new_directory)
-    {
-        Real_Directory_status = CheckDirectory(new_directory);
-
-        if (Real_Directory_status)
-        {
-            WriteDirectory(new_directory);
-
-            CreateAndCheckAccessDriveDirectory(new_directory);
+            Drive_Directory_Sector_in!.Value = Work_Directory_in;
+            config_file_in.Document_in!.Save(LogFiles.DRIVES_CONFIG_FILE);
 
             return true;
         }
@@ -110,5 +85,68 @@ class DriveControl
         {
             return false;
         }
+    }
+
+
+    /*private void CreateAndCheckAccessDriveDirectory(string directory)
+    {
+        try
+        {
+            Work_Directory_in = new(directory);
+        }
+        catch (SecurityException error)
+        {
+            //_ = new ProgramCrash(ErrorCodes.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);  in backup process
+
+            WorkDirectoriesInfo.ShowResourceDenied(Drive_Type_in!);
+        } 
+    }*/
+
+    // * Запись в файл настройки. *
+
+   
+    private bool CheckRealDirectory()
+    {
+        if (Directory.Exists(Work_Directory_in))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool CheckNoneDirectoryValue()
+    {
+        if (Work_Directory_in is not "")
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void ChangeWorkDirectory()
+    {
+        do
+        {
+            Real_Directory_status = PrepareAndWriteDirectory();
+
+            if (Real_Directory_status)
+            {
+                Console.WriteLine('\n');
+                WorkDirectoriesInfo.ShowInstallDirectory(Drive_Type_in!);
+
+            }
+            else
+            {
+                WorkDirectoriesInfo.ShowDirectoryExistFalse(Drive_Type_in!, Work_Directory_in);
+                GeneralInfo.ShowLine();
+            }
+
+        } while (Real_Directory_status == false);
     }
 }

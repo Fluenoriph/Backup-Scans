@@ -180,7 +180,7 @@ class BackupProcessMonth : BackupProcess
 
                 if (month == PeriodsNames.MONTHES[PeriodsNames.DECEMBER_INDEX])
                 {
-                    CalculateTotalLogSumsToYear year_calc_result_lcl = new(month_log_file_in!, year_log_file_in!);
+                    TotalLogSumsToYearCalculator year_calc_result_lcl = new(month_log_file_in!, year_log_file_in!);
                                         
                     Console.WriteLine('\n');
                     GeneralInfo.ShowLine();

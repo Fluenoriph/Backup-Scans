@@ -1,15 +1,23 @@
 ﻿using System.Xml.Linq;
 
 
+// * Класс файла отчета за год *
+
 class YearLogFile(string file_path) : XmlDataFile(file_path)
 {
+    // Корневой уровень, предназначенный для создания файла, если он не существует, по указанным путям.
+
     private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS);
 }
 
 
+// * Класс файла отчета за месяц *
+
 class MonthLogFile(string file_path) : XmlDataFile(file_path)
 {
     private protected override XElement Root_Sector_in { get; } = CreateMonthLevels();
+
+    // Создание уровней по каждому месяцу.
 
     private static XElement CreateMonthLevels()
     {
@@ -18,7 +26,12 @@ class MonthLogFile(string file_path) : XmlDataFile(file_path)
         foreach (string month in PeriodsNames.MONTHES)
         {
             XElement x_month = new(XmlTags.MONTH_TAG);
+
+            // Название месяца.
+
             XAttribute current_month = new(XmlTags.MONTH_NAME_TAG, month);
+
+            // Создание секторов сумм и имен протоколов.
 
             x_month.Add(current_month);
             x_month.Add(IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS));
@@ -29,6 +42,8 @@ class MonthLogFile(string file_path) : XmlDataFile(file_path)
 
         return root;
     }
+
+    // Получение элемента (уровня) месяца по входному параметру - названию.
 
     public XElement? GetMonthData(string month)
     {
