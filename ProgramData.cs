@@ -53,7 +53,7 @@ struct FilePatterns
 
     public static string SIMPLE_NUMBER_PATTERN = string.Concat(NUMBER_GROUP, "\\d{1,4})-");
 
-    public const string PROTOCOL_SCAN_TYPE = "pdf";
+    public const string PROTOCOL_SCAN_FILE_TYPE = "pdf";
 }
 
 

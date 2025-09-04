@@ -3,7 +3,7 @@
     private readonly Func<string, string> GetShortTypeName = (key) => ProtocolTypesSums.TYPES_SHORT_NAMES[ProtocolTypesSums.TYPES_FULL_NAMES.IndexOf(key)];
     private readonly Dictionary<string, int> current_period_min_numbers_in;
     private readonly SimpleConvert number_converter_in = new();
-    private readonly Dictionary<string, List<int>> type_numbers_in;
+    private readonly Dictionary<string, List<int>> numeric_numbers_in;
 
     public Dictionary<string, List<string>> Sorted_Names_in { get; } = [];
     public List<string>? Missed_Protocols_in { get; set; }
@@ -11,16 +11,16 @@
 
     public SimpleProtocolNames(Dictionary<string, List<FileInfo>> files)
     {
-        type_numbers_in = GetProtocolNumbers(files);
+        numeric_numbers_in = GetProtocolNumbers(files);
 
-        MinimumNumbers extreme_min_lcl = new(type_numbers_in);
+        MinimumNumbers extreme_min_lcl = new(numeric_numbers_in);
         current_period_min_numbers_in = extreme_min_lcl.Numbers_in;
 
         SimpleSort sorter_lcl = new();
 
         foreach (var item in files)
         {
-            Sorted_Names_in.Add(item.Key, sorter_lcl.Sorting(type_numbers_in[item.Key], item.Value));
+            Sorted_Names_in.Add(item.Key, sorter_lcl.Sorting(numeric_numbers_in[item.Key], item.Value));
         }
 
         ComputeMissedProtocols();
@@ -40,12 +40,12 @@
 
     private void ComputeMissedProtocols()
     {
-        MaximumNumbers extreme_max_lcl = new(type_numbers_in);
+        MaximumNumbers extreme_max_lcl = new(numeric_numbers_in);
         var max_numbers_lcl = extreme_max_lcl.Numbers_in;
 
         List<string> missed_protocols_lcl = [];
 
-        foreach (var item in type_numbers_in)
+        foreach (var item in numeric_numbers_in)
         {
             if (item.Value.Count >= 2)
             {

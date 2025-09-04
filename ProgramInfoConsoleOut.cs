@@ -14,7 +14,7 @@
 
                 if (real_text_status)
                 {
-                    Console.WriteLine($" {Symbols.GRILLE} Вы ничего не ввели, вводите заново !");
+                    Console.WriteLine($" {Symbols.GRILLE} Вы ничего не ввели, вводите заново !\n");
                 }
             } while (real_text_status);
 
@@ -25,27 +25,28 @@
 
     class DriveIndex
     {
-        public static int Index_in { get; }
+        public static int Index_in 
+        { 
+            get
+            {
+                var input_symbol = Console.ReadKey(intercept: true).Key;
 
-        static DriveIndex()
-        {
-            var input_symbol = Console.ReadKey(intercept: true).Key;
-
-            if (input_symbol is (ConsoleKey.D1 or ConsoleKey.NumPad1))
-            {
-                Index_in = 0;
-            }
-            else if (input_symbol is (ConsoleKey.D2 or ConsoleKey.NumPad2))
-            {
-                Index_in = 1;
-            }
-            else if (input_symbol is (ConsoleKey.D3 or ConsoleKey.NumPad3))
-            {
-                Index_in = 2;
-            }
-            else
-            {
-                _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+                if (input_symbol is (ConsoleKey.D1 or ConsoleKey.NumPad1))
+                {
+                    return 0;
+                }
+                else if (input_symbol is (ConsoleKey.D2 or ConsoleKey.NumPad2))
+                {
+                    return 1;
+                }
+                else if (input_symbol is (ConsoleKey.D3 or ConsoleKey.NumPad3))
+                {
+                    return 2;
+                }
+                else
+                {
+                    return -1;
+                }
             }
         }
     }
@@ -114,6 +115,8 @@ namespace InfoOut
 
             if (Console.ReadKey(intercept: true).Key is ConsoleKey.Spacebar)
             {
+                Console.Clear();
+
                 return true;
             }
             else
@@ -137,17 +140,17 @@ namespace InfoOut
         {
             if (directory is "")
             {
-                Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория не установлена, введите директорию {Symbols.FLOW_RIGHT}\n\n   {DIR_EXAMPLE}");
+                Console.WriteLine($"\n {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория не установлена, необходимо установить.\n");
             }
             else
             {
-                Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория [{directory}] не существует, установите правильную !\n\n   {DIR_EXAMPLE}");
+                Console.WriteLine($"\n {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория [{directory}] не существует, установите правильную !\n");
             }
         }
 
         public static void ShowInstallDirectory(string drive_type)
         {
-            Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория успешно установлена !");
+            Console.WriteLine($"\n {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория успешно установлена !");
         }
 
         public static void ShowEnterDirectoryType()
@@ -167,11 +170,6 @@ namespace InfoOut
         public static void ShowEnterTheDirectory()
         {
             Console.WriteLine($"\n{Symbols.FLOW_RIGHT} Введите директорию:\n\n {DIR_EXAMPLE}");
-        }
-
-        public static void ShowResourceDenied(string drive_type)
-        {
-            Console.WriteLine($"\n {Symbols.GRILLE} Доступ к ресурсу '{drive_type}' запрещен ! Перезапустите программу или измените путь\n");
         }
     }
 

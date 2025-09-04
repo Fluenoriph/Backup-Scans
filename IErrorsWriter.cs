@@ -1,8 +1,14 @@
-﻿interface IErrorsWriter
+﻿// * Запись отчета о возникшей ошибке в текстовый файл. *
+
+interface IErrorsWriter
 {
-    static void Write(string factor, ErrorCodes code, string? exception_message = null)
+    // Параметры: "factor" - общая причина ошибки, "code" - код ошибки, "exception_message" - сообщение от системы исключений.
+
+    static void Write(string factor, ErrorCode code, string? exception_message = null)
     {
         string date_border_lcl = new(Symbols.LINE, 3);
+
+        // Если не передаем сообщение исключения, то оцениваем ошибку по внутреннему коду.
 
         exception_message ??= "error_code";
 

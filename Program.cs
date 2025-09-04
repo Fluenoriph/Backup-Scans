@@ -5,13 +5,13 @@ using System.Globalization;
 
 GeneralInfo.ShowProgramInfo();
 
-List<DriveControl> work_drives = [];
+List<DrivesConfiguration> work_drives = [];
 
 foreach (string drive_type in XmlTags.DRIVE_TAGS)
 {
-    DriveControl drive = new(drive_type);
+    DrivesConfiguration drive = new(drive_type);
 
-    WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!.FullName);
+    WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!);
     Console.WriteLine('\n');
 
     work_drives.Add(drive);
@@ -45,7 +45,7 @@ do
         }
         else
         {
-            _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+            _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
     }
     else
@@ -55,17 +55,20 @@ do
             Console.WriteLine('\n');
 
             WorkDirectoriesInfo.ShowEnterDirectoryType();
-            var drive_index = DriveIndex.Index_in;     
+            var drive_index = DriveIndex.Index_in;
 
+            if (drive_index == -1) // -1 ?
+            {
+                _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
+            }
 
-
-            
+            work_drives[drive_index].ChangeWorkDirectory();
 
             program_menu_restart = true;
         }
         else
         {
-            _ = new ProgramShutDown(ErrorCodes.INPUT_VALUE_ERROR);
+            _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
     }
 

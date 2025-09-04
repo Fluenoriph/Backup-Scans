@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 
 
+// * Классы, сортировщики 
+
 abstract class NameSorter
 {
     abstract private protected string GetNumberName(int number);

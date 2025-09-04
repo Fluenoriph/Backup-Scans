@@ -1,6 +1,7 @@
 ﻿using InfoOut;
 using ResultLogOut;
 using System.Globalization;
+using System.Security;
 using System.Text.RegularExpressions;
 
 
@@ -17,19 +18,25 @@ abstract class BackupProcess
     private protected YearLogFile? year_log_file_in;
     private protected MonthLogFile? month_log_file_in;
 
-    public BackupProcess(List<DriveControl> work_drives)
+    public BackupProcess(List<DrivesConfiguration> work_drives)
     {
         try
         {
-            source_files_in = new(work_drives[0].Work_Directory_in!);
+            source_files_in = new(new(work_drives[0].Work_Directory_in!));
 
-            backup_directory_in = work_drives[1].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));  
+            backup_directory_in = new(work_drives[1].Work_Directory_in!);
+            backup_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
 
-            log_directory_in = work_drives[2].Work_Directory_in!.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+            log_directory_in = new(work_drives[2].Work_Directory_in!);
+            log_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
         }
         catch (IOException error)
         {
-            _ = new ProgramShutDown(ErrorCodes.DRIVE_RESOURCE_UNAVAILABLE, error.Message);
+            _ = new ProgramShutDown(ErrorCode.DRIVE_RESOURCE_UNAVAILABLE, error.Message);
+        }
+        catch (SecurityException error)
+        {
+            _ = new ProgramShutDown(ErrorCode.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);            
         }
                                                                             
         month_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFiles.MONTH_LOG_FILE));
@@ -51,7 +58,7 @@ abstract class BackupProcess
             month_lcl = month_value_lcl.ToString(CultureInfo.CurrentCulture);
         }
 
-        return string.Concat(Symbols.SLASH, "d{2}", Symbols.SLASH, '.', month_lcl, Symbols.SLASH, '.', CurrentDate.Year, Symbols.SLASH, '.', FilePatterns.PROTOCOL_SCAN_TYPE, '$');
+        return string.Concat(Symbols.SLASH, "d{2}", Symbols.SLASH, '.', month_lcl, Symbols.SLASH, '.', CurrentDate.Year, Symbols.SLASH, '.', FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
     }
 
     private protected List<FileInfo>? GetEIASFiles(string period_pattern)
@@ -97,7 +104,7 @@ abstract class BackupProcess
             }
             catch (IOException error)
             {
-                _ = new ProgramCrash(ErrorCodes.COPY_FILES_ERROR, error.Message);                
+                _ = new ProgramCrash(ErrorCode.COPY_FILES_ERROR, error.Message);                
             }           
         }
 
@@ -143,7 +150,7 @@ abstract class BackupProcess
 
 class BackupProcessMonth : BackupProcess
 {
-    public BackupProcessMonth(List<DriveControl> work_drives, string month) : base(work_drives)
+    public BackupProcessMonth(List<DrivesConfiguration> work_drives, string month) : base(work_drives)
     {
         MonthBackupSums sums_lcl;
         int month_index_lcl = PeriodsNames.MONTHES.IndexOf(month);
@@ -213,7 +220,7 @@ class BackupProcessYear : BackupProcess
 {
     private readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?, MonthBackupSums)> year_full_backup_in = [];
 
-    public BackupProcessYear(List<DriveControl> work_drives) : base(work_drives)
+    public BackupProcessYear(List<DrivesConfiguration> work_drives) : base(work_drives)
     {
         if (FindAllYearFiles())
         {

@@ -2,7 +2,7 @@
 using System.Xml.Linq;
 
 
-// * Базовый, для классов файлов отчета и файла настройки директорий. * 
+// * Базовый класс, для классов файлов отчета и файла настройки директорий. * 
 
 abstract class XmlDataFile
 {
@@ -35,7 +35,7 @@ abstract class XmlDataFile
             }
             catch (XmlException error)
             {
-                _ = new ProgramShutDown(ErrorCodes.XML_ELEMENT_ACCESS_ERROR, error.Message);
+                _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR, error.Message);
             }
         }
         else

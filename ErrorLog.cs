@@ -1,4 +1,4 @@
-﻿enum ErrorCodes
+﻿enum ErrorCode
 {
     XML_ELEMENT_ACCESS_ERROR = 101,
     DRIVE_RESOURCE_ACCESS_ERROR = 201,
@@ -14,7 +14,7 @@ abstract class ErrorReporter
 {
     abstract private protected string Factor { get; }
 
-    public ErrorReporter(ErrorCodes code, string? exception_message)
+    public ErrorReporter(ErrorCode code, string? exception_message)
     {
         IErrorsWriter.Write(Factor, code, exception_message);
     }
@@ -23,16 +23,16 @@ abstract class ErrorReporter
 
 class ProgramShutDown : ErrorReporter
 {
-    private protected override string Factor { get; } = "| Critical_Error | Program_Shut_Down |";
+    private protected override string Factor { get; } = "| Критическая ошибка выполнения | Работа программы прекращена |";
 
-    public ProgramShutDown(ErrorCodes code, string? exception_message = null) : base(code, exception_message)
+    public ProgramShutDown(ErrorCode code, string? exception_message = null) : base(code, exception_message)
     {
         Environment.Exit(0);
     }
 }
 
 
-class ProgramCrash(ErrorCodes code, string exception_message) : ErrorReporter(code, exception_message)
+class ProgramCrash(ErrorCode code, string exception_message) : ErrorReporter(code, exception_message)
 {
-    private protected override string Factor { get; } = "| Runtime_Error |";
+    private protected override string Factor { get; } = "| Ошибка выполнения программы |";
 }
