@@ -1,27 +1,27 @@
-﻿using System.Xml;
+﻿// * Файл BaseXmlDataFile.cs: базовый класс, для классов файлов отчета и файла настройки директорий. *
+
+using System.Xml;
 using System.Xml.Linq;
 
 
-// * Базовый класс, для классов файлов отчета и файла настройки директорий. * 
-
-abstract class XmlDataFile
+abstract class BaseXmlDataFile
 {
     // Собственно, объект файла.
 
     public XDocument? Document_in { get; }
 
-    // Имя файла в виде полного пути. Применяется как параметр.
+    // Имя файла в виде полного пути. Применяется извне как параметр.
 
     public string Filename_in { get; }
 
     /* "Тело" файла. Нужно для создания сего, в случае его отсутствия в заданных директориях.
        Соответственно для каждого файла создается свой корневой уровень. */
 
-    abstract private protected XElement? Root_Sector_in { get; }
+    abstract protected XElement? Root_Sector_in { get; }
 
     // Входной параметр: полный путь к файлу.
 
-    public XmlDataFile(string file_path)
+    public BaseXmlDataFile(string file_path)
     {
         Filename_in = file_path;
                 

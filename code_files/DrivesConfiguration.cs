@@ -1,23 +1,26 @@
-﻿using System.Xml.Linq;
-using InputValidate;
+﻿/* 
+ * Файл "DrivesConfiguration.cs": конфигурация "дисков".
+ * 
+ * 1. "ConfigurationFile": класс файла настройки рабочих директорий;
+ * 2. "DrivesConfiguration": класс для получения, проверки и установки рабочей директории ("диска"). 
+ */
+
+using System.Xml.Linq;
 using InfoOut;
+using InputValidate;
 
 
-// * Класс файла настройки рабочих директорий. *
-
-class DrivesConfigurationFile(string file_path) : XmlDataFile(file_path)
+class ConfigurationFile(string file_path) : BaseXmlDataFile(file_path)
 {
-    private protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
+    protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
 }
 
 
-// * Класс для получения, проверки и установки рабочей директории ("диска"). *
-
 class DrivesConfiguration
 {
-    private string? Drive_Type_in { get; }
+    string? Drive_Type_in { get; }
     
-    private bool Real_Directory_status { get; set; }
+    bool Real_Directory_status { get; set; }
     public string? Work_Directory_in { get; set; }
 
     // Входной параметр: имя типа "диска".
@@ -85,7 +88,7 @@ class DrivesConfiguration
 
     // * Проверка на "пустую" строку. *
 
-    private bool CheckNoneDirectoryValue()
+    bool CheckNoneDirectoryValue()
     {
         if (Work_Directory_in is not "")
         {
@@ -99,7 +102,7 @@ class DrivesConfiguration
 
     // * Проверка на существование в системе. *
 
-    private bool CheckRealDirectory()
+    bool CheckRealDirectory()
     {
         if (Directory.Exists(Work_Directory_in))
         {
@@ -113,14 +116,14 @@ class DrivesConfiguration
 
     // * Файл настроек дисков. *
 
-    private static DrivesConfigurationFile GetConfiguration()
+    static ConfigurationFile GetConfiguration()
     {
-        return new(LogFiles.DRIVES_CONFIG_FILE);
+        return new(DrivesConfigFile.FILE);
     }
 
     // * Установка новой директории. *
 
-    private bool SetupNewDirectory()
+    bool SetupNewDirectory()
     {
         WorkDirectoriesInfo.ShowEnterTheDirectory();
         GeneralInfo.ShowLine();
@@ -135,9 +138,9 @@ class DrivesConfiguration
         {
             // Чтобы изменить значение в файле, нужно заново получить всю цепочку вызовов.
 
-            DrivesConfigurationFile config_file_lcl = GetConfiguration();
+            ConfigurationFile self_obj_config_file_lcl = GetConfiguration();
                         
-            var drive_sector_lcl = config_file_lcl.Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(Drive_Type_in!);
+            var drive_sector_lcl = self_obj_config_file_lcl.Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(Drive_Type_in!);
               
             if (drive_sector_lcl is null)
             {
@@ -146,7 +149,7 @@ class DrivesConfiguration
 
             drive_sector_lcl!.Value = Work_Directory_in;
             
-            config_file_lcl.Document_in!.Save(LogFiles.DRIVES_CONFIG_FILE);
+            self_obj_config_file_lcl.Document_in!.Save(DrivesConfigFile.FILE);
 
             return true;
         }

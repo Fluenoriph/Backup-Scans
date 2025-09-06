@@ -1,7 +1,7 @@
-﻿using System.Xml.Linq;
+﻿// * Файл IXmlLevelCreator.cs: интерфейс для создания сектора в XML файле. *
 
+using System.Xml.Linq;
 
-// * Интерфейс применяется для создания сектора в XML файле. *
 
 interface IXmlLevelCreator
 {
@@ -9,13 +9,13 @@ interface IXmlLevelCreator
 
     static XElement Create(string sector, List<string> tags)
     {
-        XElement x_sector = new(sector);
+        XElement x_sector_lcl = new(sector);
 
         foreach (string tag in tags)
         {
-            x_sector.Add(new XElement(tag));
+            x_sector_lcl.Add(new XElement(tag));
         }
 
-        return x_sector;
+        return x_sector_lcl;
     }
 }

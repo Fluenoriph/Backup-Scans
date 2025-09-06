@@ -1,15 +1,36 @@
-﻿using InfoOut;
+﻿/*
+ * Название программы: Backup "PDF" Protocols Scan Files v.2.0
+ * Версия: 2.0
+ * Лицензия: MIT License
+ * 
+ * Дата: Сентябрь 2025 г.
+ * Автор: Богданов Иван Иванович
+ * Контакты: fluenoriph@gmail.com, fluenoriph@yandex.ru
+ */
+
+using InfoOut;
 using InputValidate;
 using System.Globalization;
 
 
+// Вывод начальной информации.
+
+GeneralInfo.ShowStarLine();
+GeneralInfo.ShowAuthorInfo();
+GeneralInfo.ShowLine();
 GeneralInfo.ShowProgramInfo();
+GeneralInfo.ShowStarLine();
+Console.WriteLine('\n');
+
+// Создание списка рабочих дисков.
 
 List<DrivesConfiguration> work_drives = [];
 
 foreach (string drive_type in XmlTags.DRIVE_TAGS)
 {
     DrivesConfiguration drive = new(drive_type);
+
+    // Вывод директории диска.
 
     WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!);
     Console.WriteLine('\n');
@@ -19,57 +40,75 @@ foreach (string drive_type in XmlTags.DRIVE_TAGS)
 
 bool program_menu_restart = false;
 
+// Главное меню с "телом".
+
 do
 {
     GeneralInfo.ShowLine();
     Console.WriteLine('\n');
 
     GeneralInfo.ShowProgramMenu();
+
+    // Ввод параметра функции меню.
+
     var parameter = InputNoNullText.GetRealText();
+
+    // Если введено число, то запускается резервное копирование.
 
     if (int.TryParse(parameter, out int _))
     {
+        // Индекс месяца в списке.
+
         int month_index = Convert.ToInt32(parameter, CultureInfo.CurrentCulture) - 1;
+
+        // Правильные цифры: 1 - 12.
 
         if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
         {
-            BackupProcessMonth _ = new(work_drives, PeriodsNames.MONTHES[month_index]);
+            MonthBackupProcess _ = new(work_drives, PeriodsNames.MONTHES[month_index]);
+
+            // После успешного завершения копирования, можно запустить его заново.
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
+        // Формат значения года: 2025.
+
         else if (parameter == CurrentDate.Year.ToString(CultureInfo.CurrentCulture))
         {
-            BackupProcessYear _ = new(work_drives);
+            YearBackupProcess _ = new(work_drives);
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
+        // Если введено неверное число, то происходит "вылет" из программы.
+
         else
         {
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
     }
-    else
+    // Если введена верная буква, то запускается функция изменения директорий.
+
+    else if (parameter is Symbols.CHANGE_DIRECTORY_FUNCTION)
     {
-        if (parameter is Symbols.CHANGE_DIRECTORY_FUNCTION)
-        {
-            Console.WriteLine('\n');
+        Console.WriteLine('\n');
 
-            WorkDirectoriesInfo.ShowEnterDirectoryType();
-            var drive_index = DriveIndex.Index_in;
+        WorkDirectoriesInfo.ShowEnterDirectoryType();
+        var drive_index = DriveIndex.Index_in;
 
-            if (drive_index == -1) // -1 ?
-            {
-                _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
-            }
-
-            work_drives[drive_index].ChangeWorkDirectory();
-
-            program_menu_restart = true;
-        }
-        else
+        if (drive_index == Symbols.NOT_DRIVE_INDEX)
         {
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
+
+        work_drives[drive_index].ChangeWorkDirectory();
+
+        program_menu_restart = true;
+    }
+    // Иначе "вылет" из программы.
+
+    else
+    {
+        _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
     }
 
 } while (program_menu_restart == true);

@@ -1,7 +1,94 @@
-# Backup Scans
+# Backup "PDF" Protocols Scan Files v.2.0
 
-Программа для резервного копирования сканов протоколов, типа ЕИАС системы и внутренних протоколов по физическим факторам.
+    Программа для резервного копирования сканированных копий протоколов ЕИАС Роспотребнадзора и обычных внутренних протоколов по "физическим факторам" в формате PDF.
+    Периодичность копирования, реализованная в программе: за месяц или за год.
 
-Реализован отчет по бэкапу. Полный рассчет всех сумм. Также рассчет ФФ протоколов по типу и т.п., пропущенных номеров и неизвестных номеров.
+    Общий вид шаблона имени протоколов.
+        ЕИАС: 12345-01-25-25.01.2025
+        Обычный: 1-ф-25.01.2025; 2-фа-25.01.2025; 3-р-25.01.2025; 4-ра-25.01.2025; 5-м-25.01.2025; 6-ма-25.01.2025
 
-Копирование может выполняться за месяц или за весь год. Файлы будут перезаписывать принудительно в хранилище.
+    Реализован рассчет сумм всех типов протоколов. Для обычных протоколов, вычисляются полностью все варианты, а также пропущенные и неизвестные протоколы.
+    В результате создается отчет, со всеми суммами и именами протоколов.
+    По умолчанию, файлы с одинаковыми именами перезаписываются в резервном хранилище.
+
+## Информация об исходном коде
+    
+    Содержание:
+        1. BackupProcess.cs
+            * Класс BaseBackupProcess
+            * Класс MonthBackupProcess
+            * Класс YearBackupProcess
+        2. CurrentDate.cs
+            * Структура CurrentDate
+        3. DrivesConfiguration.cs
+            * Класс ConfigurationFile
+            * Класс DrivesConfiguration
+        4. ErrorLog.cs
+            * Перечисление ErrorCode
+            * Класс BaseErrorReporter
+            * Класс ProgramCrash
+            * Класс ProgramShutDown
+        5. ExtremeNumbers.cs
+            * Класс BaseExtremeNumbers
+            * Класс MaximumNumbers
+            * Класс MinimumNumbers
+        6. ISumsTableCreator.cs
+            * Интерфейс ISumsTableCreator
+        7. IXmlLevelCreator.cs
+            * Интерфейс IXmlLevelCreator
+        8. LogFiles.cs
+            * Класс MonthLogFile
+            * Класс YearLogFile
+        9. MonthBackupSums.cs
+            * Класс MonthBackupSums
+       10. NameSorter.cs
+            * Класс BaseNameSorter
+            * Класс EIASSort
+            * Класс SimpleSort
+       11. NumberConverter.cs
+            * Класс BaseNumberConverter
+            * Класс EIASConvert
+            * Класс SimpleConvert
+       12. Program.cs
+            * Инструкция верхнего уровня
+       13. ProgramData.cs
+           * Структура DrivesConfigFile
+           * Структура FilePatterns
+           * Структура LogFiles
+           * Структура PeriodsNames
+           * Структура ProtocolTypesAndSums
+           * Структура Symbols
+           * Структура XmlTags
+       14. ProgramInfoConsoleOut.cs
+            а) Пространство имен InfoOut
+                * Класс BackupInfo
+                * Класс GeneralInfo
+                * Класс ParameterTemplates
+                * Класс WorkDirectoriesInfo
+            б) Пространство имен InputValidate
+                * Класс DriveIndex
+                * Класс InputNoNullText
+            в) Пространство имен ResultLogOut
+                * Класс FullLogPrinter
+       15. ResultLoggers.cs
+            * Класс BaseSumsData
+            * Класс MonthLogger
+            * Класс YearLogger
+       16. SimpleProtocolNames.cs
+            * Класс SimpleProtocolNames
+       17. SourceFiles.cs
+            * Класс SourceFiles
+       18. TotalLogSumsToYearCalculator.cs
+            * Класс TotalLogSumsToYearCalculator
+       19. BaseXmlDataFile.cs
+            * Класс BaseXmlDataFile
+    
+### Положение об именовании
+
+    1. Именованные константы: FIRST
+    2. Локальные переменные: variable_name_lcl (кроме внутренних переменных цикла и параметров методов и классов)
+    3. Переменные статуса: variable_name_status
+    4. Поля класса: variable_name_in
+    5. Пользовательские объекы: self_obj_variable_name
+    6. Классы и методы, пространства имен: FirstSecond
+    7. Базовые классы: BaseClassName 

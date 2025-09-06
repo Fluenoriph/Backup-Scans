@@ -1,9 +1,11 @@
-﻿using System.Globalization;
+﻿// * Файл CurrentDate.cs: структура для получения текущего года и представления даты и времени. *
+
+using System.Globalization;
 
 
 readonly struct CurrentDate
 {
-    private static readonly DateTime current_date_in = DateTime.Now;
+    static readonly DateTime current_date_in = DateTime.Now;
 
     public static int Year   
     {

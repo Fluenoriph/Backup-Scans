@@ -1,11 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿// * Файл SourceFiles.cs: класс для получения файлов сканов из исходной директории (диска). *
 
+using System.Text.RegularExpressions;
 
-// * Класс для получения файлов сканов из исходной директории (диска). *
 
 class SourceFiles
 {
-    private readonly FileInfo[]? files;  
+    readonly FileInfo[]? files_in;  
 
     // Входной параметр: исходная директория.
 
@@ -15,7 +15,7 @@ class SourceFiles
 
         try
         {
-            files = source_drive_directory.GetFiles($"*.{FilePatterns.PROTOCOL_SCAN_FILE_TYPE}");
+            files_in = source_drive_directory.GetFiles($"*.{FilePatterns.PROTOCOL_SCAN_FILE_TYPE}");
         }
         catch (DirectoryNotFoundException error)
         {
@@ -27,7 +27,7 @@ class SourceFiles
 
     public List<FileInfo>? GrabMatchedFiles(Regex pattern)
     {
-        IEnumerable<FileInfo> backup_block_lcl = from file in files
+        IEnumerable<FileInfo> backup_block_lcl = from file in files_in
                                                  where pattern.IsMatch(file.Name)
                                                  select file;
 
