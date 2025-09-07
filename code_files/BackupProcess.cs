@@ -55,13 +55,14 @@ abstract class BaseBackupProcess
 
             // Принудительная проверка на существование папки года для резервного хранилища.
 
-            backup_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+            backup_directory_in = backup_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+
 
             log_directory_in = new(work_drives[2].Work_Directory_in!);
 
             // Принудительная проверка на существование папки года для отчетов.
 
-            log_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+            log_directory_in = log_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
         }
         catch (IOException error)
         {

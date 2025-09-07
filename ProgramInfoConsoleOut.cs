@@ -190,11 +190,11 @@ namespace InfoOut
         {
             if (directory is "")
             {
-                Console.WriteLine($"\n {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория не установлена, необходимо установить.\n");
+                Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория не установлена, необходимо установить.\n");
             }
             else
             {
-                Console.WriteLine($"\n {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория [{directory}] не существует, установите правильную !\n");
+                Console.WriteLine($" {Symbols.GRILLE} {WorkDirectories.NAMES[drive_type]} директория [{directory}] не существует, установите правильную !\n");
             }
         }
 

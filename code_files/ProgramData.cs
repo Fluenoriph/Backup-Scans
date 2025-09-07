@@ -12,6 +12,8 @@
 
 struct DrivesConfigFileLocation
 {
+    // По умолчанию, создается в расположении исполняемого файла программы.
+
     public static string full_program_path = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
 }
 
