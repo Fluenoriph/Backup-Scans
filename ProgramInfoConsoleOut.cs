@@ -113,12 +113,12 @@ namespace InfoOut
             // Вывод.
 
             Console.WriteLine($" {Symbols.STAR} МЕНЮ {Symbols.STAR}\n");
+                        
+            Console.WriteLine($"{Symbols.FLOW_RIGHT} Для запуска резервного копирования, введите значение периода {Symbols.FLOW_RIGHT}\n");
+            ParameterTemplates.ShowParameters(value_info_lcl);
+            Console.WriteLine('\n');
 
             Console.WriteLine($"{Symbols.FLOW_RIGHT} Чтобы изменить директорию, введите: \"{Symbols.CHANGE_DIRECTORY_FUNCTION}\"\n");
-            Console.WriteLine($"{Symbols.FLOW_RIGHT} Для запуска копирования, введите значение периода {Symbols.FLOW_RIGHT}\n");
-            ParameterTemplates.ShowParameters(value_info_lcl);
-
-            Console.WriteLine('\n');
             ShowLine();
         }
 

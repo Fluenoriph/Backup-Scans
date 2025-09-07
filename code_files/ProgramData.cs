@@ -1,18 +1,18 @@
 ﻿/* 
  * Файл "ProgramData.cs": ресурсы, используемые в программе.
  * 
- * 1. "DrivesConfigFile": структура файла настройки рабочих директорий;
+ * 1. "DrivesConfigFileLocation": структура для создания пути файла настройки рабочих директорий;
  * 2. "FilePatterns": структура паттернов, для создания регулярных выражений;
- * 3. "LogFiles": структура файлов отчетов;
+ * 3. "LogFilesNames": структура файлов отчетов;
  * 4. "PeriodsNames": структура временных периодов;
  * 5. "ProtocolTypesAndSums": структура типов протоколов и сумм;
  * 6. "Symbols": структура символов, используемых в программе;
  * 7. "XmlTags": структура тэгов XML файлов.
  */
 
-struct DrivesConfigFile
+struct DrivesConfigFileLocation
 {
-    public static string FILE = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
+    public static string full_program_path = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
 }
 
 
@@ -32,7 +32,7 @@ struct FilePatterns
 }
 
 
-struct LogFiles
+struct LogFilesNames
 {
     public const string MONTH_LOG_FILE = "backup_log_monthes.xml";
 

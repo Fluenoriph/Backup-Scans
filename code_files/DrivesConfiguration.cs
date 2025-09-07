@@ -118,7 +118,7 @@ class DrivesConfiguration
 
     static ConfigurationFile GetConfiguration()
     {
-        return new(DrivesConfigFile.FILE);
+        return new(DrivesConfigFileLocation.full_program_path);
     }
 
     // * Установка новой директории. *
@@ -149,7 +149,7 @@ class DrivesConfiguration
 
             drive_sector_lcl!.Value = Work_Directory_in;
             
-            self_obj_config_file_lcl.Document_in!.Save(DrivesConfigFile.FILE);
+            self_obj_config_file_lcl.Document_in!.Save(DrivesConfigFileLocation.full_program_path);
 
             return true;
         }

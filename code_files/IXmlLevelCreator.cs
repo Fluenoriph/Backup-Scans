@@ -1,4 +1,4 @@
-﻿// * Файл IXmlLevelCreator.cs: интерфейс для создания сектора в XML файле. *
+﻿// * Файл IXmlLevelCreator.cs: интерфейс для создания уровня в XML файле. *
 
 using System.Xml.Linq;
 

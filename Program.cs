@@ -1,9 +1,11 @@
 ﻿/*
  * Название программы: Backup "PDF" Protocols Scan Files v.2.0
  * Версия: 2.0
+ * 
  * Лицензия: MIT License
  * 
- * Дата: Сентябрь 2025 г.
+ * Дата: 07 сентября 2025 г.
+ * 
  * Автор: Богданов Иван Иванович
  * Контакты: fluenoriph@gmail.com, fluenoriph@yandex.ru
  */
@@ -39,8 +41,6 @@ foreach (string drive_type in XmlTags.DRIVE_TAGS)
 }
 
 bool program_menu_restart = false;
-
-// Главное меню с "телом".
 
 do
 {
@@ -79,7 +79,7 @@ do
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
-        // Если введено неверное число, то происходит "вылет" из программы.
+        // Если введено неверное число, то работа программы завершается.
 
         else
         {
@@ -104,7 +104,7 @@ do
 
         program_menu_restart = true;
     }
-    // Иначе "вылет" из программы.
+    // Иначе работа программы завершается.
 
     else
     {
@@ -112,11 +112,3 @@ do
     }
 
 } while (program_menu_restart == true);
-
-
-
-
-
-
-
-// exe dir - C:\Users\Mahabhara\source\repos\Fluenoriph\Backup-Scans\bin\Debug\net9.0

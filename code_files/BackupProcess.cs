@@ -72,9 +72,9 @@ abstract class BaseBackupProcess
             _ = new ProgramShutDown(ErrorCode.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);            
         }
                                                                             
-        self_obj_month_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFiles.MONTH_LOG_FILE));
+        self_obj_month_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFilesNames.MONTH_LOG_FILE));
 
-        self_obj_year_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFiles.YEAR_LOG_FILE));
+        self_obj_year_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFilesNames.YEAR_LOG_FILE));
     }
 
     // * Создание паттерна даты, для соединения с паттерном типа протокола. Формат: дд.мм.гг. *

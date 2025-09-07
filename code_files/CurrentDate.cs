@@ -7,19 +7,6 @@ readonly struct CurrentDate
 {
     static readonly DateTime current_date_in = DateTime.Now;
 
-    public static int Year   
-    {
-        get
-        {
-            return current_date_in.Year;
-        }
-    }
-
-    public static string DateAndTime
-    {
-        get
-        {
-            return current_date_in.ToString(CultureInfo.CurrentCulture);
-        }
-    }
+    public static int Year { get => current_date_in.Year; }
+    public static string DateAndTime { get => current_date_in.ToString(CultureInfo.CurrentCulture); }
 }

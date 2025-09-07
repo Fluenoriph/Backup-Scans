@@ -4,6 +4,8 @@ using System.Xml;
 using System.Xml.Linq;
 
 
+// Основная цель, проверка существования файла.
+
 abstract class BaseXmlDataFile
 {
     // Собственно, объект файла.
