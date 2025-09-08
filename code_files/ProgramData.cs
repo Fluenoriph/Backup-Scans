@@ -14,6 +14,8 @@ struct DrivesConfigFileLocation
 {
     // По умолчанию, создается в расположении исполняемого файла программы.
 
+    // Пренебрегаем обработкой исключения "UnauthorizedAccessException". Оно возникает при попытке создать этот файл, в заблокированном расположении.
+
     public static string full_program_path = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
 }
 
@@ -95,6 +97,8 @@ struct Symbols
     public const string FLOW_RIGHT = ">>>";
 
     public const int NOT_DRIVE_INDEX = -1;
+
+    public const int EIAS_NUMBER_COUNT = 9;
 }
 
 

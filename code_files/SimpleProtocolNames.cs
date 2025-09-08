@@ -75,7 +75,7 @@ class SimpleProtocolNames
 
         List<string> missed_protocols_lcl = [];
 
-        // Алгоритм перебирает коллекцию номеров протоколов.
+        // Алгоритм производит вычисления с коллекцией номеров протоколов.
 
         foreach (var item in protocol_numeric_numbers_in)
         {
@@ -84,11 +84,11 @@ class SimpleProtocolNames
 
             if (item.Value.Count >= 2)
             {
-                // Создаем диапазон всех номеров, предположительно пропущенных.
+                // Создаем диапазон всех номеров. Предположительно, в нем пропущенные.
 
                 var range_lcl = Enumerable.Range(current_period_min_numbers_in[item.Key] + 1, max_numbers_lcl[item.Key] - current_period_min_numbers_in[item.Key]);
 
-                // Получение пропущенного множества, если есть такие номера, то добавляем в список.
+                // Получение разности множеств. Если она есть, то это пропущенные.
 
                 IEnumerable<int> missed_lcl = range_lcl.Except(item.Value);
 
@@ -125,34 +125,35 @@ class SimpleProtocolNames
 
         List<string> unknown_protocols_lcl = [];
 
-        // Алгоритм перебирает словарь минимальных номеров текущего месяца бэкапа.
+        // Алгоритм сопоставляет минимальные номера текущего месяца, с максимальными номерами предыдущего
 
         /* # Пропущенные будут тогда, когда есть разрыв в нумерации за два подряд идущих месяца в годовом порядке.
              Пример: за январь есть скан № 23-ф, а за февраль № 26-ф. Следовательно, два протокола неизвестные. Или за январь, или за февраль. */
 
         foreach (var item in current_period_min_numbers_in!)
         {
-            // Текущий минимальный номер для вычисления, это максимальный номер предыдущего месяца.
+            // Поиск неизвестных будет работать, если в предыдущем месяце есть такой же тип протоколов, как и в текущем.
 
-            int min_number_lcl = max_numbers_lcl[item.Key];
+            // "value", максимальный номер предыдущего месяца - это текущий минимальный номер для вычисления.
 
-            // Текущий максимальный номер, это минимальный номер текущего месяца.
-
-            int max_number_lcl = item.Value;
-
-            // Подтверждающий статус, что есть пропущенные. Если есть разрыв в порядковых номерах.
-
-            bool unknowns_found_status = (min_number_lcl < max_number_lcl) && ((max_number_lcl - 1) != min_number_lcl);
-
-            // Добавление этих номеров.
-
-            if (unknowns_found_status)
+            if (max_numbers_lcl.TryGetValue(item.Key, out int value))
             {
-                for (int start_num = min_number_lcl + 1; start_num < max_number_lcl; start_num++)
+                int max_number_lcl = item.Value;
+
+                // Подтверждающий статус, что есть пропущенные. Если есть разрыв в порядковых номерах.
+
+                bool unknowns_found_status = (value < max_number_lcl) && ((max_number_lcl - 1) != value);
+
+                // Добавление этих номеров.
+
+                if (unknowns_found_status)
                 {
-                    unknown_protocols_lcl.Add($"{start_num}{Symbols.LINE}{GetShortTypeName(item.Key)}");    
+                    for (int start_num = value + 1; start_num < max_number_lcl; start_num++)
+                    {
+                        unknown_protocols_lcl.Add($"{start_num}{Symbols.LINE}{GetShortTypeName(item.Key)}");
+                    }
                 }
-            }
+            }      
         }
 
         if (unknown_protocols_lcl.Count != 0)

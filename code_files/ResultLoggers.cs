@@ -77,7 +77,7 @@ class MonthLogger : BaseSumsData
 
             EIASConvert number_convert_lcl = new();
             EIASSort name_sort_lcl = new();
-
+                                                
             WriteNames(XmlTags.OTHERS_SUMS_TAGS[1], name_sort_lcl.Sorting(number_convert_lcl.ConvertToNumbers(eias_files!), eias_files!));
         }
         else
