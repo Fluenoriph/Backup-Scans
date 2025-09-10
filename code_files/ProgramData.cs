@@ -16,7 +16,7 @@ struct DrivesConfigFileLocation
 
     // Пренебрегаем обработкой исключения "UnauthorizedAccessException". Оно возникает при попытке создать этот файл, в заблокированном расположении.
 
-    public static string full_program_path = string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "drives_config.xml");
+    public static string full_program_path = Path.Combine(Directory.GetCurrentDirectory(), "drives_config.xml"); 
 }
 
 
@@ -83,9 +83,7 @@ struct ProtocolTypesAndSums
 struct Symbols
 {
     public const char LINE = '-';
-
-    public const char SLASH = '\\';
-
+        
     public const char STAR = '*';
 
     public const char GRILLE = '#';

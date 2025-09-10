@@ -73,9 +73,9 @@ abstract class BaseBackupProcess
             _ = new ProgramShutDown(ErrorCode.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);            
         }
                                                                             
-        self_obj_month_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFilesNames.MONTH_LOG_FILE));
+        self_obj_month_log_file_in = new(Path.Combine(log_directory_in!.FullName, LogFilesNames.MONTH_LOG_FILE));
 
-        self_obj_year_log_file_in = new(string.Concat(log_directory_in!.FullName, Symbols.SLASH, LogFilesNames.YEAR_LOG_FILE));
+        self_obj_year_log_file_in = new(Path.Combine(log_directory_in!.FullName, LogFilesNames.YEAR_LOG_FILE));
     }
 
     // * Создание паттерна даты, для соединения с паттерном типа протокола. Формат: дд.мм.гг. *
@@ -84,6 +84,9 @@ abstract class BaseBackupProcess
 
     protected static string CreateDatePattern(int month_index)
     {
+        const char SLASH = '\\';
+        const char POINT = '.';
+
         // Порядковое представление числа месяца.
 
         int month_value_lcl = month_index + 1;
@@ -101,7 +104,7 @@ abstract class BaseBackupProcess
             month_lcl = month_value_lcl.ToString(CultureInfo.CurrentCulture);
         }
 
-        return string.Concat(Symbols.SLASH, "d{2}", Symbols.SLASH, '.', month_lcl, Symbols.SLASH, '.', CurrentDate.Year, Symbols.SLASH, '.', FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
+        return string.Concat(SLASH, "d{2}", SLASH, POINT, month_lcl, SLASH, POINT, CurrentDate.Year, SLASH, POINT, FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
     }
 
     // * Поиск протоколов ЕИАС. *
@@ -153,7 +156,7 @@ abstract class BaseBackupProcess
         {
             try
             {
-                backup_files[file_index].CopyTo(string.Concat(backup_directory_in!.CreateSubdirectory(month_and_type_subdir), Symbols.SLASH, backup_files[file_index].Name), true);
+                backup_files[file_index].CopyTo(Path.Combine(backup_directory_in!.CreateSubdirectory(month_and_type_subdir).FullName, backup_files[file_index].Name), true);
                 
                 backuping_files_count_lcl++;
             }
@@ -178,7 +181,7 @@ abstract class BaseBackupProcess
         {
             // Копирование в поддиректорию .\"month"\"item.Key".
 
-            backuping_files_count_lcl += CopyBackupFiles(item.Value, string.Concat(month, Symbols.SLASH, item.Key));
+            backuping_files_count_lcl += CopyBackupFiles(item.Value, Path.Join(month, item.Key));
         }
 
         return backuping_files_count_lcl;
@@ -200,7 +203,7 @@ abstract class BaseBackupProcess
         {
             // Контроль сумм, найденных и скопированных.
 
-            if (CopyBackupFiles(eias_files!, string.Concat(current_month, Symbols.SLASH, ProtocolTypesAndSums.OTHERS_SUMS[1])) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]])
+            if (CopyBackupFiles(eias_files!, Path.Join(current_month, ProtocolTypesAndSums.OTHERS_SUMS[1])) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]])
             {
                 backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]];
             }

@@ -23,7 +23,7 @@ abstract class BaseErrorReporter
 
         exception_message ??= "error_code";
 
-        using StreamWriter errors_file_lcl = new(string.Concat(Directory.GetCurrentDirectory(), Symbols.SLASH, "errors.txt"), true);
+        using StreamWriter errors_file_lcl = new(Path.Combine(Directory.GetCurrentDirectory(), "errors.txt"), true);
             errors_file_lcl.WriteLine($"\n{date_border_in} {CurrentDate.DateAndTime} {date_border_in} {string.Concat(Factor, $" Code: {(int)code}", $"| Report: {exception_message};")}");
     }
 }
