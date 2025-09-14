@@ -19,4 +19,8 @@
     <WarningLevel>9999</WarningLevel>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspose.HTML" Version="25.8.0" />
+  </ItemGroup>
+
 </Project>

@@ -104,7 +104,7 @@ struct XmlTags
 {
     public static List<string> DRIVE_TAGS = ["SOURCE", "DESTINATION", "XML_LOG"];
 
-    public const string DRIVES_CONFIG_TAG = "configuration";
+    public const string DRIVES_DIRECTORIES_TAG = "directory";
 
     public const string SUMS_TAG = "sums";
 

@@ -12,7 +12,7 @@ using InputValidate;
 
 class ConfigurationFile(string file_path) : BaseXmlDataFile(file_path)
 {
-    protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_CONFIG_TAG, XmlTags.DRIVE_TAGS);
+    protected override XElement Root_Sector_in { get; } = IXmlLevelCreator.Create(XmlTags.DRIVES_DIRECTORIES_TAG, XmlTags.DRIVE_TAGS);
 }
 
 
@@ -31,7 +31,7 @@ class DrivesConfiguration
                   
         // Получение директории из файла
 
-        Work_Directory_in = GetConfiguration().Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(Drive_Type_in)?.Value;
+        Work_Directory_in = GetConfiguration().Document_in!.Element(XmlTags.DRIVES_DIRECTORIES_TAG)?.Element(Drive_Type_in)?.Value;
 
         if (Work_Directory_in is null)
         {
@@ -140,7 +140,7 @@ class DrivesConfiguration
 
             ConfigurationFile self_obj_config_file_lcl = GetConfiguration();
                         
-            var drive_sector_lcl = self_obj_config_file_lcl.Document_in!.Element(XmlTags.DRIVES_CONFIG_TAG)?.Element(Drive_Type_in!);
+            var drive_sector_lcl = self_obj_config_file_lcl.Document_in!.Element(XmlTags.DRIVES_DIRECTORIES_TAG)?.Element(Drive_Type_in!);
               
             if (drive_sector_lcl is null)
             {
