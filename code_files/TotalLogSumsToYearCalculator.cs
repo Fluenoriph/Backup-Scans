@@ -96,11 +96,11 @@ class TotalLogSumsToYearCalculator
     {
         // Создание словаря общих сумм. 
 
-        var all_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.OTHERS_SUMS);
+        var all_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
 
         for (int sum_index = 0; sum_index < all_protocol_sums_lcl.Count; sum_index++)
         {
-            all_protocol_sums_lcl[ProtocolTypesAndSums.OTHERS_SUMS[sum_index]] = calculated_sums_in.GetRange(0, 3)[sum_index];
+            all_protocol_sums_lcl[ProtocolTypesAndSums.MAIN_SUMS[sum_index]] = calculated_sums_in.GetRange(0, 3)[sum_index];
         }
 
         // Простых протоколов может и не быть. Если они есть, то создаем словарь.

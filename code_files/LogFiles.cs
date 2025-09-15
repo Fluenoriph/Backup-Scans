@@ -30,7 +30,7 @@ class MonthLogFile(string file_path) : BaseXmlDataFile(file_path)
 
             x_month_lcl.Add(current_month_lcl);
             x_month_lcl.Add(IXmlLevelCreator.Create(XmlTags.SUMS_TAG, XmlTags.UNITED_SUMS_TAGS));
-            x_month_lcl.Add(IXmlLevelCreator.Create(XmlTags.PROTOCOL_NAMES_TAG, [XmlTags.OTHERS_SUMS_TAGS[1], .. XmlTags.TYPE_TAGS, XmlTags.SIMPLE_SUMS_TAGS[11], XmlTags.SIMPLE_SUMS_TAGS[12]]));
+            x_month_lcl.Add(IXmlLevelCreator.Create(XmlTags.PROTOCOL_NAMES_TAG, [XmlTags.MAIN_SUMS_TAGS[1], .. XmlTags.TYPE_TAGS, XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12]]));
 
             root_lcl.Add(x_month_lcl);
         }

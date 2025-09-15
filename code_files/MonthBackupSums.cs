@@ -6,7 +6,7 @@ class MonthBackupSums
 
     // Все суммы протоколов (общие).
 
-    public Dictionary<string, int> All_Protocols_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesAndSums.OTHERS_SUMS);
+    public Dictionary<string, int> All_Protocols_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
 
     // Суммы простых протоколов по физ. факторам.
 
@@ -22,11 +22,11 @@ class MonthBackupSums
         {
             // Добавление ко всей сумме протоколов.
 
-            All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]] += eias_files.Count;
+            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] += eias_files.Count;
 
             // Сумма ЕИАС.
 
-            All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]] = eias_files.Count;
+            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] = eias_files.Count;
         }
 
         // Если есть ФФ, то считаем.
@@ -42,12 +42,12 @@ class MonthBackupSums
             foreach (var item in simple_files)
             {
                 Simple_Protocols_Sums_in![item.Key] = item.Value.Count;
-                All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]] += item.Value.Count;
+                All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] += item.Value.Count;
             }
 
             // Добавление ко всей сумме.
 
-            All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]] += All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]];
+            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] += All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]];
                    
             // Остальные вычисления.
 

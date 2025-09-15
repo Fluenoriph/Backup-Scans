@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backup_PDF_Protocols Scan Files_2.0", "Backup_PDF_Protocols Scan Files_2.0.csproj", "{0121C776-6029-4486-93B3-FEC75EBBB3C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xml_To_HTML_Log_Converter", "..\Xml_To_HTML_Log_Converter\Xml_To_HTML_Log_Converter.csproj", "{08E77F2D-BFE2-4A25-9E5E-7D9C36BEA69A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{0121C776-6029-4486-93B3-FEC75EBBB3C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0121C776-6029-4486-93B3-FEC75EBBB3C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0121C776-6029-4486-93B3-FEC75EBBB3C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{08E77F2D-BFE2-4A25-9E5E-7D9C36BEA69A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{08E77F2D-BFE2-4A25-9E5E-7D9C36BEA69A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08E77F2D-BFE2-4A25-9E5E-7D9C36BEA69A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08E77F2D-BFE2-4A25-9E5E-7D9C36BEA69A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -31,7 +31,7 @@ abstract class BaseSumsData
                 _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
             }
 
-            // Параметры "sums" и "names" могут быть нулевыми, т.к. при отсутствии каких-либо протоколов, в файл сразу записываем ноль.
+            // Параметры "sums" и "names" могут быть нулевыми при отсутствии каких-либо протоколов, тогда сразу записываем ноль.
 
             if ((sums is not null) && (names is not null))
             {
@@ -67,31 +67,31 @@ class MonthLogger : BaseSumsData
 
         // Запись общих сумм.
 
-        WriteSums(XmlTags.OTHERS_SUMS_TAGS, backup_sums.All_Protocols_Sums_in, ProtocolTypesAndSums.OTHERS_SUMS);
+        WriteSums(XmlTags.MAIN_SUMS_TAGS, backup_sums.All_Protocols_Sums_in, ProtocolTypesAndSums.MAIN_SUMS);
 
         // Запись имен протоколов ЕИАС, при условии, что они найдены. Т.е. их сумма не равна нулю.
 
-        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]] != 0)
+        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
         {
             // Сортировка по возрастанию номера протокола и запись имен.
 
             EIASConvert number_convert_lcl = new();
             EIASSort name_sort_lcl = new();
                                                 
-            WriteNames(XmlTags.OTHERS_SUMS_TAGS[1], name_sort_lcl.Sorting(number_convert_lcl.ConvertToNumbers(eias_files!), eias_files!));
+            WriteNames(XmlTags.MAIN_SUMS_TAGS[1], name_sort_lcl.Sorting(number_convert_lcl.ConvertToNumbers(eias_files!), eias_files!));
         }
         else
         {
             // Если нет файлов ЕИАС, то записываем пустую строку в этот уровень.
 
-            WriteNames(XmlTags.OTHERS_SUMS_TAGS[1]);
+            WriteNames(XmlTags.MAIN_SUMS_TAGS[1]);
         }
 
         // Запись простых протоколов по физ. факторам, если они найдены.
 
-        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]] != 0)
+        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
         {
-            WriteSums(XmlTags.SIMPLE_SUMS_TAGS, backup_sums.Simple_Protocols_Sums_in, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
+            WriteSums(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS, backup_sums.Simple_Protocols_Sums_in, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 
             // * Запись сортированных имен по возрастанию номера протокола. *
             // Проходим по всем названиям сумм, т.к. нужно записывать отсутствующие протоколы как пустую строку.
@@ -116,14 +116,14 @@ class MonthLogger : BaseSumsData
 
             // Запись пропущенных и неизвестных протоколов.
 
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[11], backup_sums.self_obj_names_in!.Missed_Protocols_in);
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[12], backup_sums.self_obj_names_in!.Unknown_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], backup_sums.self_obj_names_in!.Missed_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12], backup_sums.self_obj_names_in!.Unknown_Protocols_in);
         }
         else
         {
             // Если не найдены протоколы, то записываем суммы по нулям и имена пустыми строками.
 
-            WriteSums(XmlTags.SIMPLE_SUMS_TAGS);
+            WriteSums(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS);
 
             // Пустые сектора названий протоколов по типам.
 
@@ -134,8 +134,8 @@ class MonthLogger : BaseSumsData
 
             // Пустые пропущенные и неизвестные.
 
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[11]);
-            WriteNames(XmlTags.SIMPLE_SUMS_TAGS[12]);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11]);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12]);
         }
 
         // Сохраняем все.
@@ -179,8 +179,8 @@ class YearLogger : BaseSumsData
 
         // Запись и сохранение.
 
-        WriteSums(XmlTags.OTHERS_SUMS_TAGS, all_protocols_sums, ProtocolTypesAndSums.OTHERS_SUMS);
-        WriteSums(XmlTags.SIMPLE_SUMS_TAGS, simple_protocols_sums, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
+        WriteSums(XmlTags.MAIN_SUMS_TAGS, all_protocols_sums, ProtocolTypesAndSums.MAIN_SUMS);
+        WriteSums(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS, simple_protocols_sums, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 
         file.Document_in.Save(file.Filename_in);
     }

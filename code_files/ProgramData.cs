@@ -10,6 +10,8 @@
  * 7. "XmlTags": структура тэгов XML файлов.
  */
 
+using System.Globalization;
+
 struct DrivesConfigFileLocation
 {
     // По умолчанию, создается в расположении исполняемого файла программы.
@@ -68,7 +70,7 @@ struct ProtocolTypesAndSums
 
     public static List<string> TYPES_SHORT_NAMES = ["ф", "фа", "р", "ра", "м", "ма"];
 
-    public static List<string> OTHERS_SUMS = ["Всего", "ЕИАС", "Простые"];
+    public static List<string> MAIN_SUMS = ["Всего", "ЕИАС", "Обычные"];
 
     public static List<string> FULL_LOCATION_SUMS = ["Уссурийск всего", "Арсеньев всего"];
 
@@ -116,11 +118,11 @@ struct XmlTags
 
     public const string MONTH_NAME_TAG = "name";
 
-    public static List<string> OTHERS_SUMS_TAGS = ["full", "eias", "simple"];
+    public static List<string> MAIN_SUMS_TAGS = ["full", "eias", "simple"];
 
-    public static List<string> SIMPLE_SUMS_TAGS = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
+    public static List<string> SIMPLE_PROTOCOLS_SUMS_TAGS = ["uss", "ars", "f_all", "r_all", "m_all", "f", "fa", "r", "ra", "m", "ma", "misseds", "unknowns"];
 
-    public static List<string> TYPE_TAGS = SIMPLE_SUMS_TAGS.GetRange(5, 6);
+    public static List<string> TYPE_TAGS = SIMPLE_PROTOCOLS_SUMS_TAGS.GetRange(5, 6);
 
-    public static List<string> UNITED_SUMS_TAGS = [.. OTHERS_SUMS_TAGS, .. SIMPLE_SUMS_TAGS];
+    public static List<string> UNITED_SUMS_TAGS = [.. MAIN_SUMS_TAGS, .. SIMPLE_PROTOCOLS_SUMS_TAGS];
 }

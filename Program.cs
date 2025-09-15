@@ -67,13 +67,16 @@ do
         {
             MonthBackupProcess _ = new(work_drives, PeriodsNames.MONTHES[month_index]);
 
+            // Отделять модули лога и парсера.
+
+
             // После успешного завершения копирования, можно запустить его заново.
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
         // Формат значения года: 2025.
 
-        else if (parameter == CurrentDate.Year.ToString(CultureInfo.CurrentCulture))
+        else if (parameter == CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture))
         {
             YearBackupProcess _ = new(work_drives);
 

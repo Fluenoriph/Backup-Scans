@@ -108,7 +108,7 @@ namespace InfoOut
             {
                 value_info_lcl.Add(string.Concat(month, Symbols.LINE, ParameterTemplates.CreateParameterDigit(PeriodsNames.MONTHES, month)));
             }
-            value_info_lcl.Add(string.Concat(PeriodsNames.YEAR, Symbols.LINE, $"\"{CurrentDate.Year}\""));
+            value_info_lcl.Add(string.Concat(PeriodsNames.YEAR, Symbols.LINE, $"\"{CurrentDate.Year_in}\""));
 
             // Вывод.
 
@@ -349,17 +349,17 @@ namespace ResultLogOut
 
             // Все протоколы.
 
-            AllSumsLineLogOut(ProtocolTypesAndSums.OTHERS_SUMS[0]);
+            AllSumsLineLogOut(ProtocolTypesAndSums.MAIN_SUMS[0]);
 
             // Сумма протоколов ЕИАС.
 
-            AllSumsLineLogOut(ProtocolTypesAndSums.OTHERS_SUMS[1]);
+            AllSumsLineLogOut(ProtocolTypesAndSums.MAIN_SUMS[1]);
 
             SeparateString();
 
             // Сумма протоколов по ФФ.
 
-            AllSumsLineLogOut(ProtocolTypesAndSums.OTHERS_SUMS[2]);
+            AllSumsLineLogOut(ProtocolTypesAndSums.MAIN_SUMS[2]);
 
             // Вывод сумм типов протоколов по ФФ, если они есть.
 

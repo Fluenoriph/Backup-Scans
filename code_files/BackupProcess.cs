@@ -38,9 +38,7 @@ abstract class BaseBackupProcess
     // Шаблон, для вывода отчета в консоль.
 
     protected FullLogPrinter? self_obj_log_show_in;
-
-    protected string current_year_print_in = string.Concat(CurrentDate.Year, " ", PeriodsNames.YEAR.ToLower(CultureInfo.CurrentCulture));
-
+        
     // Вход: список "рабочих дисков".
 
     public BaseBackupProcess(List<DrivesConfiguration> work_drives)
@@ -55,14 +53,14 @@ abstract class BaseBackupProcess
 
             // Принудительная проверка на существование папки года для резервного хранилища.
 
-            backup_directory_in = backup_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+            backup_directory_in = backup_directory_in.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
 
 
             log_directory_in = new(work_drives[2].Work_Directory_in!);
 
             // Принудительная проверка на существование папки года для отчетов.
 
-            log_directory_in = log_directory_in.CreateSubdirectory(CurrentDate.Year.ToString(CultureInfo.CurrentCulture));
+            log_directory_in = log_directory_in.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
         }
         catch (IOException error)
         {
@@ -104,7 +102,7 @@ abstract class BaseBackupProcess
             month_lcl = month_value_lcl.ToString(CultureInfo.CurrentCulture);
         }
 
-        return string.Concat(SLASH, "d{2}", SLASH, POINT, month_lcl, SLASH, POINT, CurrentDate.Year, SLASH, POINT, FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
+        return string.Concat(SLASH, "d{2}", SLASH, POINT, month_lcl, SLASH, POINT, CurrentDate.Year_in, SLASH, POINT, FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
     }
 
     // * Поиск протоколов ЕИАС. *
@@ -199,25 +197,25 @@ abstract class BaseBackupProcess
 
         // Копирование, при условии, что есть ЕИАС сканы в этом месяце.
 
-        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]] != 0)
+        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
         {
             // Контроль сумм, найденных и скопированных.
 
-            if (CopyBackupFiles(eias_files!, Path.Join(current_month, ProtocolTypesAndSums.OTHERS_SUMS[1])) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]])
+            if (CopyBackupFiles(eias_files!, Path.Join(current_month, ProtocolTypesAndSums.MAIN_SUMS[1])) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]])
             {
-                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[1]];
+                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]];
             }
         }
 
         // Копирование, при условии, что есть "ФФ" сканы в этом месяце.
 
-        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]] != 0)
+        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
         {
             // Контроль сумм.
 
-            if (CopySimpleBlock(simple_files!, current_month) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]])
+            if (CopySimpleBlock(simple_files!, current_month) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]])
             {
-                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[2]];
+                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]];
             }
         }
 
@@ -254,13 +252,13 @@ class MonthBackupProcess : BaseBackupProcess
 
         // Если в текущем месяце есть протоколы, то далее ...
 
-        if (sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]] != 0)
+        if (sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
         {
             BackupInfo.ShowVisualWait();
 
             // Контроль скопированной суммы. При отрицательном результате, генерируется ошибка.
 
-            if (MonthBackuping(month, eias_files_lcl, simple_files_lcl, sums_lcl) == sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]])
+            if (MonthBackuping(month, eias_files_lcl, simple_files_lcl, sums_lcl) == sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 // Логгинг отчета.
 
@@ -272,6 +270,10 @@ class MonthBackupProcess : BaseBackupProcess
                 GeneralInfo.ShowStarLine();
                 Console.WriteLine('\n');
                                 
+
+                // Класс создатель отчетов высокоуровневый !!!!!
+
+                // ******************************************
                 // Вывод отчета в консоль.
 
                 BackupInfo.ShowLogHeader(month);
@@ -280,15 +282,22 @@ class MonthBackupProcess : BaseBackupProcess
 
                 // Если копировали за декабрь, то подводим итоги года, рассчетом сумм всех месяцев из их логов.
 
+                // Также отдельный класс.....  
+
+
                 if (month == PeriodsNames.MONTHES[PeriodsNames.DECEMBER_INDEX])
                 {
+                    // Рассчет по горизонтали.... по тэгам
+
+                    // У парсера вертикальная логика.....  другая задача
+
                     TotalLogSumsToYearCalculator year_calc_result_lcl = new(self_obj_month_log_file_in!, self_obj_year_log_file_in!);
                                         
                     Console.WriteLine('\n');
                     GeneralInfo.ShowLine();
                     Console.WriteLine('\n');
 
-                    BackupInfo.ShowLogHeader(current_year_print_in);
+                    BackupInfo.ShowLogHeader(CurrentDate.Current_Year_Print_in);
 
                     var year_sums_lcl = year_calc_result_lcl.GetYearSums();
 
@@ -327,7 +336,7 @@ class YearBackupProcess : BaseBackupProcess
         {
             // Сложение всех сумм за год, для оперативного формирования отчета.
 
-            var all_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.OTHERS_SUMS);
+            var all_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
             var simple_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 
             foreach (var month_item in year_full_backup_in)
@@ -350,9 +359,13 @@ class YearBackupProcess : BaseBackupProcess
 
             // Если контроль сумм прошел успешно, то продолжаем далее, если нет, то генерация ошибки.
 
-            if (YearBackupingAndLogging() == all_sums_lcl[ProtocolTypesAndSums.OTHERS_SUMS[0]])
+            if (YearBackupingAndLogging() == all_sums_lcl[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 // Логгинг.
+
+                // Класс создатель html --- или парсер xml или парсер словаря сумм !!!!!!!!
+                
+                // Парсер xml 
 
                 _ = new YearLogger(self_obj_year_log_file_in!, all_sums_lcl, simple_sums_lcl);
 
@@ -365,7 +378,7 @@ class YearBackupProcess : BaseBackupProcess
 
                 foreach (var month_item in year_full_backup_in)
                 {
-                    BackupInfo.ShowMonthBackupResult(month_item.Item1, month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]]);
+                    BackupInfo.ShowMonthBackupResult(month_item.Item1, month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]]);
                     GeneralInfo.ShowLine();
                 }
 
@@ -373,7 +386,7 @@ class YearBackupProcess : BaseBackupProcess
                 
                 // Вывод отчета за год.
 
-                BackupInfo.ShowLogHeader(current_year_print_in);
+                BackupInfo.ShowLogHeader(CurrentDate.Current_Year_Print_in);
                 self_obj_log_show_in = new(all_sums_lcl, simple_sums_lcl);
                 self_obj_log_show_in.ShowLog();
             }
@@ -384,7 +397,7 @@ class YearBackupProcess : BaseBackupProcess
         }
         else
         {
-            BackupInfo.ShowScansNotFound(current_year_print_in);
+            BackupInfo.ShowScansNotFound(CurrentDate.Current_Year_Print_in);
         }
     }
 
@@ -422,7 +435,7 @@ class YearBackupProcess : BaseBackupProcess
 
             // Добавление, только если есть файлы в текущем месяце.
 
-            if (sums_in.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]] != 0)
+            if (sums_in.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
             {
                 year_full_backup_in.Add((PeriodsNames.MONTHES[month_index], eias_files_lcl, simple_files_lcl, sums_in));
             }
@@ -452,11 +465,14 @@ class YearBackupProcess : BaseBackupProcess
         {
             // Контроль сумм.
 
-            if (MonthBackuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]])
+            if (MonthBackuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
-                backup_count_lcl += month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.OTHERS_SUMS[0]];
+                backup_count_lcl += month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]];
 
                 _ = new MonthLogger(self_obj_month_log_file_in!, month_item.Item1, month_item.Item4, month_item.Item2);
+
+                // добавлять сектора сумм и протоколов в список .....
+                // 
             }
         }
 
