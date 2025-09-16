@@ -469,11 +469,15 @@ class YearBackupProcess : BaseBackupProcess
         foreach (var month_item in year_full_backup_in)
         {
             // Контроль сумм.
-
+            
+            // Интерфейсы должны совпадать. Копирования за месяц и year_full_backup_in ????
+            
             if (MonthBackuping(month_item.Item1, month_item.Item2, month_item.Item3, month_item.Item4) == month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 backup_count_lcl += month_item.Item4.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]];
 
+                // У логгера другой интерфейс. 
+                
                 _ = new MonthLogger(self_obj_month_log_file_in!, month_item.Item1, month_item.Item4, month_item.Item2);
 
                 // добавлять сектора сумм и протоколов в список .....
