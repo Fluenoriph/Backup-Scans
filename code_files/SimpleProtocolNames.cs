@@ -1,5 +1,7 @@
 ﻿// * Файл SimpleProtocolNames.cs: класс для вычислений имен простых протоколов (физ. факторов) за месяц. *
 
+// Это класс ProtocolNamesComputing для вычисления имен всех протоколов. Отдельная задача.
+
 class SimpleProtocolNames
 {
     readonly SimpleConvert self_obj_number_converter_in = new();
