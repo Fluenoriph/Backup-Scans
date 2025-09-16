@@ -115,3 +115,13 @@ do
     }
 
 } while (program_menu_restart == true);
+
+// 2 новый класса для отдельных задач:
+// ProtocolNamesComputing(eias files, simple files)
+// BackupSums(или предыдущий объект или отдельные списки в параметре)
+// Другой интерфейс для логгера за месяц и за год.
+
+
+
+
+
