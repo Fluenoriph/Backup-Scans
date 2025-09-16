@@ -24,21 +24,9 @@ GeneralInfo.ShowProgramInfo();
 GeneralInfo.ShowStarLine();
 Console.WriteLine('\n');
 
-// Создание списка рабочих дисков.
+// * Создание рабочих пространств. *
 
-List<DrivesConfiguration> work_drives = [];
-
-foreach (string drive_type in XmlTags.DRIVE_TAGS)
-{
-    DrivesConfiguration drive = new(drive_type);
-
-    // Вывод директории диска.
-
-    WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!);
-    Console.WriteLine('\n');
-
-    work_drives.Add(drive);
-}
+WorkLocations work_locations = new();
 
 bool program_menu_restart = false;
 
@@ -61,13 +49,22 @@ do
 
         int month_index = Convert.ToInt32(parameter, CultureInfo.CurrentCulture) - 1;
 
+        // work locations ??
+
         // Правильные цифры: 1 - 12.
 
         if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
         {
-            MonthBackupProcess _ = new(work_drives, PeriodsNames.MONTHES[month_index]);
+            MonthBackupProcess _ = new(work_directories, PeriodsNames.MONTHES[month_index]);
 
             // Отделять модули лога и парсера.
+
+
+
+
+
+
+
 
 
             // После успешного завершения копирования, можно запустить его заново.
@@ -78,7 +75,15 @@ do
 
         else if (parameter == CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture))
         {
-            YearBackupProcess _ = new(work_drives);
+            YearBackupProcess _ = new(work_directories);
+
+
+
+
+
+
+
+
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
@@ -103,7 +108,7 @@ do
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
 
-        work_drives[drive_index].ChangeWorkDirectory();
+        work_directories[drive_index].ChangeWorkDirectory();
 
         program_menu_restart = true;
     }
@@ -115,13 +120,3 @@ do
     }
 
 } while (program_menu_restart == true);
-
-// 2 новый класса для отдельных задач:
-// ProtocolNamesComputing(eias files, simple files)
-// BackupSums(или предыдущий объект или отдельные списки в параметре)
-// Другой интерфейс для логгера за месяц и за год.
-
-
-
-
-

@@ -1,9 +1,7 @@
-﻿// * Файл MonthBackupSums.cs: класс для вычисления полного отчета за месяц. *
+﻿// * Файл BackupSumsPerMonth.cs: класс для вычисления всех сумм отчета за месяц. *
 
-class MonthBackupSums
+class BackupSumsPerMonth
 {
-    public readonly SimpleProtocolNames? self_obj_names_in;
-
     // Все суммы протоколов (общие).
 
     public Dictionary<string, int> All_Protocols_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
@@ -12,26 +10,26 @@ class MonthBackupSums
 
     public Dictionary<string, int>? Simple_Protocols_Sums_in { get; }
 
-    // Параметры: ЕИАС сканы, ФФ сканы, ФФ сканы за предыдущий месяц (для вычисления неизвестных).
+    // Параметры: ЕИАС сортированные сканы, ФФ сортированные сканы, пропущенные ФФ, неизвестные ФФ.
 
-    public MonthBackupSums(List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, Dictionary<string, List<FileInfo>>? previous_period_simple_files = null)
+    public BackupSumsPerMonth(List<string>? sorted_eias_protocols, Dictionary<string, List<string>>? sorted_simple_protocols, List<string>? missed_simples, List<string>? unknown_simples)
     {
         // Если есть ЕИАС, то считаем.
 
-        if (eias_files is not null)
+        if (sorted_eias_protocols is not null)
         {
             // Добавление ко всей сумме протоколов.
 
-            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] += eias_files.Count;
+            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] += sorted_eias_protocols.Count;
 
             // Сумма ЕИАС.
 
-            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] = eias_files.Count;
+            All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] = sorted_eias_protocols.Count;
         }
 
         // Если есть ФФ, то считаем.
 
-        if (simple_files is not null)
+        if (sorted_simple_protocols is not null)
         {
             // Создаем словарь сумм.
 
@@ -39,7 +37,7 @@ class MonthBackupSums
 
             // Рассчет сумм внутренних типов протоколов и суммы всех ФФ.
 
-            foreach (var item in simple_files)
+            foreach (var item in sorted_simple_protocols)
             {
                 Simple_Protocols_Sums_in![item.Key] = item.Value.Count;
                 All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] += item.Value.Count;
@@ -49,21 +47,22 @@ class MonthBackupSums
 
             All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] += All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]];
                    
-            // Остальные вычисления.
+            // Вычисления сумм типов обычных протоколов.
 
             CalcProtocolTypeFullSum();            
             CalcProtocolLocationSums();
 
-            // Вычисления имен протоколов.
+            // Рассчет сумм пропущенных и неизвестных, если они есть (обычные).           
 
-            self_obj_names_in = new(simple_files);
-                        
-            if (previous_period_simple_files is not null)
+            if (missed_simples is not null)
             {
-                self_obj_names_in.ComputeUnknownProtocols(previous_period_simple_files);
+                Simple_Protocols_Sums_in![ProtocolTypesAndSums.NOT_FOUND_SUMS[0]] = missed_simples.Count;
             }
 
-            CalcNotFoundProtocolsSums();
+            if (unknown_simples is not null)
+            {
+                Simple_Protocols_Sums_in![ProtocolTypesAndSums.NOT_FOUND_SUMS[1]] = unknown_simples.Count;
+            }
         }
     }
 
@@ -86,21 +85,6 @@ class MonthBackupSums
         {
             Simple_Protocols_Sums_in![ProtocolTypesAndSums.FULL_LOCATION_SUMS[city_index]] = Simple_Protocols_Sums_in[ProtocolTypesAndSums.TYPES_FULL_NAMES[calc_index]] + Simple_Protocols_Sums_in[ProtocolTypesAndSums.TYPES_FULL_NAMES[calc_index + 2]] + Simple_Protocols_Sums_in[ProtocolTypesAndSums.TYPES_FULL_NAMES[calc_index + 4]];
             calc_index += 1;
-        }
-    }
-
-    // * Рассчет сумм пропущенных и неизвестных протоколов, если они есть. *
-
-    void CalcNotFoundProtocolsSums()
-    {
-        if (self_obj_names_in!.Missed_Protocols_in is not null)
-        {
-            Simple_Protocols_Sums_in![ProtocolTypesAndSums.NOT_FOUND_SUMS[0]] = self_obj_names_in.Missed_Protocols_in.Count;
-        }
-
-        if (self_obj_names_in.Unknown_Protocols_in is not null)
-        {
-            Simple_Protocols_Sums_in![ProtocolTypesAndSums.NOT_FOUND_SUMS[1]] = self_obj_names_in.Unknown_Protocols_in.Count;
         }
     }
 }

@@ -62,7 +62,7 @@ class MonthLogger : BaseSumsData
 
     // Параметры: файл отчета, название месяца, объект суммы бэкапа за месяц, протоколы ЕИАС.
 
-    public MonthLogger(MonthLogFile file, string month_name, MonthBackupSums backup_sums, List<FileInfo>? eias_files)
+    public MonthLogger(MonthLogFile file, string month_name, BackupSumsPerMonth backup_sums, List<FileInfo>? eias_files)
     {
         var current_month_sector_lcl = file.GetMonthData(month_name);
 
@@ -75,7 +75,7 @@ class MonthLogger : BaseSumsData
 
         // Запись имен протоколов ЕИАС, при условии, что они найдены. Т.е. их сумма не равна нулю.
 
-        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
+        /*if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
         {
             // Сортировка по возрастанию номера протокола и запись имен.
 
@@ -89,7 +89,7 @@ class MonthLogger : BaseSumsData
             // Если нет файлов ЕИАС, то записываем пустую строку в этот уровень.
 
             WriteNames(XmlTags.MAIN_SUMS_TAGS[1]);
-        }
+        }*/
 
         // Запись простых протоколов по физ. факторам, если они найдены.
 
@@ -108,7 +108,7 @@ class MonthLogger : BaseSumsData
 
                 // Проверка, какие типы протоколов есть в словаре сортированных имен.
 
-                if (backup_sums.self_obj_names_in!.Sorted_Names_in.TryGetValue(name, out List<string>? value))
+                if (backup_sums.self_obj_names_in!.Sorted_Simple_Protocol_Names_in.TryGetValue(name, out List<string>? value))
                 {
                     WriteNames(target_tag_lcl, value);
                 }
@@ -120,8 +120,8 @@ class MonthLogger : BaseSumsData
 
             // Запись пропущенных и неизвестных протоколов.
 
-            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], backup_sums.self_obj_names_in!.Missed_Protocols_in);
-            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12], backup_sums.self_obj_names_in!.Unknown_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], backup_sums.self_obj_names_in!.Missed_Simple_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12], backup_sums.self_obj_names_in!.Unknown_Simple_Protocols_in);
         }
         else
         {

@@ -181,7 +181,7 @@ namespace InfoOut
 
         public static void ShowDirectorySetupTrue(string drive_type, string directory)
         {
-            Console.WriteLine($" {Symbols.STAR} {WorkDirectories.NAMES[drive_type]} директория: {directory}");
+            Console.WriteLine($" {Symbols.STAR} {WorkDirectories.NAMES[drive_type]} директория: {directory}\n");
         }
 
         // * Сообщение об отрицательной установке директории. *
