@@ -13,6 +13,9 @@ using System.Security;
 using System.Text.RegularExpressions;
 
 
+// За месяц внешние интерфейсы ProtocolNamesComputing & BackupSums
+// Создание директорий отдельно. Создание файлов лога отдельно, в классе логгирования. 
+
 abstract class BaseBackupProcess
 {
     // Исходные файлы "PDF".
@@ -189,6 +192,8 @@ abstract class BaseBackupProcess
 
     // Параметры: месяц, сканы ЕИАС, сканы по "ФФ", суммы бэкапа за данный месяц.
 
+    // Здесь нужны только общие суммы для контроля условий копирования.
+    
     protected int MonthBackuping(string current_month, List<FileInfo>? eias_files, Dictionary<string, List<FileInfo>>? simple_files, MonthBackupSums sums)
     {
         // Счетчик всех скопированных файлов за месяц.
