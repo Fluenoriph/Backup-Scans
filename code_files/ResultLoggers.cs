@@ -10,6 +10,10 @@ using System.Globalization;
 using System.Xml.Linq;
 
 
+// Публичные интерфейсы для сектора сумм и имен. Для получения значений, если нужно конвертировать в html. 
+
+
+
 abstract class BaseSumsData
 {
     // Уровень сумм.
