@@ -63,6 +63,8 @@ class TotalLogSumsToYearCalculator
 
         // Если значение не "0" и не пустая строка, то суммируем.
 
+        // Как условия переменная. Константа
+        
         bool real_value_status = (sum_value_lcl is not Symbols.NULL) && (sum_value_lcl is not "");
 
         if (real_value_status)
