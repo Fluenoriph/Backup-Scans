@@ -68,7 +68,7 @@ struct ProtocolTypesAndSums
 
     public static List<string> TYPES_FULL_NAMES = [$"{SIMPLE_PROTOCOL_TYPES[0]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[0]} ({LOCATIONS[1]})",
                                                    $"{SIMPLE_PROTOCOL_TYPES[1]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[1]} ({LOCATIONS[1]})",
-                                                   $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[1]})";
+                                                   $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[1]})"];
 
     // Тип простого протокола: 1-ф, 22-р; 13-ма и т.д.
 
