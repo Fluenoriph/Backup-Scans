@@ -60,11 +60,15 @@ struct PeriodsNames
 
 struct ProtocolTypesAndSums
 {
+    public static List<string> SIMPLE_PROTOCOL_TYPES = ["Физические факторы", "Радиационный контроль", "Измерения мебели"];
+
+    public static List<string> LOCATIONS = ["Уссурийск", "Арсеньев"];
+        
     // Ниже, сокращенные названия, используемые в именовании протоколов.
 
-    public static List<string> TYPES_FULL_NAMES = ["Физические факторы (Уссурийск)", "Физические факторы (Арсеньев)",
-                                                           "Радиационный контроль (Уссурийск)", "Радиационный контроль (Арсеньев)",
-                                                           "Измерения мебели (Уссурийск)", "Измерения мебели (Арсеньев)"];
+    public static List<string> TYPES_FULL_NAMES = [$"{SIMPLE_PROTOCOL_TYPES[0]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[0]} ({LOCATIONS[1]})",
+                                                   $"{SIMPLE_PROTOCOL_TYPES[1]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[1]} ({LOCATIONS[1]})",
+                                                   $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[0]})", $"{SIMPLE_PROTOCOL_TYPES[2]} ({LOCATIONS[1]})";
 
     // Тип простого протокола: 1-ф, 22-р; 13-ма и т.д.
 
@@ -72,9 +76,10 @@ struct ProtocolTypesAndSums
 
     public static List<string> MAIN_SUMS = ["Всего", "ЕИАС", "Обычные"];
 
-    public static List<string> FULL_LOCATION_SUMS = ["Уссурийск всего", "Арсеньев всего"];
+    public static List<string> FULL_LOCATION_SUMS = [$"{MAIN_SUMS[0]} {LOCATIONS[0]}", $"{MAIN_SUMS[0]} {LOCATIONS[1]}"];
 
-    public static List<string> FULL_TYPE_SUMS = ["Физические факторы всего", "Радиационный контроль всего", "Измерения мебели всего"];
+    public static List<string> FULL_TYPE_SUMS = [$"{MAIN_SUMS[0]} {SIMPLE_PROTOCOL_TYPES[0]}", $"{MAIN_SUMS[0]} {SIMPLE_PROTOCOL_TYPES[1]}",
+                                                 $"{MAIN_SUMS[0]} {SIMPLE_PROTOCOL_TYPES[2]}"];
 
     public static List<string> NOT_FOUND_SUMS = ["Пропущенные", "Неизвестные"];
 
@@ -125,4 +130,13 @@ struct XmlTags
     public static List<string> TYPE_TAGS = SIMPLE_PROTOCOLS_SUMS_TAGS.GetRange(5, 6);
 
     public static List<string> UNITED_SUMS_TAGS = [.. MAIN_SUMS_TAGS, .. SIMPLE_PROTOCOLS_SUMS_TAGS];
+}
+
+
+interface IRealValue
+{
+    static bool GetStatus(string? value)
+    {
+        return (value is not Symbols.NULL) && (value is not "");
+    }
 }

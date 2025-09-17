@@ -180,6 +180,8 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo b
 
 class MonthBackupProcess : BaseBackupProcess
 {
+    // Интерфейс для логгирования.
+
     public ProtocolNamesComputingPerMonth Self_Obj_Names_Computing_in { get; }
     public BackupSumsPerMonth Self_Obj_Sums_in { get; }
     
@@ -227,13 +229,11 @@ class MonthBackupProcess : BaseBackupProcess
             else
             {
                 Backup_status_in = BackupingStatusCode.BACKUP_FAILURE;
-                //BackupInfo.ShowCopyError();
             }
         }
         else
         {
             Backup_status_in = BackupingStatusCode.BACKUP_NOT_FOUND;
-            //BackupInfo.ShowScansNotFound(month);
         }
     }
 }
@@ -241,13 +241,19 @@ class MonthBackupProcess : BaseBackupProcess
 
 class YearBackupProcess : BaseBackupProcess
 {
-    // Список по найденным месяцам всех данных бэкапа за год.
+    // Все найденные протоколы за год.
 
-    readonly List<(string, List<FileInfo>?, Dictionary<string, List<FileInfo>>?)> year_full_backup_in = [];
+    readonly List<(List<FileInfo>?, Dictionary<string, List<FileInfo>>?)> year_full_backup_files_in = [];
 
     // Эти данные нужны для логгирования всех месяцев.
 
-    public List<(ProtocolNamesComputingPerMonth, BackupSumsPerMonth)> Full_Log_Data_in { get; } = [];
+    public List<(string, BackupSumsPerMonth, ProtocolNamesComputingPerMonth)> Full_Log_Data_in { get; } = [];
+
+    // Свод сумм за год.
+
+    public Dictionary<string, int> Main_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
+
+    public Dictionary<string, int> Simple_Protocols_Sums_in { get; } = ISumsTableCreator.Create(ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 
     public YearBackupProcess(DirectoryInfo source_directory, DirectoryInfo backup_directory) : base(source_directory, backup_directory)
     {
@@ -257,21 +263,18 @@ class YearBackupProcess : BaseBackupProcess
         {
             // Сложение всех сумм за год, для составления отчета.
 
-            var all_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
-            var simple_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
-
             foreach (var month_item in Full_Log_Data_in)
             {
                 foreach (var sum in month_item.Item2.All_Protocols_Sums_in)
                 {
-                    all_sums_lcl[sum.Key] += sum.Value;
+                    Main_Sums_in[sum.Key] += sum.Value;
                 }
 
                 if (month_item.Item2.Simple_Protocols_Sums_in is not null)
                 {
                     foreach (var sum in month_item.Item2.Simple_Protocols_Sums_in)
                     {
-                        simple_sums_lcl[sum.Key] += sum.Value;
+                        Simple_Protocols_Sums_in[sum.Key] += sum.Value;
                     }
                 }
             }
@@ -280,20 +283,18 @@ class YearBackupProcess : BaseBackupProcess
 
             // Контроль сумм бэкапа. 
 
-            if (YearBackuping() == all_sums_lcl[ProtocolTypesAndSums.MAIN_SUMS[0]])
+            if (YearBackuping() == Main_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 Backup_status_in = BackupingStatusCode.BACKUP_SUCCESS;
             }
             else
             {
                 Backup_status_in = BackupingStatusCode.BACKUP_FAILURE;
-                //BackupInfo.ShowCopyError();
             }
         }
         else
         {
             Backup_status_in = BackupingStatusCode.BACKUP_NOT_FOUND;
-            //BackupInfo.ShowScansNotFound(CurrentDate.Current_Year_Print_in);
         }
     }
 
@@ -338,15 +339,15 @@ class YearBackupProcess : BaseBackupProcess
 
             if (self_obj_sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
             {
-                year_full_backup_in.Add((PeriodsNames.MONTHES[month_index], eias_files_lcl, simple_files_lcl));
+                year_full_backup_files_in.Add((eias_files_lcl, simple_files_lcl));
 
-                Full_Log_Data_in.Add((self_obj_names_computing_lcl, self_obj_sums_lcl));
+                Full_Log_Data_in.Add((PeriodsNames.MONTHES[month_index], self_obj_sums_lcl, self_obj_names_computing_lcl));
             }
         }
 
         // Проверка поиска.
 
-        if (year_full_backup_in.Count != 0)
+        if (year_full_backup_files_in.Count != 0)
         {
             return true;
         }
@@ -364,11 +365,11 @@ class YearBackupProcess : BaseBackupProcess
 
         int backup_count_lcl = 0;
 
-        for (int month_index = 0; month_index < year_full_backup_in.Count; month_index++)
+        for (int month_index = 0; month_index < year_full_backup_files_in.Count; month_index++)
         {
             // Контроль сумм.
                                     
-            if (MonthBackuping(year_full_backup_in[month_index].Item1, year_full_backup_in[month_index].Item2, year_full_backup_in[month_index].Item3, Full_Log_Data_in[month_index].Item2) ==
+            if (MonthBackuping(Full_Log_Data_in[month_index].Item1, year_full_backup_files_in[month_index].Item1, year_full_backup_files_in[month_index].Item2, Full_Log_Data_in[month_index].Item2) ==
                                Full_Log_Data_in[month_index].Item2.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 backup_count_lcl += Full_Log_Data_in[month_index].Item2.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]];

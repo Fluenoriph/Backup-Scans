@@ -1,24 +1,20 @@
 ﻿/*
  * Файл ResultLoggers.cs: логгеры отчетов.
  * 
- * 1. "BaseSumsData": базовый класс. Суммы протоколов.
- * 2. "MonthLogger": логгер отчета за месяц;
- * 3. "YearLogger": логгер отчета за год.
+ * 1. "BaseXmlSumsData": базовый класс. Суммы протоколов.
+ * 2. "XmlMonthLogger": логгер отчета за месяц;
+ * 3. "XmlYearLogger": логгер отчета за год.
  */
 
 using System.Globalization;
 using System.Xml.Linq;
 
 
-// Публичные интерфейсы для сектора сумм и имен. Для получения значений, если нужно конвертировать в html. 
-
-
-
-abstract class BaseSumsData
+abstract class BaseXmlSumsData
 {
     // Уровень сумм.
 
-    protected XElement? Sums_Sector_in { get; set; }
+    public XElement? Sums_Sector_in { get; set; }
 
     // * Запись в файл, непосредственно сумм. Параметры: "tags" - текущие тэги сумм, "sums" - данные сумм, "names" - названия типов сумм. *
 
@@ -54,15 +50,15 @@ abstract class BaseSumsData
 }
 
 
-class MonthLogger : BaseSumsData
+class XmlMonthLogger : BaseXmlSumsData
 {
     // Уровень имен протоколов.
 
-    private XElement? Protocol_Names_Sector_in { get; set; }
+    public XElement? Protocol_Names_Sector_in { get; }
 
     // Параметры: файл отчета, название месяца, объект суммы бэкапа за месяц, протоколы ЕИАС.
 
-    public MonthLogger(MonthLogFile file, string month_name, BackupSumsPerMonth backup_sums, List<FileInfo>? eias_files)
+    public XmlMonthLogger(MonthLogFile file, string month_name, BackupSumsPerMonth backup_sums, ProtocolNamesComputingPerMonth backup_names)
     {
         var current_month_sector_lcl = file.GetMonthData(month_name);
 
@@ -75,21 +71,16 @@ class MonthLogger : BaseSumsData
 
         // Запись имен протоколов ЕИАС, при условии, что они найдены. Т.е. их сумма не равна нулю.
 
-        /*if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
-        {
-            // Сортировка по возрастанию номера протокола и запись имен.
-
-            EIASConvert number_convert_lcl = new();
-            EIASSort name_sort_lcl = new();
-                                                
-            WriteNames(XmlTags.MAIN_SUMS_TAGS[1], name_sort_lcl.Sorting(number_convert_lcl.ConvertToNumbers(eias_files!), eias_files!));
+        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
+        {                                    
+            WriteNames(XmlTags.MAIN_SUMS_TAGS[1], backup_names.Sorted_Eias_Protocol_Names_in);
         }
         else
         {
             // Если нет файлов ЕИАС, то записываем пустую строку в этот уровень.
 
             WriteNames(XmlTags.MAIN_SUMS_TAGS[1]);
-        }*/
+        }
 
         // Запись простых протоколов по физ. факторам, если они найдены.
 
@@ -108,7 +99,7 @@ class MonthLogger : BaseSumsData
 
                 // Проверка, какие типы протоколов есть в словаре сортированных имен.
 
-                if (backup_sums.self_obj_names_in!.Sorted_Simple_Protocol_Names_in.TryGetValue(name, out List<string>? value))
+                if (backup_names.Sorted_Simple_Protocol_Names_in!.TryGetValue(name, out List<string>? value))
                 {
                     WriteNames(target_tag_lcl, value);
                 }
@@ -120,8 +111,8 @@ class MonthLogger : BaseSumsData
 
             // Запись пропущенных и неизвестных протоколов.
 
-            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], backup_sums.self_obj_names_in!.Missed_Simple_Protocols_in);
-            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12], backup_sums.self_obj_names_in!.Unknown_Simple_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11], backup_names.Missed_Simple_Protocols_in);
+            WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12], backup_names.Unknown_Simple_Protocols_in);
         }
         else
         {
@@ -136,7 +127,7 @@ class MonthLogger : BaseSumsData
                 WriteNames(tag);
             }
 
-            // Пустые пропущенные и неизвестные.
+            // Явная запись пустых строк пропущенных и неизвестных.
 
             WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[11]);
             WriteNames(XmlTags.SIMPLE_PROTOCOLS_SUMS_TAGS[12]);
@@ -173,11 +164,11 @@ class MonthLogger : BaseSumsData
 }
 
 
-class YearLogger : BaseSumsData
+class XmlYearLogger : BaseXmlSumsData
 {
     // Параметры: "file" - файл годового отчета, "all_protocols_sums" - суммы общие, "simple_protocols_sums" - суммы протоколов по физическим факторам. 
 
-    public YearLogger(YearLogFile file, Dictionary<string, int> all_protocols_sums, Dictionary<string, int> simple_protocols_sums)
+    public XmlYearLogger(YearLogFile file, Dictionary<string, int> all_protocols_sums, Dictionary<string, int> simple_protocols_sums)
     {
         Sums_Sector_in = file.Document_in!.Element(XmlTags.SUMS_TAG);
 

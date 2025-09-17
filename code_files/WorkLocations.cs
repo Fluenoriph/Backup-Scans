@@ -5,42 +5,48 @@ using System.Security;
 
 class WorkLocations
 {
-
-
-    public DirectoryInfo? Log_in { get; }
-    public DirectoryInfo? Source_in { get; }
-    public DirectoryInfo? Destination_in { get; }
+    public List<DrivesConfiguration> Drives { get; } = [];
 
     public WorkLocations()
     {
         // Установка директорий.
 
-        DrivesConfiguration source = new(XmlTags.DRIVE_TAGS[0]);
-        WorkDirectoriesInfo.ShowDirectorySetupTrue(XmlTags.DRIVE_TAGS[0], source.Work_Directory_in!);
-        
-        DrivesConfiguration destination = new(XmlTags.DRIVE_TAGS[1]);
-        WorkDirectoriesInfo.ShowDirectorySetupTrue(XmlTags.DRIVE_TAGS[1], destination.Work_Directory_in!);
+        foreach (string drive_type in XmlTags.DRIVE_TAGS)
+        {
+            DrivesConfiguration drive = new(drive_type);
 
-        DrivesConfiguration log = new(XmlTags.DRIVE_TAGS[2]);
-        WorkDirectoriesInfo.ShowDirectorySetupTrue(XmlTags.DRIVE_TAGS[2], log.Work_Directory_in!);
+            // Вывод информации.
+
+            WorkDirectoriesInfo.ShowDirectorySetupTrue(drive_type, drive.Work_Directory_in!);
+
+            Drives.Add(drive);
+        }   
+    }
+
+    public List<DirectoryInfo> GetWorkDrives()
+    {
+        List<DirectoryInfo> work_drives_lcl = [];
 
         // Инициализация директорий "дисков".
 
         try
         {
-            Source_in = new(source.Work_Directory_in!);
+            DirectoryInfo source_lcl = new(Drives[0].Work_Directory_in!);
+            work_drives_lcl.Add(source_lcl);
 
-            Destination_in = new(destination.Work_Directory_in!);
-
+            DirectoryInfo destination_lcl = new(Drives[1].Work_Directory_in!);
+            
             // Принудительная проверка на существование папки года для резервного хранилища.
 
-            Destination_in = Destination_in.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
+            destination_lcl = destination_lcl.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
+            work_drives_lcl.Add(destination_lcl);
 
-            Log_in = new(log.Work_Directory_in!);
-
+            DirectoryInfo log_lcl = new(Drives[2].Work_Directory_in!);
+            
             // Принудительная проверка на существование папки года для отчетов.
 
-            Log_in = Log_in.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
+            log_lcl = log_lcl.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
+            work_drives_lcl.Add(log_lcl);
         }
         catch (IOException error)
         {
@@ -51,20 +57,6 @@ class WorkLocations
             _ = new ProgramShutDown(ErrorCode.DRIVE_RESOURCE_ACCESS_ERROR, error.Message);
         }
 
-
-        // in logger control
-
-        // Инициализация лог файлов.
-
-        Self_Obj_Month_Log_File_in = new(Path.Combine(Log_in!.FullName, LogFilesNames.MONTH_LOG_FILE));
-
-        Self_Obj_Year_Log_File_in = new(Path.Combine(Log_in!.FullName, LogFilesNames.YEAR_LOG_FILE));
-    }
-
-    public void Change(string drive_type)
-    {
-
-
-
+        return work_drives_lcl;
     }
 }

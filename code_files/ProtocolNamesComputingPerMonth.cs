@@ -151,7 +151,7 @@ class ProtocolNamesComputingPerMonth
 
     public void ComputeUnknownProtocols(Dictionary<string, List<FileInfo>>? previous_period_files)
     {
-        if (previous_period_files is not null)
+        if (current_period_min_numbers_in is not null && previous_period_files is not null)
         {
             MaximumNumbers self_obj_previous_extreme_max_lcl = new(GetSortedSimpleProtocolNumbers(previous_period_files));
             var max_numbers_lcl = self_obj_previous_extreme_max_lcl.Numbers_in;

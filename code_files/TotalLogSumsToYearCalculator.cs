@@ -62,10 +62,8 @@ class TotalLogSumsToYearCalculator
         }
 
         // Если значение не "0" и не пустая строка, то суммируем.
-
-        bool real_value_status = (sum_value_lcl is not Symbols.NULL) && (sum_value_lcl is not "");
-
-        if (real_value_status)
+               
+        if (IRealValue.GetStatus(sum_value_lcl))
         {
             sum_count_in += Convert.ToInt32(sum_value_lcl!, CultureInfo.CurrentCulture);
         }

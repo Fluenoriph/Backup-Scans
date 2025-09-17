@@ -4,7 +4,7 @@
  * 
  * Лицензия: MIT License
  * 
- * Дата: 08 сентября 2025 г.
+ * Дата: ..... 2025 г.
  * 
  * Автор: Богданов Иван Иванович
  * Контакты: fluenoriph@gmail.com, fluenoriph@yandex.ru
@@ -24,9 +24,11 @@ GeneralInfo.ShowProgramInfo();
 GeneralInfo.ShowStarLine();
 Console.WriteLine('\n');
 
-// * Создание рабочих пространств. *
+// Создание рабочих пространств.
 
 WorkLocations work_locations = new();
+
+// Перезапускаемое меню.
 
 bool program_menu_restart = false;
 
@@ -48,45 +50,27 @@ do
         // Индекс месяца в списке.
 
         int month_index = Convert.ToInt32(parameter, CultureInfo.CurrentCulture) - 1;
-
-        // work locations ??
-
+                
         // Правильные цифры: 1 - 12.
 
         if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
         {
-            MonthBackupProcess _ = new(work_directories, PeriodsNames.MONTHES[month_index]);
-
-            // Отделять модули лога и парсера.
-
-
-
-
-
-
-
-
+            MonthLoggerControl _ = new(work_locations.GetWorkDrives(), PeriodsNames.MONTHES[month_index]);
 
             // После успешного завершения копирования, можно запустить его заново.
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
+
         // Формат значения года: 2025.
 
         else if (parameter == CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture))
         {
-            YearBackupProcess _ = new(work_directories);
-
-
-
-
-
-
-
-
+            YearLoggerControl _ = new(work_locations.GetWorkDrives());
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
+
         // Если введено неверное число, то работа программы завершается.
 
         else
@@ -94,6 +78,7 @@ do
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
     }
+
     // Если введена верная буква, то запускается функция изменения директорий.
 
     else if (parameter is Symbols.CHANGE_DIRECTORY_FUNCTION)
@@ -108,10 +93,11 @@ do
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
 
-        work_directories[drive_index].ChangeWorkDirectory();
+        work_locations.Drives[drive_index].ChangeWorkDirectory();
 
         program_menu_restart = true;
     }
+
     // Иначе работа программы завершается.
 
     else
@@ -120,3 +106,29 @@ do
     }
 
 } while (program_menu_restart == true);
+
+
+
+
+
+
+
+
+/*    Open .html
+ * using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ProcessStartInfo startInfo = new ProcessStartInfo
+        {
+            FileName = "C:/Users/Carma/Desktop/Мой сайт/html/math.html",
+            UseShellExecute = true
+        };
+
+        Process.Start(startInfo);
+    }
+}
+*/
