@@ -34,8 +34,8 @@ class MonthLoggerControl : BaseLoggerControl
             // Лог в xml файл.
 
             XmlMonthLogger self_obj_month_logger_lcl = new(self_obj_month_log_file_in, month,
-                                                    self_obj_backup_per_month_lcl.Self_Obj_Sums_in,
-                                                    self_obj_backup_per_month_lcl.Self_Obj_Names_Computing_in);
+                                                           self_obj_backup_per_month_lcl.Self_Obj_Sums_in,
+                                                           self_obj_backup_per_month_lcl.Self_Obj_Names_Computing_in);
 
             // Вывод отчета в консоль.
 
@@ -64,6 +64,8 @@ class MonthLoggerControl : BaseLoggerControl
 
                 self_obj_log_show_in.ShowLog();
             }
+
+            HTMLLogger hTMLLogger = new(self_obj_month_logger_lcl.Sums_Sector_in);
 
             // Создать отчет html ????
         }

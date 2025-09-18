@@ -2,7 +2,6 @@
 
 interface IHTMLMainData
 {
-	
 	// Параметр период: месяц или год. Соединить.
 
     static string CreateGeneralPart(string period, string main_sums)
@@ -12,7 +11,7 @@ interface IHTMLMainData
 				<html>
 					<head>
 						<meta charset=""UTF-8"">
-						<title>{period}</title>    ????
+						<title>{period}</title>   
 					</head>
 					<body>
 						<header>
@@ -24,9 +23,8 @@ interface IHTMLMainData
 								<caption>Общие суммы</caption>
 								<tbody>
 									{IHTMLTablePart.PutString(ProtocolTypesAndSums.MAIN_SUMS[0], main_sums)}								
-								</tbody>
-							</table>";
-
+								";
+							
 		// Это не конец файла. Другие части должны присоединяться.
     }
 }
