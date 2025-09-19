@@ -2,6 +2,7 @@
 //   Он используется, когда делается бэкап за декабрь. Гипотетически, предыдущие месяца уже рассчитаны.
 
 using System.Globalization;
+using System.Xml.Linq;
 
 
 class TotalLogSumsToYearCalculator
@@ -56,10 +57,7 @@ class TotalLogSumsToYearCalculator
 
         var sum_value_lcl = self_obj_month_log_file_in.GetMonthData(month_name)?.Element(XmlTags.SUMS_TAG)?.Element(sum_tag)?.Value;
 
-        if (sum_value_lcl is null)
-        {
-            _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-        }
+        IXMLNullError<string>.CheckItem(sum_value_lcl);
 
         // Если значение не "0" и не пустая строка, то суммируем.
                
@@ -78,14 +76,9 @@ class TotalLogSumsToYearCalculator
 
         var sum_value_lcl = self_obj_year_log_file_in.Document_in!.Element(XmlTags.SUMS_TAG)?.Element(sum_tag);
 
-        if (sum_value_lcl is not null)
-        {
-            sum_value_lcl.Value = sum_count_in.ToString(CultureInfo.CurrentCulture);
-        }
-        else
-        {
-            _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-        }
+        IXMLNullError<XElement>.CheckItem(sum_value_lcl);
+
+        sum_value_lcl!.Value = sum_count_in.ToString(CultureInfo.CurrentCulture);
     }
 
     // * Получение годовых сумм в формате, необходимом для вывода в консоль. *

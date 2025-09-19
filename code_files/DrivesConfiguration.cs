@@ -33,11 +33,8 @@ class DrivesConfiguration
 
         Work_Directory_in = GetConfiguration().Document_in!.Element(XmlTags.DRIVES_DIRECTORIES_TAG)?.Element(Drive_Type_in)?.Value;
 
-        if (Work_Directory_in is null)
-        {
-            _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-        }
-
+        IXMLNullError<string>.CheckItem(Work_Directory_in);
+                
         // Проверка, полученной из файла настройки, директории. 
 
         do
@@ -141,12 +138,9 @@ class DrivesConfiguration
             ConfigurationFile self_obj_config_file_lcl = GetConfiguration();
                         
             var drive_sector_lcl = self_obj_config_file_lcl.Document_in!.Element(XmlTags.DRIVES_DIRECTORIES_TAG)?.Element(Drive_Type_in!);
-              
-            if (drive_sector_lcl is null)
-            {
-                _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-            }
 
+            IXMLNullError<XElement>.CheckItem(drive_sector_lcl);
+                        
             drive_sector_lcl!.Value = Work_Directory_in;
             
             self_obj_config_file_lcl.Document_in!.Save(DrivesConfigFileLocation.full_program_path);

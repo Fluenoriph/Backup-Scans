@@ -26,10 +26,7 @@ abstract class BaseXmlSumsData
 
             var current_sector_lcl = Sums_Sector_in?.Element(tags[sum_index]);
 
-            if (current_sector_lcl is null)
-            {
-                _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-            }
+            IXMLNullError<XElement>.CheckItem(current_sector_lcl);
 
             // Параметры "sums" и "names" могут быть нулевыми при отсутствии каких-либо протоколов, тогда сразу записываем ноль.
 
@@ -145,11 +142,8 @@ class XmlMonthLogger : BaseXmlSumsData
     {
         var current_sector_lcl = Protocol_Names_Sector_in?.Element(tag);
 
-        if (current_sector_lcl is null)
-        {
-            _ = new ProgramShutDown(ErrorCode.XML_ELEMENT_ACCESS_ERROR);
-        }
-        
+        IXMLNullError<XElement>.CheckItem(current_sector_lcl);
+                
         // Запись имен протоколов через запятую. Если нет протоколов, то записываем пустую строку.
 
         if (names is not null)

@@ -65,9 +65,10 @@ class MonthLoggerControl : BaseLoggerControl
                 self_obj_log_show_in.ShowLog();
             }
 
-            HTMLLogger hTMLLogger = new(self_obj_month_logger_lcl.Sums_Sector_in);
+            //HTMLLogger hTMLLogger = new(self_obj_month_logger_lcl.Sums_Sector_in);
 
-            // Создать отчет html ????
+            //string.Join("", log_data)
+
         }
         else if (self_obj_backup_per_month_lcl.Backup_status_in == BackupingStatusCode.BACKUP_FAILURE)
         {
