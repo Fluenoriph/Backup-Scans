@@ -37,6 +37,14 @@ class MonthLoggerControl : BaseLoggerControl
                                                            self_obj_backup_per_month_lcl.Self_Obj_Sums_in,
                                                            self_obj_backup_per_month_lcl.Self_Obj_Names_Computing_in);
 
+            // Лог в HTML файл.
+
+            HTMLMonthLog self_obj_html_year_lcl = new(self_obj_month_logger_lcl.Sums_Sector_in!, self_obj_month_logger_lcl.Protocol_Names_Sector_in!, month);
+
+            IHTMLDocumentCreator.CreateLogFile(work_drives[3].FullName,
+                                               string.Join("", self_obj_html_year_lcl.Log_Data_in),
+                                               PeriodsNames.MONTHES.IndexOf(month));
+
             // Вывод отчета в консоль.
 
             BackupInfo.ShowLogHeader(month);
@@ -64,11 +72,6 @@ class MonthLoggerControl : BaseLoggerControl
 
                 self_obj_log_show_in.ShowLog();
             }
-
-            //HTMLLogger hTMLLogger = new(self_obj_month_logger_lcl.Sums_Sector_in);
-
-            //string.Join("", log_data)
-
         }
         else if (self_obj_backup_per_month_lcl.Backup_status_in == BackupingStatusCode.BACKUP_FAILURE)
         {

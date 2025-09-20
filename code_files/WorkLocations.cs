@@ -41,12 +41,18 @@ class WorkLocations
             destination_lcl = destination_lcl.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
             work_drives_lcl.Add(destination_lcl);
 
-            DirectoryInfo log_lcl = new(Drives[2].Work_Directory_in!);
+            DirectoryInfo main_log_lcl = new(Drives[2].Work_Directory_in!);
             
             // Принудительная проверка на существование папки года для отчетов.
 
-            log_lcl = log_lcl.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
-            work_drives_lcl.Add(log_lcl);
+            main_log_lcl = main_log_lcl.CreateSubdirectory(CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture));
+
+            // Создание папки html отчетов.
+
+            var html_out_log_lcl = main_log_lcl.CreateSubdirectory("html_out");
+
+            work_drives_lcl.Add(main_log_lcl);
+            work_drives_lcl.Add(html_out_log_lcl);
         }
         catch (IOException error)
         {

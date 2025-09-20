@@ -10,8 +10,6 @@
  * 7. "XmlTags": структура тэгов XML файлов.
  */
 
-using System.Globalization;
-
 struct DrivesConfigFileLocation
 {
     // По умолчанию, создается в расположении исполняемого файла программы.

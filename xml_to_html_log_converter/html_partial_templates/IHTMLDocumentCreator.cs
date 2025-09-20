@@ -1,11 +1,8 @@
-﻿using Aspose.Html;
-
-
-interface IHTMLDocumentCreator
+﻿interface IHTMLDocumentCreator
 {
-    static void CreateLogFile(string path, string data, string period_value)
+    static void CreateLogFile(string path, string data, int period_value)
     {
-        using HTMLDocument doc = new(data, ".");
-            doc.Save(Path.Combine(path, $"{period_value}_log.html"));
+        using StreamWriter writer = new(Path.Combine(path, $"{period_value}_log.html"));
+        writer.WriteLine(data);
     }
 }
