@@ -1,6 +1,6 @@
 ﻿/*
- * Название программы: Backup "PDF" Protocols Scan Files v.2.0
- * Версия: 2.0
+ * Название программы: Backup "PDF" Protocols Scan Files v.2.1
+ * Версия: 2.1
  * 
  * Лицензия: MIT License
  * 
@@ -26,7 +26,7 @@ Console.WriteLine('\n');
 
 // Создание рабочих пространств.
 
-WorkLocations work_locations = new();
+WorkSpacesCreator work_locations = new();
 
 // Перезапускаемое меню.
 
@@ -55,7 +55,7 @@ do
 
         if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
         {
-            MonthLoggerControl _ = new(work_locations.GetWorkDrives(), PeriodsNames.MONTHES[month_index]);
+            MonthLoggerControl _ = new(work_locations.GetWorkSpaces(), PeriodsNames.MONTHES[month_index]);
 
             // После успешного завершения копирования, можно запустить его заново.
 
@@ -66,7 +66,7 @@ do
 
         else if (parameter == CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture))
         {
-            YearLoggerControl _ = new(work_locations.GetWorkDrives());
+            YearLoggerControl _ = new(work_locations.GetWorkSpaces());
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
@@ -93,7 +93,7 @@ do
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
 
-        work_locations.Drives[drive_index].ChangeWorkDirectory();
+        work_locations.Spaces_in[drive_index].ChangeWorkDirectory();
 
         program_menu_restart = true;
     }
