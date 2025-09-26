@@ -10,8 +10,6 @@
  * Контакты: fluenoriph@gmail.com, fluenoriph@yandex.ru
  */
 
-using InfoOut;
-using InputValidate;
 using System.Globalization;
 
 
@@ -53,9 +51,9 @@ do
                 
         // Правильные цифры: 1 - 12.
 
-        if (month_index >= PeriodsNames.JANUARY_INDEX && month_index <= PeriodsNames.DECEMBER_INDEX)
+        if (month_index >= Periods.JANUARY_INDEX && month_index <= Periods.DECEMBER_INDEX)
         {
-            MonthLoggerControl _ = new(work_locations.GetWorkSpaces(), PeriodsNames.MONTHES[month_index]);
+            MonthLoggerControl _ = new(work_locations.GetWorkSpaces(), Periods.MONTHES[month_index]);
 
             // После успешного завершения копирования, можно запустить его заново.
 
@@ -81,7 +79,7 @@ do
 
     // Если введена верная буква, то запускается функция изменения директорий.
 
-    else if (parameter is Symbols.CHANGE_DIRECTORY_FUNCTION)
+    else if (parameter is ConsoleSymbols.CHANGE_DIRECTORY_FUNCTION)
     {
         Console.WriteLine('\n');
 

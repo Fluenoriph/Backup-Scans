@@ -31,5 +31,7 @@ struct ProtocolTypesAndSums
 
     public static List<string> NOT_FOUND_SUMS = ["Пропущенные", "Неизвестные"];
 
+    // [Всего Усс, Всего Арс]-[всего фф, всего рад, всего меб]-[фф усс, фф арс, рад усс, рад арс, меб усс, меб арс]-[пропущ., неизв.]
+
     public static List<string> UNITED_SIMPLE_TYPE_SUMS = [.. FULL_LOCATION_SUMS, .. FULL_TYPE_SUMS, .. TYPES_FULL_NAMES, .. NOT_FOUND_SUMS];
 }

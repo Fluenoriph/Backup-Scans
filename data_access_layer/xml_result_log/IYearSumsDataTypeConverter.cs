@@ -1,4 +1,4 @@
-﻿// * 
+﻿// * Файл "IYearSumsDataTypeConverter.cs": интерфейс преобразования списка рассчитанных сумм в словари, для вывода. *
 
 interface IYearSumsDataTypeConverter
 {
@@ -6,11 +6,11 @@ interface IYearSumsDataTypeConverter
     {
         // Создание словаря общих сумм. 
 
-        var all_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
+        var main_protocol_sums_lcl = ISumsTableCreator.Create(ProtocolTypesAndSums.MAIN_SUMS);
 
-        for (int sum_index = 0; sum_index < all_protocol_sums_lcl.Count; sum_index++)
+        for (int sum_index = 0; sum_index < main_protocol_sums_lcl.Count; sum_index++)
         {
-            all_protocol_sums_lcl[ProtocolTypesAndSums.MAIN_SUMS[sum_index]] = all_sums.GetRange(0, 3)[sum_index];
+            main_protocol_sums_lcl[ProtocolTypesAndSums.MAIN_SUMS[sum_index]] = all_sums.GetRange(0, 3)[sum_index];
         }
 
         // Простых протоколов может и не быть. Если они есть, то создаем словарь.
@@ -27,6 +27,6 @@ interface IYearSumsDataTypeConverter
             }
         }
 
-        return (all_protocol_sums_lcl, simple_protocol_sums_lcl);
+        return (main_protocol_sums_lcl, simple_protocol_sums_lcl);
     }
 }

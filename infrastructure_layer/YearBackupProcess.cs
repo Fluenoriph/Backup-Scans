@@ -1,7 +1,4 @@
-﻿// * "YearBackupProcess": класс для резервного копирования за год.
-
-using InfoOut;
-
+﻿// * Файл "YearBackupProcess.cs": класс для резервного копирования за год. *
 
 class YearBackupProcess : BaseBackupProcess
 {
@@ -29,7 +26,7 @@ class YearBackupProcess : BaseBackupProcess
 
             foreach (var month_item in Full_Log_Data_in)
             {
-                foreach (var sum in month_item.Item2.All_Protocols_Sums_in)
+                foreach (var sum in month_item.Item2.Main_Protocols_Sums_in)
                 {
                     Main_Sums_in[sum.Key] += sum.Value;
                 }
@@ -70,7 +67,7 @@ class YearBackupProcess : BaseBackupProcess
 
         List<Dictionary<string, List<FileInfo>>?> simple_files_trace_lcl = [];
 
-        for (int month_index = 0; month_index < PeriodsNames.MONTHES.Count; month_index++)
+        for (int month_index = 0; month_index < Periods.MONTHES.Count; month_index++)
         {
             //BackupSumsPerMonth sums_in;
 
@@ -85,7 +82,7 @@ class YearBackupProcess : BaseBackupProcess
 
             // За текущий месяц, кроме января, вычисляем неизвестные протоколы. 
 
-            if (month_index != PeriodsNames.JANUARY_INDEX)
+            if (month_index != Periods.JANUARY_INDEX)
             {
                 // Следовательно, если коллекция простых протоколов "simple_files_trace_lcl[month_index - 1]" равна NULL, то неизвестные не вычисляются.
 
@@ -101,11 +98,11 @@ class YearBackupProcess : BaseBackupProcess
 
             // Добавление годовых данных, только если есть файлы в текущем месяце.
 
-            if (self_obj_sums_lcl.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
+            if (self_obj_sums_lcl.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
             {
                 year_full_backup_files_in.Add((eias_files_lcl, simple_files_lcl));
 
-                Full_Log_Data_in.Add((PeriodsNames.MONTHES[month_index], self_obj_sums_lcl, self_obj_names_computing_lcl));
+                Full_Log_Data_in.Add((Periods.MONTHES[month_index], self_obj_sums_lcl, self_obj_names_computing_lcl));
             }
         }
 
@@ -134,9 +131,9 @@ class YearBackupProcess : BaseBackupProcess
             // Контроль сумм.
 
             if (MonthBackuping(Full_Log_Data_in[month_index].Item1, year_full_backup_files_in[month_index].Item1, year_full_backup_files_in[month_index].Item2, Full_Log_Data_in[month_index].Item2) ==
-                               Full_Log_Data_in[month_index].Item2.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
+                               Full_Log_Data_in[month_index].Item2.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
-                backup_count_lcl += Full_Log_Data_in[month_index].Item2.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]];
+                backup_count_lcl += Full_Log_Data_in[month_index].Item2.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]];
             }
         }
 

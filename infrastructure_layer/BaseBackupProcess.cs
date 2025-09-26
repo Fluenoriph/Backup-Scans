@@ -1,4 +1,4 @@
-﻿// * "BaseBackupProcess": базовый класс, для классов месячного и годового процесса копирования;
+﻿// * Файл "BaseBackupProcess.cs": базовый класс, для классов месячного и годового процесса копирования. *
 
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 // Параметры: исходная директория, резервная директория.
 
-abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo backup_directory)
+abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo destination_directory)
 {
     // Исходные файлы "PDF".
 
@@ -30,7 +30,7 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo b
 
         // Создание подпаттерна месяца в зависимости от месяца бэкапа. Если нужно, то добавить символ нуля.
 
-        if (month_index < PeriodsNames.OCTOBER_INDEX)
+        if (month_index < Periods.OCTOBER_INDEX)
         {
             month_lcl = string.Concat(Symbols.NULL, month_value_lcl);
         }
@@ -91,7 +91,7 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo b
         {
             try
             {
-                backup_files[file_index].CopyTo(Path.Combine(backup_directory.CreateSubdirectory(month_and_type_subdir).FullName, backup_files[file_index].Name), true);
+                backup_files[file_index].CopyTo(Path.Combine(destination_directory.CreateSubdirectory(month_and_type_subdir).FullName, backup_files[file_index].Name), true);
 
                 backuping_files_count_lcl++;
             }
@@ -136,25 +136,25 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo b
 
         // Копирование, при условии, что есть ЕИАС сканы в этом месяце.
 
-        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
+        if (sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
         {
             // Контроль сумм, найденных и скопированных.
 
-            if (CopyBackupFiles(eias_files!, Path.Join(current_month, ProtocolTypesAndSums.MAIN_SUMS[1])) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]])
+            if (CopyBackupFiles(eias_files!, Path.Join(current_month, ProtocolTypesAndSums.MAIN_SUMS[1])) == sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]])
             {
-                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]];
+                backup_count_lcl += sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]];
             }
         }
 
         // Копирование, при условии, что есть "ФФ" сканы в этом месяце.
 
-        if (sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
+        if (sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
         {
             // Контроль сумм.
 
-            if (CopySimpleBlock(simple_files!, current_month) == sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]])
+            if (CopySimpleBlock(simple_files!, current_month) == sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]])
             {
-                backup_count_lcl += sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]];
+                backup_count_lcl += sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]];
             }
         }
 

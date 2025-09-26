@@ -13,7 +13,7 @@ class XMLMonthLogFile(string file_path) : BaseXMLDataFile(file_path)
     {
         XElement root_lcl = new(XMLLogTags.MONTH_LOG_ROOT);
 
-        foreach (string month in PeriodsNames.MONTHES)
+        foreach (string month in Periods.MONTHES)
         {
             XElement x_month_lcl = new(XMLLogTags.MONTH);
 

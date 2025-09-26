@@ -1,4 +1,5 @@
 ﻿// * Файл TotalLogSumsToYearCalculator.cs: класс для вычисления годового отчета из файла месячных логов. *
+
 //   Он используется, когда делается бэкап за декабрь, для подведения итогов. Гипотетически, предыдущие месяца уже рассчитаны.
 
 using System.Globalization;
@@ -11,8 +12,8 @@ class TotalLogSumsToYearCalculator
 
     int sum_count_in;
 
-    readonly MonthLogFile self_obj_month_log_file_in;
-    readonly YearLogFile self_obj_year_log_file_in;
+    readonly XMLMonthLogFile self_obj_month_log_file_in;
+    readonly XMLYearLogFile self_obj_year_log_file_in;
 
     // Список рассчитанных сумм за год, в порядке, определенном списком тэгов.
 
@@ -20,7 +21,7 @@ class TotalLogSumsToYearCalculator
 
     // Параметры: файл месячного лога, файл годового лога.
 
-    public TotalLogSumsToYearCalculator(MonthLogFile month_log_file, YearLogFile year_log_file)
+    public TotalLogSumsToYearCalculator(XMLMonthLogFile month_log_file, XMLYearLogFile year_log_file)
     {
         self_obj_month_log_file_in = month_log_file;
         self_obj_year_log_file_in = year_log_file;
@@ -33,7 +34,7 @@ class TotalLogSumsToYearCalculator
 
             // Вычисляем результат за все месяцы.
 
-            foreach (string month_name in PeriodsNames.MONTHES)
+            foreach (string month_name in Periods.MONTHES)
             {
                 AddSum(month_name, sum_tag);
             }

@@ -1,4 +1,6 @@
-﻿class HTMLPartialTemplates
+﻿// * Файл "HTMLPartialTemplates.cs": класс, деконструкция файла отчета в формате HTML. *
+
+class HTMLPartialTemplates
 {
 	// * Создание главной части лог файла. *
 	

@@ -1,6 +1,5 @@
 ﻿// * Файл "WorkSpacesCreator.cs": класс-конструктор рабочих пространств. * 
 
-using InfoOut;
 using System.Globalization;
 using System.Security;
 
@@ -13,13 +12,13 @@ class WorkSpacesCreator
     {
         // Установка директорий.
 
-        foreach (string space_type in XMLLogTags.DRIVE_TAGS)
+        foreach (string space_type in XMLWorkSpacesTags.SPACE_TYPE)
         {
             WorkSpaceSetuper space = new(space_type);
 
             // Вывод информации, в данном случае в консоль.
 
-            WorkDirectoriesInfo.ShowDirectorySetupTrue(space_type, space.Directory_in!);
+            WorkSpacesInfo.ShowDirectorySetupTrue(space_type, space.Directory_in!);
 
             Spaces_in.Add(space);
         }   
@@ -51,7 +50,7 @@ class WorkSpacesCreator
 
             // Создание папки html отчетов.
 
-            var html_log_lcl = main_log_lcl.CreateSubdirectory("html_out");
+            var html_log_lcl = main_log_lcl.CreateSubdirectory("html_out");  // in separate file ??
 
             spaces_lcl.Add(main_log_lcl);
             spaces_lcl.Add(html_log_lcl);

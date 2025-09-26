@@ -1,15 +1,16 @@
 ﻿// * Файл "WorkSpaceSetuper.cs": класс для получения, проверки и установки рабочей директории. *
 
 using System.Xml.Linq;
-using InfoOut;
-using InputValidate;
 
 
 class WorkSpaceSetuper
 {
     string? Space_Type_in { get; }
-    
     bool Real_Directory_status_in { get; set; }
+    readonly WorkSpacesConfigFile config_file_in = new(IWorkSpacesConfigFileLocation.GetPath());
+
+    // Рабочая директория пространства.
+
     public string? Directory_in { get; set; }
 
     // Входной параметр: тип рабочего пространства.
@@ -20,7 +21,7 @@ class WorkSpaceSetuper
                   
         // Получение директории из файла
 
-        Directory_in = GetConfiguration().Document_in!.Element(XMLLogTags.DRIVES_DIRECTORIES_TAG)?.Element(Space_Type_in)?.Value;
+        Directory_in = config_file_in.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in)?.Value;
 
         IXMLNullError<string>.CheckItem(Directory_in);
                 
@@ -28,7 +29,7 @@ class WorkSpaceSetuper
 
         do
         {
-            Real_Directory_status_in = CheckNoneDirectoryValue() && CheckRealDirectory();
+            Real_Directory_status_in = IRealValue.GetStatus(Directory_in) && CheckRealDirectory();
 
             // Если не проходит проверку, то получаем новую, в данном случае, методом ввода из консоли, проверяем и записываем в файл.
 
@@ -36,7 +37,7 @@ class WorkSpaceSetuper
             {
                 do
                 {
-                    WorkDirectoriesInfo.ShowDirectoryExistFalse(Space_Type_in!, Directory_in!);
+                    WorkSpacesInfo.ShowDirectoryExistFalse(Space_Type_in!, Directory_in!);
                     GeneralInfo.ShowLine();
 
                     Real_Directory_status_in = SetupNewDirectory();
@@ -61,29 +62,15 @@ class WorkSpaceSetuper
 
             if (Real_Directory_status_in)
             {
-                WorkDirectoriesInfo.ShowInstallDirectory(Space_Type_in!);
+                WorkSpacesInfo.ShowInstallDirectory(Space_Type_in!);
             }
             else
             {
-                WorkDirectoriesInfo.ShowDirectoryExistFalse(Space_Type_in!, Directory_in!);
+                WorkSpacesInfo.ShowDirectoryExistFalse(Space_Type_in!, Directory_in!);
                 GeneralInfo.ShowLine();
             }
 
         } while (Real_Directory_status_in == false);
-    }
-
-    // * Проверка на "пустую" строку. *
-
-    bool CheckNoneDirectoryValue()
-    {
-        if (Directory_in is not "")
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     // * Проверка на существование в системе. *
@@ -99,19 +86,12 @@ class WorkSpaceSetuper
             return false;
         }
     }
-
-    // * Файл настроек рабочих пространств. *
-
-    static WorkSpacesConfigFile GetConfiguration()
-    {
-        return new(DrivesConfigFileLocation.full_program_path);
-    }
-
+        
     // * Установка новой директории. *
 
     bool SetupNewDirectory()
     {
-        WorkDirectoriesInfo.ShowEnterTheDirectory();
+        WorkSpacesInfo.ShowEnterTheDirectory();
         GeneralInfo.ShowLine();
 
         // Ввод из консоли
@@ -123,16 +103,14 @@ class WorkSpaceSetuper
         if (CheckRealDirectory())
         {
             // Чтобы изменить значение в файле, нужно заново получить всю цепочку вызовов.
-
-            WorkSpacesConfigFile self_obj_config_file_lcl = GetConfiguration();
-                        
-            var sector_lcl = self_obj_config_file_lcl.Document_in!.Element(XMLLogTags.DRIVES_DIRECTORIES_TAG)?.Element(Space_Type_in!);
+                                               
+            var sector_lcl = config_file_in.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in!);
 
             IXMLNullError<XElement>.CheckItem(sector_lcl);
                         
             sector_lcl!.Value = Directory_in;
-            
-            self_obj_config_file_lcl.Document_in!.Save(DrivesConfigFileLocation.full_program_path);
+
+            config_file_in.Document_in!.Save(IWorkSpacesConfigFileLocation.GetPath());
 
             return true;
         }

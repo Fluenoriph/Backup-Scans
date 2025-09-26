@@ -1,10 +1,10 @@
-﻿// * Файл "BaseXmlSumsData": базовый класс для логгеров отчета. Уровень сумм протоколов. *
+﻿// * Файл "BaseXMLSumsData.cs": базовый класс для логгеров отчета. Уровень сумм протоколов. *
 
 using System.Globalization;
 using System.Xml.Linq;
 
 
-abstract class BaseXmlSumsData
+abstract class BaseXMLSumsData
 {
     // Уровень сумм.
 

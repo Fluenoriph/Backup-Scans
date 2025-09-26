@@ -1,7 +1,4 @@
-﻿// * "MonthBackupProcess": класс для резервного копирования за месяц;
-
-using InfoOut;
-
+﻿// * Файл "MonthBackupProcess.cs": класс для резервного копирования за месяц. *
 
 class MonthBackupProcess : BaseBackupProcess
 {
@@ -16,7 +13,7 @@ class MonthBackupProcess : BaseBackupProcess
     {
         // Создание индекса месяца и поиск протоколов.
 
-        int month_index_lcl = PeriodsNames.MONTHES.IndexOf(month);
+        int month_index_lcl = Periods.MONTHES.IndexOf(month);
 
         var eias_files_lcl = GetEIASFiles(CreateDatePattern(month_index_lcl));
         var simple_files_lcl = GetSimpleFiles(CreateDatePattern(month_index_lcl));
@@ -25,7 +22,7 @@ class MonthBackupProcess : BaseBackupProcess
 
         // Если производится копирование за любой месяц, кроме января, то вычисляются неизвестные протоколы.
 
-        if (month_index_lcl != PeriodsNames.JANUARY_INDEX)
+        if (month_index_lcl != Periods.JANUARY_INDEX)
         {
             // Согласно алгоритму, нужно получить номера протоколов предыдущего периода.
 
@@ -41,13 +38,13 @@ class MonthBackupProcess : BaseBackupProcess
 
         // Если в текущем месяце есть протоколы, то копируем.
 
-        if (Self_Obj_Sums_in.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
+        if (Self_Obj_Sums_in.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]] != 0)
         {
             BackupInfo.ShowVisualWait();
 
             // Контроль скопированной суммы. При отрицательном результате, ошибка.
 
-            if (MonthBackuping(month, eias_files_lcl, simple_files_lcl, Self_Obj_Sums_in) == Self_Obj_Sums_in.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
+            if (MonthBackuping(month, eias_files_lcl, simple_files_lcl, Self_Obj_Sums_in) == Self_Obj_Sums_in.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[0]])
             {
                 Backup_status_in = BackupingStatusCode.BACKUP_SUCCESS;
             }

@@ -20,9 +20,9 @@ class FullLogPrinter
 
     // Начальные параметры: общие суммы и суммы простых протоколов.
 
-    public FullLogPrinter(Dictionary<string, int> all_sums, Dictionary<string, int>? simple_sums)
+    public FullLogPrinter(Dictionary<string, int> main_sums, Dictionary<string, int>? simple_sums)
     {
-        Main_Protocol_Sums_in = all_sums;
+        Main_Protocol_Sums_in = main_sums;
         Simple_Protocol_Sums_in = simple_sums;
 
         MainSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {Main_Protocol_Sums_in[sum_name]}");

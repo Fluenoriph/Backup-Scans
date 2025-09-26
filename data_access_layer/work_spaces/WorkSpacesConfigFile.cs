@@ -5,5 +5,5 @@ using System.Xml.Linq;
 
 class WorkSpacesConfigFile(string file_path) : BaseXMLDataFile(file_path)
 {
-    protected override XElement Root_Sector_in { get; } = IXMLLevelCreator.Create(XMLLogTags.DRIVES_DIRECTORIES_TAG, XMLLogTags.DRIVE_TAGS);
+    protected override XElement Root_Sector_in { get; } = IXMLLevelCreator.Create(XMLWorkSpacesTags.ROOT, XMLWorkSpacesTags.SPACE_TYPE);
 }

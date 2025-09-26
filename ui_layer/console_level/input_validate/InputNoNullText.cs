@@ -18,7 +18,7 @@ class InputNoNullText
 
             if (real_text_status)
             {
-                Console.WriteLine($" {Symbols.GRILLE} Вы ничего не ввели, вводите заново !\n");
+                Console.WriteLine($" {ConsoleSymbols.GRILLE} Вы ничего не ввели, вводите заново !\n");
             }
         } while (real_text_status);
 

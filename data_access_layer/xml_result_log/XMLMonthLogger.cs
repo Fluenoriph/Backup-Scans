@@ -1,9 +1,9 @@
-﻿// * Файл "XmlMonthLogger": логгер отчета за месяц. *
+﻿// * Файл "XMLMonthLogger.cs": логгер отчета за месяц. *
 
 using System.Xml.Linq;
 
 
-class XmlMonthLogger : BaseXmlSumsData
+class XMLMonthLogger : BaseXMLSumsData
 {
     // Уровень имен протоколов.
 
@@ -11,7 +11,7 @@ class XmlMonthLogger : BaseXmlSumsData
 
     // Параметры: файл отчета, название месяца, объект сумм протоколов за месяц, объект имен протоколов за месяц.
 
-    public XmlMonthLogger(MonthLogFile file, string month_name, BackupSumsPerMonth backup_sums, ProtocolNamesComputingPerMonth backup_names)
+    public XMLMonthLogger(XMLMonthLogFile file, string month_name, BackupSumsPerMonth backup_sums, ProtocolNamesComputingPerMonth backup_names)
     {
         var current_month_sector_lcl = file.GetMonthData(month_name);
 
@@ -20,11 +20,11 @@ class XmlMonthLogger : BaseXmlSumsData
 
         // Запись общих сумм.
 
-        WriteSums(XMLLogTags.MAIN_SUMS, backup_sums.All_Protocols_Sums_in, ProtocolTypesAndSums.MAIN_SUMS);
+        WriteSums(XMLLogTags.MAIN_SUMS, backup_sums.Main_Protocols_Sums_in, ProtocolTypesAndSums.MAIN_SUMS);
 
         // Запись имен протоколов ЕИАС, при условии, что они найдены. Т.е. их сумма не равна нулю.
 
-        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
+        if (backup_sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[1]] != 0)
         {
             WriteNames(XMLLogTags.MAIN_SUMS[1], backup_names.Sorted_Eias_Protocol_Names_in);
         }
@@ -37,7 +37,7 @@ class XmlMonthLogger : BaseXmlSumsData
 
         // Запись простых протоколов по физ. факторам, если они найдены.
 
-        if (backup_sums.All_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
+        if (backup_sums.Main_Protocols_Sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != 0)
         {
             WriteSums(XMLLogTags.SIMPLE_PROTOCOLS_SUMS, backup_sums.Simple_Protocols_Sums_in, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 

@@ -1,10 +1,10 @@
-﻿// * Файл "XmlYearLogger": логгер отчета за год. *
+﻿// * Файл "XMLYearLogger.cs": логгер отчета за год. *
 
-class XmlYearLogger : BaseXmlSumsData
+class XMLYearLogger : BaseXMLSumsData
 {
     // Параметры: "file" - файл годового отчета, "all_protocols_sums" - главные суммы за год, "simple_protocols_sums" - суммы протоколов по физическим факторам за год. 
 
-    public XmlYearLogger(YearLogFile file, Dictionary<string, int> all_protocols_sums, Dictionary<string, int> simple_protocols_sums)
+    public XMLYearLogger(XMLYearLogFile file, Dictionary<string, int> all_protocols_sums, Dictionary<string, int> simple_protocols_sums)
     {
         Sums_Sector_in = file.Document_in!.Element(XMLLogTags.SUMS);
 
