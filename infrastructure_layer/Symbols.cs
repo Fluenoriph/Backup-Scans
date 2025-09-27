@@ -4,5 +4,7 @@ struct Symbols
 {
     public const char LINE = '-';
 
-    public const string NULL = "0";   
+    public const string NULL = "0";
+
+    public const string NAME_SEPARATOR = ", ";
 }

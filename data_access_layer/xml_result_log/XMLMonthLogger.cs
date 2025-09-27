@@ -104,7 +104,7 @@ class XMLMonthLogger : BaseXMLSumsData
 
         if (names is not null)
         {
-            current_sector_lcl!.Value = string.Join(", ", names);
+            current_sector_lcl!.Value = string.Join(Symbols.NAME_SEPARATOR, names);
         }
         else
         {

@@ -7,7 +7,7 @@ class WorkSpaceSetuper
 {
     string? Space_Type_in { get; }
     bool Real_Directory_status_in { get; set; }
-    readonly WorkSpacesConfigFile config_file_in = new(IWorkSpacesConfigFileLocation.GetPath());
+    static WorkSpacesConfigFile Config_File_in { get { return new(IWorkSpacesConfigFileLocation.GetPath()); } }
 
     // Рабочая директория пространства.
 
@@ -21,7 +21,7 @@ class WorkSpaceSetuper
                   
         // Получение директории из файла
 
-        Directory_in = config_file_in.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in)?.Value;
+        Directory_in = Config_File_in.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in)?.Value;
 
         IXMLNullError<string>.CheckItem(Directory_in);
                 
@@ -103,14 +103,16 @@ class WorkSpaceSetuper
         if (CheckRealDirectory())
         {
             // Чтобы изменить значение в файле, нужно заново получить всю цепочку вызовов.
-                                               
-            var sector_lcl = config_file_in.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in!);
+
+            var config_file = Config_File_in;
+
+            var sector_lcl = config_file.Document_in!.Element(XMLWorkSpacesTags.ROOT)?.Element(Space_Type_in!);
 
             IXMLNullError<XElement>.CheckItem(sector_lcl);
                         
             sector_lcl!.Value = Directory_in;
 
-            config_file_in.Document_in!.Save(IWorkSpacesConfigFileLocation.GetPath());
+            config_file.Document_in!.Save(IWorkSpacesConfigFileLocation.GetPath());
 
             return true;
         }

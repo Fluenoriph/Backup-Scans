@@ -24,7 +24,7 @@ Console.WriteLine('\n');
 
 // Создание рабочих пространств.
 
-WorkSpacesCreator work_locations = new();
+WorkSpacesCreator work_spaces = new();
 
 // Перезапускаемое меню.
 
@@ -53,7 +53,7 @@ do
 
         if (month_index >= Periods.JANUARY_INDEX && month_index <= Periods.DECEMBER_INDEX)
         {
-            MonthLoggerControl _ = new(work_locations.GetWorkSpaces(), Periods.MONTHES[month_index]);
+            _ = new MonthAppControl(work_spaces.GetWorkSpaces(), Periods.MONTHES[month_index]);
 
             // После успешного завершения копирования, можно запустить его заново.
 
@@ -64,7 +64,7 @@ do
 
         else if (parameter == CurrentDate.Year_in.ToString(CultureInfo.CurrentCulture))
         {
-            YearLoggerControl _ = new(work_locations.GetWorkSpaces());
+            _ = new YearAppControl(work_spaces.GetWorkSpaces());
 
             program_menu_restart = GeneralInfo.RestartOrExitProgram();
         }
@@ -83,15 +83,15 @@ do
     {
         Console.WriteLine('\n');
 
-        WorkDirectoriesInfo.ShowEnterDirectoryType();
-        var drive_index = DriveIndex.Index_in;
+        WorkSpacesInfo.ShowEnterDirectoryType();
+        var drive_index = WorkSpaceIndexConverter.Index_in;
 
-        if (drive_index == Symbols.NOT_DRIVE_INDEX)
+        if (drive_index == (int)WorkSpaceIndex.NOT_SPACE_INDEX)
         {
             _ = new ProgramShutDown(ErrorCode.INPUT_VALUE_ERROR);
         }
 
-        work_locations.Spaces_in[drive_index].ChangeWorkDirectory();
+        work_spaces.Spaces_in[drive_index].ChangeWorkDirectory();
 
         program_menu_restart = true;
     }
@@ -104,29 +104,3 @@ do
     }
 
 } while (program_menu_restart == true);
-
-
-
-
-
-
-// интерфейс ??
-
-/*    Open .html
- * using System;
-using System.Diagnostics;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        ProcessStartInfo startInfo = new ProcessStartInfo
-        {
-            FileName = "C:/Users/Carma/Desktop/Мой сайт/html/math.html",
-            UseShellExecute = true
-        };
-
-        Process.Start(startInfo);
-    }
-}
-*/
