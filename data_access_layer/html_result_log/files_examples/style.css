@@ -1,0 +1,61 @@
+* {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+    text-align: center;
+}
+
+h2 {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-color: currentColor;
+    text-underline-offset: 10pt;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+#sums {
+    margin-left: 10px;
+}
+
+table {
+    text-align: left;
+    width: 300px;
+    border: 2px solid currentColor;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border: 1px solid currentColor;
+}
+
+tr, td {
+    border: 1px solid currentColor;
+    padding: 5px;
+}
+
+caption {
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+#names {
+    margin-top: 30px;
+    margin-left: 10px;
+}
+
+h3 {
+    text-decoration-style: dotted;
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 5pt;
+}
+
+#names h2 {
+    padding-bottom: 30px;
+}

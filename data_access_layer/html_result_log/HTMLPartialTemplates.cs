@@ -19,9 +19,10 @@ class HTMLPartialTemplates
 
         return $@"
 			<!DOCTYPE html>
-			<html>
+			<html lang=""ru"">
 				<head>
 					<meta charset=""UTF-8"">
+                    <link href=""style.css"" rel=""stylesheet"">
 					<title>{period}</title>   
 				</head>
 				<body>
@@ -29,10 +30,12 @@ class HTMLPartialTemplates
 						<h1>Отчет за {period}</h1>
 					</header>
 					<main>
-						<h2>Суммы резервного блока</h2>
-						<table style=""border: 1px #000000 solid; width: 300px;"">
-							<caption>Общее количество</caption>
-							<tbody>					
+                        <section id=""sums"">
+						    <h2>Суммы резервного блока</h2>
+                            <div>
+						        <table>
+							        <caption>Общее количество</caption>
+							        <tbody>					
 			";
     }
 
@@ -42,7 +45,7 @@ class HTMLPartialTemplates
     {
         return $@"
                 <tr>
-				    <td style=""border: 1px #000000 solid"">{sum_type}</td><td style=""border: 1px #000000 solid"">{sum_value}</td>
+				    <td>{sum_type}</td><td>{sum_value}</td>
 				</tr>";
     }
 
@@ -51,7 +54,7 @@ class HTMLPartialTemplates
     public static string PutProtocolNamesSectionHeader()
     {
         return @"
-            <hr>
+            <section id=""names"">
 				<h2>Имена сканов протоколов</h2>";
     }
 
@@ -61,7 +64,7 @@ class HTMLPartialTemplates
     {
         return $@"
                 <tr>
-				    <th colspan=""2"" style=""border: 1px #000000 solid"">{section_name}</th>
+				    <th colspan=""2"">{section_name}</th>
 				</tr>";
     }
 
