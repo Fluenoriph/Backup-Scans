@@ -32,10 +32,16 @@ abstract class BaseHTMLSumsLevelLog
 
         if (main_sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]] != NULL_DIGIT)
         {
-            Log_Data_in.Add(HTMLPartialTemplates.PutString(ProtocolTypesAndSums.MAIN_SUMS[2],
+            Log_Data_in.Add(HTMLPartialTemplates.PutTableString(ProtocolTypesAndSums.MAIN_SUMS[2],
                             main_sums_in[ProtocolTypesAndSums.MAIN_SUMS[2]].ToString(CultureInfo.CurrentCulture)));
 
+            Log_Data_in.Add(HTMLPartialTemplates.PutMainSumsTableEnd());
+
             CreateSimpleProtocolsSumsTable();
+        }
+        else
+        {
+            Log_Data_in.Add(HTMLPartialTemplates.PutSumsTableSectionEnd());
         }
     }
 
@@ -45,11 +51,11 @@ abstract class BaseHTMLSumsLevelLog
     {
         if (current_sums[sum_type] != NULL_DIGIT)
         {
-            Log_Data_in.Add(HTMLPartialTemplates.PutString(sum_type, current_sums[sum_type].ToString(CultureInfo.CurrentCulture)));
+            Log_Data_in.Add(HTMLPartialTemplates.PutTableString(sum_type, current_sums[sum_type].ToString(CultureInfo.CurrentCulture)));
         }
     }
 
-    // * Создание секции сумм обычных протоколов (таблица). *
+    // * Создание таблицы сумм обычных протоколов. *
 
     void CreateSimpleProtocolsSumsTable()
     {
@@ -77,7 +83,7 @@ abstract class BaseHTMLSumsLevelLog
 
                 // Сумма всего.
 
-                Log_Data_in.Add(HTMLPartialTemplates.PutString(ProtocolTypesAndSums.MAIN_SUMS[0], 
+                Log_Data_in.Add(HTMLPartialTemplates.PutTableString(ProtocolTypesAndSums.MAIN_SUMS[0], 
                     simple_sums_in[ProtocolTypesAndSums.FULL_TYPE_SUMS[type_index]].ToString(CultureInfo.CurrentCulture)));
 
                 // По г. Уссурийск
@@ -94,7 +100,7 @@ abstract class BaseHTMLSumsLevelLog
 
         // Закрытие таблицы.
 
-        Log_Data_in.Add(HTMLPartialTemplates.PutSimpleProtocolsSumsTableEnd());
+        Log_Data_in.Add(HTMLPartialTemplates.PutSumsTableSectionEnd());
 
 
         // * Создание строки таблицы по локации, при наличии протоколов. *
@@ -103,7 +109,7 @@ abstract class BaseHTMLSumsLevelLog
         {
             if (simple_sums_in[sum_type] != NULL_DIGIT)
             {
-                Log_Data_in.Add(HTMLPartialTemplates.PutString(city, simple_sums_in[sum_type].ToString(CultureInfo.CurrentCulture)));
+                Log_Data_in.Add(HTMLPartialTemplates.PutTableString(city, simple_sums_in[sum_type].ToString(CultureInfo.CurrentCulture)));
             }
         }
     }

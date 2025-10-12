@@ -1,6 +1,6 @@
 ﻿// * Файл "HTMLPartialTemplates.cs": класс, деконструкция файла отчета в формате HTML. *
 
-class HTMLPartialTemplates
+class HTMLPartialTemplates       // Возможно разделение на несколько классов ....   структуры тэгов уровнем ниже ??
 {
 	// * Создание главной части лог файла. *
 	
@@ -41,7 +41,7 @@ class HTMLPartialTemplates
 
 	// * Добавить строку таблицы с типом суммы и ее значением. *
 
-    public static string PutString(string sum_type, string sum_value)
+    public static string PutTableString(string sum_type, string sum_value)
     {
         return $@"
                 <tr>
@@ -49,11 +49,28 @@ class HTMLPartialTemplates
 				</tr>";
     }
 
+    // * Добавить закрытие таблицы главных сумм. *
+
+    public static string PutMainSumsTableEnd()
+    {
+        return @"
+                    </tbody>
+			    </table>
+		    </div>";
+    }
+
+    // * Добавить закрытие таблиц и секции сумм протоколов. *
+
+    public static string PutSumsTableSectionEnd()
+    {
+        return string.Concat(PutMainSumsTableEnd(), "</section>");
+    }
+
 	// * Добавить заголовок секции имен протоколов. *
 
     public static string PutProtocolNamesSectionHeader()
     {
-        return @"
+        return $@"
             <section id=""names"">
 				<h2>Имена сканов протоколов</h2>";
     }
@@ -68,27 +85,14 @@ class HTMLPartialTemplates
 				</tr>";
     }
 
-	// * Добавить одноуровневый список имен протоколов по названию типа. *
+	// * Добавить одноуровневый список имен протоколов. *
 
-    public static string PutSingleLevelList(string protocol_type, string protocol_names)
+    public static string PutSingleLevelList(string protocol_names)
     {
         return $@"
-            <p>{protocol_type}</p>
-				<ul>
-					<li>{protocol_names}</li>
-				</ul>";
-    }
-
-	// * Добавить двухуровневый список имен протоколов по названию локации (города). *
-
-    public static string PutTwoLevelList(string location_name, string protocol_names)
-    {
-        return $@"
-            <li>{location_name}:
-			    <ul>
-				    <li>{protocol_names}</li>
-				</ul>
-			</li>";
+            <ul>
+				<li>{protocol_names}</li>
+			</ul>";
     }
 
     // * Добавить окончание лог файла. *
@@ -96,6 +100,7 @@ class HTMLPartialTemplates
     public static string PutEndFile()
     {
         return @"
+                        </section>
                     </main>
 	            </body>
             </html>";
@@ -106,30 +111,37 @@ class HTMLPartialTemplates
     public static string PutSimpleProtocolsSumsTableHeader()
     {
         return @"
-            <table style=""border: 1px #000000 solid"">
-			    <caption>Суммы обычных протоколов</caption>
-				<tbody>";
+            <div>
+                <table>
+			        <caption>Суммы обычных протоколов</caption>
+				    <tbody>";
     }
 
-    // * Добавить конец таблицы сумм обычных протоколов. *
+    // * Начало раздела. *
 
-    public static string PutSimpleProtocolsSumsTableEnd()
+    public static string PutStartDivision()
     {
-        return @"
-                </tbody>
-		    </table>";
+        return "<div>";
     }
 
-    // * Добавить заголовок типа обычных протоколов. *
+    // * Конец раздела. *
 
-    public static string PutProtocolNamesSimpleTypeHeader(string protocol_type)
+    public static string PutEndDivision()
     {
-        return $@"
-            <p>{protocol_type}</p>
-				<ul>";
+        return "</div>";
     }
 
-    // Конец секции имен типов обычных протоколов.
+    // * Заголовок третьего уровня. *
 
-    public const string SIMPLE_PROTOCOL_TYPE_NAMES_SECTION_END = "</ul>";
+    public static string PutHeaderThirdLevel(string name)
+    {
+        return $"<h3>{name}</h3>";
+    }
+
+    // * Добавить параграф. *
+
+    public static string PutParagraph(string name)
+    {
+        return $"<p>{name}</p>";
+    }
 }
