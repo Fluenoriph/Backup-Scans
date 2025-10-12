@@ -22,7 +22,7 @@ class YearAppControl : BaseAppControl
             HTMLYearLogCreator self_obj_html_year_log_lcl = new(self_obj_backup_per_year_lcl.Main_Sums_in,
                                                        self_obj_backup_per_year_lcl.Simple_Protocols_Sums_in);
 
-            IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_year_log_lcl.Log_Data_in), CurrentDate.Year_in);
+            IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_year_log_lcl.Log_Data_in));
 
             // Логгинг каждого месяца. XML & HTML.
 
@@ -32,7 +32,7 @@ class YearAppControl : BaseAppControl
 
                 HTMLMonthLogCreator self_obj_html_month_log_lcl = new(month_item.Item2.Main_Protocols_Sums_in, month_item.Item2.Simple_Protocols_Sums_in, month_item.Item3, month_item.Item1);
 
-                IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_month_log_lcl.Log_Data_in), Periods.MONTHES.IndexOf(month_item.Item1));
+                IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_month_log_lcl.Log_Data_in), $"{Periods.MONTHES.IndexOf(month_item.Item1)}");
 
                 // Вывод в консоль всех скопированных файлов по каждому месяцу.
 

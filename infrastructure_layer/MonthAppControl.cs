@@ -25,7 +25,7 @@ class MonthAppControl : BaseAppControl
 
             // Лог в HTML файл.
 
-            IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_lcl.Log_Data_in), Periods.MONTHES.IndexOf(month));
+            IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_lcl.Log_Data_in), $"{Periods.MONTHES.IndexOf(month)}");
 
             // Вывод отчета в консоль.
 
@@ -50,7 +50,7 @@ class MonthAppControl : BaseAppControl
 
                 HTMLYearLogCreator self_obj_html_year_log_lcl = new(year_sums_lcl.Item1, year_sums_lcl.Item2);
 
-                IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_year_log_lcl.Log_Data_in), CurrentDate.Year_in);
+                IHTMLDocumentCreator.CreateLogFile(work_spaces[3].FullName, string.Join("", self_obj_html_year_log_lcl.Log_Data_in));
 
                 // Выводим отчет за год в консоль.
 

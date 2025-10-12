@@ -6,6 +6,7 @@ using System.Security;
 
 class WorkSpacesCreator
 {
+    const string HTML_LOGS_LOCATION = "html_out\\logs";
     public List<WorkSpaceSetuper> Spaces_in { get; } = [];
 
     public WorkSpacesCreator()
@@ -50,7 +51,7 @@ class WorkSpacesCreator
 
             // Создание папки html отчетов.
 
-            var html_log_lcl = main_log_lcl.CreateSubdirectory("html_out");  // in separate file ??
+            var html_log_lcl = main_log_lcl.CreateSubdirectory(HTML_LOGS_LOCATION);  
 
             spaces_lcl.Add(main_log_lcl);
             spaces_lcl.Add(html_log_lcl);
