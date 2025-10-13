@@ -22,7 +22,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 			<html lang=""ru"">
 				<head>
 					<meta charset=""UTF-8"">
-                    <link href=""style.css"" rel=""stylesheet"">  
+                    <link href=""log_style.css"" rel=""stylesheet"">  
 				</head>
 				<body>
 					<header>
