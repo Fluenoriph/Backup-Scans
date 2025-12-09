@@ -10,7 +10,7 @@ abstract class BaseXMLSumsData
 
     public XElement? Sums_Sector_in { get; set; }
 
-    // * Запись в файл, непосредственно сумм. Параметры: "tags" - текущие тэги сумм, "sums" - данные сумм, "names" - названия типов сумм. *
+    // Запись в файл, непосредственно сумм. Параметры: "tags" - текущие тэги сумм, "sums" - данные сумм, "names" - названия типов сумм.
 
     protected void WriteSums(List<string> tags, Dictionary<string, int>? sums = null, List<string>? names = null)
     {

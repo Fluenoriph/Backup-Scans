@@ -1,6 +1,6 @@
 ﻿// * Файл "FullLogPrinter.cs": класс для вывода отчета. *
 
-class FullLogPrinter
+sealed class FullLogPrinter
 {
     // Вывод общих сумм в одну строку по имени (ключу).
 
@@ -29,7 +29,7 @@ class FullLogPrinter
         SimpleSumsLineLogOut = (sum_name) => Console.WriteLine($"> {sum_name}: {Simple_Protocol_Sums_in![sum_name]}");
     }
 
-    // * Вывод отчета. *
+    // Вывод отчета.
 
     public void ShowLog()
     {

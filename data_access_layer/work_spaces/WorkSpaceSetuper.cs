@@ -3,7 +3,7 @@
 using System.Xml.Linq;
 
 
-class WorkSpaceSetuper
+sealed class WorkSpaceSetuper
 {
     string? Space_Type_in { get; }
     bool Real_Directory_status_in { get; set; }
@@ -50,7 +50,7 @@ class WorkSpaceSetuper
         } while (Real_Directory_status_in == false);
     }
 
-    // * Изменение уже установленной директории. *
+    // Изменение уже установленной директории.
 
     public void ChangeWorkDirectory()
     {
@@ -73,7 +73,7 @@ class WorkSpaceSetuper
         } while (Real_Directory_status_in == false);
     }
 
-    // * Проверка на существование в системе. *
+    // Проверка на существование в системе.
 
     bool CheckRealDirectory()
     {
@@ -87,7 +87,7 @@ class WorkSpaceSetuper
         }
     }
         
-    // * Установка новой директории. *
+    // Установка новой директории.
 
     bool SetupNewDirectory()
     {

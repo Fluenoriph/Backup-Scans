@@ -1,8 +1,8 @@
 ﻿// * Файл "InputNoNullText.cs": класс для проверки ввода пустой строки. *
 
-class InputNoNullText
+static class InputNoNullText
 {
-    // * Принудительно получить правильное значение. *
+    // Принудительно получить правильное значение.
 
     public static string GetRealText()
     {

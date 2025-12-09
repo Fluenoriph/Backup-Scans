@@ -1,12 +1,11 @@
 ﻿// * Файл TotalLogSumsToYearCalculator.cs: класс для вычисления годового отчета из файла месячных логов. *
-
 //   Он используется, когда делается бэкап за декабрь, для подведения итогов. Гипотетически, предыдущие месяца уже рассчитаны.
 
 using System.Globalization;
 using System.Xml.Linq;
 
 
-class TotalLogSumsToYearCalculator
+sealed class TotalLogSumsToYearCalculator
 {
     // Счетчик отдельной суммы.
 
@@ -49,9 +48,8 @@ class TotalLogSumsToYearCalculator
         year_log_file.Document_in!.Save(year_log_file.Filename_in);
     }
 
-    // * Суммирование. *
-    // Параметры: название месяца, название тэга.
-
+    // Суммирование. Параметры: название месяца, название тэга.
+   
     void AddSum(string month_name, string sum_tag)
     {
         // Получение значения суммы.
@@ -68,9 +66,8 @@ class TotalLogSumsToYearCalculator
         }
     }
 
-    // * Запись в файл годового отчета. *
-    //   Параметры: тэг суммы.
-
+    // Запись в файл годового отчета. Параметры: тэг суммы.
+    
     void WriteYearSum(string sum_tag)
     {
         // Получение и изменение (запись) значения суммы.

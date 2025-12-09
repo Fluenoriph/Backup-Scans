@@ -1,8 +1,8 @@
 ﻿// * Файл "HTMLPartialTemplates.cs": класс, деконструкция файла отчета в формате HTML. *
 
-class HTMLPartialTemplates       // Возможно разделение на несколько классов ....   структуры тэгов уровнем ниже ??
+static class HTMLPartialTemplates       // Возможно разделение на несколько классов ....   структуры тэгов уровнем ниже ??
 {
-	// * Создание главной части лог файла. *
+	// Создание главной части лог файла.
 	
     public static string PutMainPart(string? period = null)
     {
@@ -38,7 +38,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 			";
     }
 
-	// * Добавить строку таблицы с типом суммы и ее значением. *
+	// Добавить строку таблицы с типом суммы и ее значением.
 
     public static string PutTableString(string sum_type, string sum_value)
     {
@@ -48,7 +48,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 				</tr>";
     }
 
-    // * Добавить закрытие таблицы главных сумм. *
+    // Добавить закрытие таблицы главных сумм.
 
     public static string PutMainSumsTableEnd()
     {
@@ -58,14 +58,14 @@ class HTMLPartialTemplates       // Возможно разделение на �
 		    </div>";
     }
 
-    // * Добавить закрытие таблиц и секции сумм протоколов. *
+    // Добавить закрытие таблиц и секции сумм протоколов.
 
     public static string PutSumsTableSectionEnd()
     {
         return string.Concat(PutMainSumsTableEnd(), "</section>");
     }
 
-	// * Добавить заголовок секции имен протоколов. *
+	// Добавить заголовок секции имен протоколов.
 
     public static string PutProtocolNamesSectionHeader()
     {
@@ -74,7 +74,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 				<h2>Имена сканов протоколов</h2>";
     }
 
-    // * Добавить заголовок секции таблицы сумм по типам обычных протоколов. *
+    // Добавить заголовок секции таблицы сумм по типам обычных протоколов.
 
     public static string PutTableSectionHeader(string section_name)
     {
@@ -84,7 +84,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 				</tr>";
     }
 
-	// * Добавить одноуровневый список имен протоколов. *
+	// Добавить одноуровневый список имен протоколов.
 
     public static string PutSingleLevelList(string protocol_names)
     {
@@ -94,7 +94,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
 			</ul>";
     }
 
-    // * Добавить окончание лог файла. *
+    // Добавить окончание лог файла.
 
     public static string PutEndFile()
     {
@@ -105,7 +105,7 @@ class HTMLPartialTemplates       // Возможно разделение на �
             </html>";
     }
 
-    // * Добавить заголовок таблицы по суммам обычных протоколов. *
+    // Добавить заголовок таблицы по суммам обычных протоколов.
 
     public static string PutSimpleProtocolsSumsTableHeader()
     {
@@ -116,28 +116,28 @@ class HTMLPartialTemplates       // Возможно разделение на �
 				    <tbody>";
     }
 
-    // * Начало раздела. *
+    // Начало раздела.
 
     public static string PutStartDivision()
     {
         return "<div>";
     }
 
-    // * Конец раздела. *
+    // Конец раздела.
 
     public static string PutEndDivision()
     {
         return "</div>";
     }
 
-    // * Заголовок третьего уровня. *
+    // Заголовок третьего уровня.
 
     public static string PutHeaderThirdLevel(string name)
     {
         return $"<h3>{name}</h3>";
     }
 
-    // * Добавить параграф. *
+    // Добавить параграф.
 
     public static string PutParagraph(string name)
     {

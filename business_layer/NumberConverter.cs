@@ -12,8 +12,8 @@ using System.Text.RegularExpressions;
 
 abstract class BaseNumberConverter
 {
-    abstract protected string Protocol_Number_Pattern_in { get; }
-    abstract protected string GetMatchedNumber(Match match);
+    protected abstract string Protocol_Number_Pattern_in { get; }
+    protected abstract string GetMatchedNumber(Match match);
 
     // * "Конвертация" файлов ("files"), в сортированный по возрастанию список номеров. *
 
@@ -41,11 +41,11 @@ abstract class BaseNumberConverter
 }
 
 
-// * Для протоколов ЕИАС (EIASConvert) и "физ. факторов" (SimpleConvert), разная логика получения номера. *
+// Для протоколов ЕИАС (EIASConvert) и "физ. факторов" (SimpleConvert), разная логика получения номера.
 
 // "GetMatchedNumber": получение значения из объекта совпадения по группе захвата № 1 ("number").
 
-class EIASConvert : BaseNumberConverter
+sealed class EIASConvert : BaseNumberConverter
 {
     protected override string Protocol_Number_Pattern_in { get; } = FilePatterns.EIAS_NUMBER_PATTERN;
 
@@ -60,7 +60,7 @@ class EIASConvert : BaseNumberConverter
 }
 
 
-class SimpleConvert : BaseNumberConverter
+sealed class SimpleConvert : BaseNumberConverter
 {
     protected override string Protocol_Number_Pattern_in { get; } = FilePatterns.SIMPLE_NUMBER_PATTERN;
         

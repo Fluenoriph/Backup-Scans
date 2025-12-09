@@ -1,6 +1,6 @@
 ﻿// * Файл "WorkSpaceIndexConverter.cs": класс для получения индекса рабочего пространства из введенных символов. Только 1, 2 или 3. *
 
-class WorkSpaceIndexConverter
+static class WorkSpaceIndexConverter
 {
     public static int Index_in
     {

@@ -1,6 +1,6 @@
 ﻿// * Файл "MonthBackupProcess.cs": класс для резервного копирования за месяц. *
 
-class MonthBackupProcess : BaseBackupProcess
+sealed class MonthBackupProcess : BaseBackupProcess
 {
     // Интерфейс для логгирования.
 

@@ -59,7 +59,7 @@ class YearBackupProcess : BaseBackupProcess
         }
     }
 
-    // * Поиск протоколов по всем месяцам. *
+    // Поиск протоколов по всем месяцам.
 
     bool FindAllYearFiles()
     {
@@ -118,7 +118,7 @@ class YearBackupProcess : BaseBackupProcess
         }
     }
 
-    // * Бэкап. *
+    // Бэкап.
 
     int YearBackuping()
     {

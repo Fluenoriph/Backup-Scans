@@ -1,10 +1,10 @@
-﻿// * Файл "WorkSpacesCreator.cs": класс-конструктор рабочих пространств. * 
+﻿// * Файл "WorkSpacesCreator.cs": класс, создатель рабочих пространств. * 
 
 using System.Globalization;
 using System.Security;
 
 
-class WorkSpacesCreator
+sealed class WorkSpacesCreator
 {
     const string HTML_LOGS_LOCATION = "html_out\\logs";
     public List<WorkSpaceSetuper> Spaces_in { get; } = [];

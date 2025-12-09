@@ -6,7 +6,7 @@ abstract class BaseErrorReporter
 
     // Общая причина ошибки.
 
-    abstract protected string Factor { get; }
+    protected abstract string Factor { get; }
 
     // Параметры: "code" - код ошибки, "exception_message" - сообщение от системы исключений.
 

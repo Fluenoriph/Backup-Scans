@@ -42,14 +42,14 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo d
         return string.Concat(SLASH, "d{2}", SLASH, POINT, month_lcl, SLASH, POINT, CurrentDate.Year_in, SLASH, POINT, FilePatterns.PROTOCOL_SCAN_FILE_TYPE, '$');
     }
 
-    // * Поиск протоколов ЕИАС. *
+    // Поиск протоколов ЕИАС.
 
     protected List<FileInfo>? GetEIASFiles(string date_pattern)
     {
         return self_obj_source_files_in!.GrabMatchedFiles(new(string.Concat(FilePatterns.EIAS_NUMBER_PATTERN, date_pattern), RegexOptions.IgnoreCase));
     }
 
-    // * Поиск простых протоколов. *
+    // Поиск простых протоколов.
 
     protected Dictionary<string, List<FileInfo>>? GetSimpleFiles(string date_pattern)
     {
@@ -77,9 +77,8 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo d
         }
     }
 
-    // * Копирование списка файлов. *
-
-    //   Параметры: "backup_files" - файлы, "month_and_type_subdir" - поддиректория .\Месяц\Тип протоколов.
+    // Копирование списка файлов.
+    // Параметры: "backup_files" - файлы, "month_and_type_subdir" - поддиректория .\Месяц\Тип протоколов.
 
     protected int CopyBackupFiles(List<FileInfo> backup_files, string month_and_type_subdir)
     {
@@ -104,7 +103,7 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo d
         return backuping_files_count_lcl;
     }
 
-    // * Копирование протоколов "физ. факторы". *
+    // Копирование протоколов "физ. факторы".
 
     protected int CopySimpleBlock(Dictionary<string, List<FileInfo>> files, string month)
     {
@@ -122,8 +121,7 @@ abstract class BaseBackupProcess(DirectoryInfo source_directory, DirectoryInfo d
         return backuping_files_count_lcl;
     }
 
-    // * Копирование за месяц. *
-
+    // Копирование за месяц.
     // Параметры: месяц, сканы ЕИАС, сканы по "ФФ", суммы бэкапа за данный месяц.
 
     // Здесь нужны только общие суммы для контроля условий копирования.

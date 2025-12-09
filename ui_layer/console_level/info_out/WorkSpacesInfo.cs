@@ -1,6 +1,6 @@
 ﻿// * Файл "WorkSpacesInfo.cs": класс для вывода информации, связанной с рабочими пространствами. *
 
-class WorkSpacesInfo
+static class WorkSpacesInfo
 {
     // Кириллические названия "дисков". 
 
@@ -16,14 +16,14 @@ class WorkSpacesInfo
 
     const string DIR_EXAMPLE = "Пример: C:\\Folder\\Subfolder";
 
-    // * Сообщение о положительной установке директории. *
+    // Сообщение о положительной установке директории.
 
     public static void ShowDirectorySetupTrue(string work_space_type, string directory)
     {
         Console.WriteLine($" {ConsoleSymbols.STAR} {WorkDirectories.NAMES[work_space_type]} директория: {directory}\n");
     }
 
-    // * Сообщение об отрицательной установке директории. *
+    // Сообщение об отрицательной установке директории.
 
     public static void ShowDirectoryExistFalse(string work_space_type, string directory)
     {
@@ -37,14 +37,14 @@ class WorkSpacesInfo
         }
     }
 
-    // * Сообщение о том, что директория установлена. *
+    // Сообщение о том, что директория установлена.
 
     public static void ShowInstallDirectory(string work_space_type)
     {
         Console.WriteLine($"\n {ConsoleSymbols.GRILLE} {WorkDirectories.NAMES[work_space_type]} директория успешно установлена !");
     }
 
-    // * Сообщение о смене директории. *
+    // Сообщение о смене директории.
 
     public static void ShowEnterDirectoryType()
     {
@@ -64,7 +64,7 @@ class WorkSpacesInfo
         GeneralInfo.ShowLine();
     }
 
-    // * Сообщение о вводе директории. *
+    // Сообщение о вводе директории.
 
     public static void ShowEnterTheDirectory()
     {

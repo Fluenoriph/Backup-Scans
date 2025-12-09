@@ -1,6 +1,6 @@
 ﻿// * Файл "MonthAppControl.cs": вариант выполнения программы за месяц. *
 
-class MonthAppControl : BaseAppControl
+sealed class MonthAppControl : BaseAppControl
 {
     public MonthAppControl(List<DirectoryInfo> work_spaces, string month) : base(work_spaces)
     {
@@ -34,8 +34,7 @@ class MonthAppControl : BaseAppControl
                                        self_obj_backup_per_month_lcl.Self_Obj_Sums_in.Simple_Protocols_Sums_in);
             self_obj_log_show_in.ShowLog();
 
-            //    * Отдельный случай ! *
-
+            // Отдельный случай !
             // Если копировали за декабрь, то подводим итоги года, рассчетом сумм всех месяцев и пишем логи.
 
             if (month == Periods.MONTHES[Periods.DECEMBER_INDEX])

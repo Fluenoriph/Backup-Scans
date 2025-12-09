@@ -3,6 +3,5 @@
 struct XMLWorkSpacesTags
 {
     public static List<string> SPACE_TYPE = ["SOURCE", "DESTINATION", "LOG"];
-
     public const string ROOT = "directory";
 }

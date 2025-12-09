@@ -3,7 +3,7 @@
 using System.Xml.Linq;
 
 
-class XMLMonthLogFile(string file_path) : BaseXMLDataFile(file_path)
+sealed class XMLMonthLogFile(string file_path) : BaseXMLDataFile(file_path)
 {
     protected override XElement Root_Sector_in { get; } = CreateMonthLevels();
 

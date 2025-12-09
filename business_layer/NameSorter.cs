@@ -8,9 +8,10 @@
 
 using System.Globalization;
 
+
 abstract class BaseNameSorter
 {
-    abstract protected string GetNumberName(int number);
+    protected abstract string GetNumberName(int number);
 
     // * Создание сортированного списка имен протоколов. *
     // Параметры: "numbers" - список сортированных номеров файлов протоколов "files".
@@ -43,11 +44,11 @@ abstract class BaseNameSorter
 }
 
 
-// * Для типов протоколов ЕИАС (EIASSort) и "физические факторы" (SimpleSort), разная реализация имени. * 
+// Для типов протоколов ЕИАС (EIASSort) и "физические факторы" (SimpleSort), разная реализация имени. 
 
 // "GetNumberName": получение действительного имени протокола из его численного представления номера ("number").
 
-class EIASSort : BaseNameSorter
+sealed class EIASSort : BaseNameSorter
 {
     const int EIAS_NUMBER_COUNT = 9;
 
@@ -82,7 +83,7 @@ class EIASSort : BaseNameSorter
 }
 
 
-class SimpleSort : BaseNameSorter
+sealed class SimpleSort : BaseNameSorter
 {
     // Вход: 123
 

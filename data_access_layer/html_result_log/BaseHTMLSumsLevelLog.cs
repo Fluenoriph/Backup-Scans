@@ -45,7 +45,7 @@ abstract class BaseHTMLSumsLevelLog
         }
     }
 
-    // * Создание строки таблицы по типу суммы, если она больше нуля. * 
+    // Создание строки таблицы по типу суммы, если она больше нуля. 
 
     void CreateSumsTypeTableString(Dictionary<string, int> current_sums, string sum_type)
     {
@@ -55,7 +55,7 @@ abstract class BaseHTMLSumsLevelLog
         }
     }
 
-    // * Создание таблицы сумм обычных протоколов. *
+    // Создание таблицы сумм обычных протоколов.
 
     void CreateSimpleProtocolsSumsTable()
     {
@@ -103,7 +103,7 @@ abstract class BaseHTMLSumsLevelLog
         Log_Data_in.Add(HTMLPartialTemplates.PutSumsTableSectionEnd());
 
 
-        // * Создание строки таблицы по локации, при наличии протоколов. *
+        // Создание строки таблицы по локации, при наличии протоколов.
 
         void CreateLocationSumTableString(string sum_type, string city)
         {

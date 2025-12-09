@@ -1,6 +1,6 @@
 ﻿// * Файл BackupSumsPerMonth.cs: класс для вычисления всех вариаций сумм протоколов за месяц. *
 
-class BackupSumsPerMonth
+sealed class BackupSumsPerMonth
 {
     // Все суммы протоколов (общие).
     
@@ -66,7 +66,7 @@ class BackupSumsPerMonth
         }
     }
 
-    // * Рассчет общих сумм типов. *
+    // Рассчет общих сумм типов. 
 
     void CalcProtocolTypeFullSum()
     {
@@ -77,7 +77,7 @@ class BackupSumsPerMonth
         }
     }
 
-    // * Рассчет сумм по локации. *
+    // Рассчет сумм по локации.
 
     void CalcProtocolLocationSums()
     {

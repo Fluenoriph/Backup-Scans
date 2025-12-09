@@ -1,6 +1,6 @@
 ﻿// * Файл "ProgramShutDown.cs": класс, логгер с "вылетом" из программы. *
 
-class ProgramShutDown : BaseErrorReporter
+sealed class ProgramShutDown : BaseErrorReporter
 {
     protected override string Factor { get; } = "| Критическая ошибка выполнения | Работа программы прекращена |";
 

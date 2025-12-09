@@ -1,6 +1,6 @@
 ﻿// * Файл ProtocolNamesComputingPerMonth.cs: класс для вычислений имен всех протоколов за месяц. *
 
-class ProtocolNamesComputingPerMonth
+sealed class ProtocolNamesComputingPerMonth
 {
     // Должно быть сразу инициализированно, т.к. используется и для рассчета неизвестных.
 
@@ -77,7 +77,7 @@ class ProtocolNamesComputingPerMonth
         } 
     }
 
-    // * Преобразование словаря файлов протоколов, в словарь сих сортированных номеров. *
+    // Преобразование словаря файлов протоколов, в словарь, их сортированных номеров.
 
     Dictionary<string, List<int>> GetSortedSimpleProtocolNumbers(Dictionary<string, List<FileInfo>> files)
     {
@@ -91,7 +91,7 @@ class ProtocolNamesComputingPerMonth
         return numbers_lcl;
     }
 
-    // * Вычисление пропущенных протоколов. *
+    // Вычисление пропущенных протоколов.
 
     void ComputeMissedProtocols()
     {
@@ -143,7 +143,7 @@ class ProtocolNamesComputingPerMonth
         }
     }
 
-    // * Вычисление неизвестных протоколов. *
+    // Вычисление неизвестных протоколов.
 
     // Параметр: "previous_period_files" - найденные файлы за предыдущий месяц.
 

@@ -1,16 +1,16 @@
 ﻿// * Файл "ParameterTemplates.cs": класс шаблон вывода параметров выбора. *
 
-class ParameterTemplates
+static class ParameterTemplates
 {
-    // * Вывод списка параметров <out_info>. *
+    // Вывод списка параметров <out_info>.
 
     public static void ShowParameters(List<string> out_info)
     {
         Console.WriteLine($" | {string.Join("; ", out_info)} |");
     }
 
-    // * Создание параметра цифры по индексу значения.
-    //   Параметры: список из которого получить индекс, значение параметра.
+    // Создание параметра цифры по индексу значения.
+    // Параметры: список из которого получить индекс, значение параметра.
 
     public static string CreateParameterDigit(List<string> parameters_type, string indexing_value)
     {

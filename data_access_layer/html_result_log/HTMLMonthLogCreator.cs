@@ -1,6 +1,6 @@
 ﻿// * Файл "HTMLMonthLogCreator.cs": класс, создатель гипертекста отчета за месяц. *
 
-class HTMLMonthLogCreator : BaseHTMLSumsLevelLog
+sealed class HTMLMonthLogCreator : BaseHTMLSumsLevelLog
 {
     // Имена протоколов.
 
@@ -28,7 +28,7 @@ class HTMLMonthLogCreator : BaseHTMLSumsLevelLog
         Log_Data_in.Add(HTMLPartialTemplates.PutEndFile());
     }
 
-    // * Создание раздела обычных протоколов, при их наличии. *
+    // Создание раздела обычных протоколов, при их наличии.
 
     void CreateSimpleProtocolsSection()
     {
@@ -68,7 +68,7 @@ class HTMLMonthLogCreator : BaseHTMLSumsLevelLog
         }
     }
 
-    // * Создание контейнера имен протоколов одного отдельного типа. *
+    // Создание контейнера имен протоколов одного отдельного типа.
 
     void CreateSingleProtocolsContainer(string protocol_types, List<string>? protocol_names)
     {
@@ -81,14 +81,13 @@ class HTMLMonthLogCreator : BaseHTMLSumsLevelLog
         }
     }
 
-    // * Создание списка протоколов по локации. *
+    // Создание списка протоколов по локации.
 
     void CreateLocationParagraph(string protocol_type, string city)
     {
         if (names_in.Sorted_Simple_Protocol_Names_in!.TryGetValue(protocol_type, out List<string>? value))
         {
             Log_Data_in.Add(HTMLPartialTemplates.PutParagraph($"{city}:"));
-
             Log_Data_in.Add(HTMLPartialTemplates.PutSingleLevelList(string.Join(Symbols.NAME_SEPARATOR, value)));
         }
     }

@@ -1,38 +1,38 @@
 ﻿// * Файл "GeneralInfo.cs": класс для вывода основной информации. *
 
-class GeneralInfo
+static class GeneralInfo
 {
     static readonly string star_line = new(ConsoleSymbols.STAR, 60);
 
-    // * Показать линию (-----). *
+    // Показать линию (-----).
 
     public static void ShowLine()
     {
         Console.WriteLine(new string(Symbols.LINE, 60));
     }
 
-    // * Показать линию из звездочек (*******). *
+    // Показать линию из звездочек (*******).
 
     public static void ShowStarLine()
     {
         Console.WriteLine(star_line);
     }
 
-    // * Информация об авторе программы. *
+    // Информация об авторе программы.
 
     public static void ShowAuthorInfo()
     {
         Console.WriteLine("\n [ Иван Богданов. Все права защищены. 2025 г. ]\n");
     }
 
-    // * Показать информацию о программе. *
+    // Показать информацию о программе.
 
     public static void ShowProgramInfo()
     {
-        Console.WriteLine("\n >> Backup \"PDF\" Protocols Scan Files v.2.1 <<\n");
+        Console.WriteLine("\n >> Backup \"PDF\" Protocols Scan Files v.2.1.0 <<\n");
     }
 
-    // * Показать главное меню программы. *
+    // Показать главное меню программы.
 
     public static void ShowProgramMenu()
     {
@@ -58,7 +58,7 @@ class GeneralInfo
         ShowLine();
     }
 
-    // * Сообщение о рестарте или завершении программы. *
+    // Сообщение о рестарте или завершении программы.
 
     public static bool RestartOrExitProgram()
     {

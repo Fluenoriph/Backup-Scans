@@ -3,7 +3,7 @@
 using System.Xml.Linq;
 
 
-class XMLYearLogFile(string file_path) : BaseXMLDataFile(file_path)
+sealed class XMLYearLogFile(string file_path) : BaseXMLDataFile(file_path)
 {
     // Корневой уровень, предназначенный для создания файла, если он не существует, по указанным путям.
 

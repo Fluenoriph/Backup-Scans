@@ -1,10 +1,10 @@
 ﻿/*
- * Название программы: Backup "PDF" Protocols Scan Files v.2.1
- * Версия: 2.1
+ * Название программы: Backup "PDF" Protocols Scan Files v.2.1.0
+ * Версия: 2.1.0
  * 
  * Лицензия: MIT License
  * 
- * Дата: ..... 2025 г.
+ * Дата: Декабрь 2025 г.
  * 
  * Автор: Богданов Иван Иванович
  * Контакты: fluenoriph@gmail.com, fluenoriph@yandex.ru

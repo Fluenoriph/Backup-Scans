@@ -1,6 +1,6 @@
 ﻿// * Файл "YearAppControl.cs": вариант выполнения программы за год. *
 
-class YearAppControl : BaseAppControl
+sealed class YearAppControl : BaseAppControl
 {
     public YearAppControl(List<DirectoryInfo> work_spaces) : base(work_spaces)
     {

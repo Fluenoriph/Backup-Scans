@@ -11,7 +11,7 @@
 abstract class BaseExtremeNumbers(Dictionary<string, List<int>> protocol_numbers)
 {
     readonly Dictionary<string, int> numbers_in = [];
-    abstract protected int GetExtremeNumber(List<int> current_numbers);
+    protected abstract int GetExtremeNumber(List<int> current_numbers);
 
     // Создание коллекции номеров, крайних во множестве.
 
@@ -32,7 +32,7 @@ abstract class BaseExtremeNumbers(Dictionary<string, List<int>> protocol_numbers
 }
 
 
-class MaximumNumbers(Dictionary<string, List<int>> protocol_numbers) : BaseExtremeNumbers(protocol_numbers)
+sealed class MaximumNumbers(Dictionary<string, List<int>> protocol_numbers) : BaseExtremeNumbers(protocol_numbers)
 {
     protected override int GetExtremeNumber(List<int> current_numbers)
     {
@@ -41,7 +41,7 @@ class MaximumNumbers(Dictionary<string, List<int>> protocol_numbers) : BaseExtre
 }
 
 
-class MinimumNumbers(Dictionary<string, List<int>> protocol_numbers) : BaseExtremeNumbers(protocol_numbers)
+sealed class MinimumNumbers(Dictionary<string, List<int>> protocol_numbers) : BaseExtremeNumbers(protocol_numbers)
 {
     protected override int GetExtremeNumber(List<int> current_numbers)
     {

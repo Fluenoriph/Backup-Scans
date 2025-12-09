@@ -3,7 +3,7 @@
 using System.Xml.Linq;
 
 
-class XMLMonthLogger : BaseXMLSumsData
+sealed class XMLMonthLogger : BaseXMLSumsData
 {
     // Уровень имен протоколов.
 
@@ -41,7 +41,7 @@ class XMLMonthLogger : BaseXMLSumsData
         {
             WriteSums(XMLLogTags.SIMPLE_PROTOCOLS_SUMS, backup_sums.Simple_Protocols_Sums_in, ProtocolTypesAndSums.UNITED_SIMPLE_TYPE_SUMS);
 
-            // * Запись сортированных имен по возрастанию номера протокола. *
+            // Запись сортированных имен по возрастанию номера протокола.
             // Проходим по всем названиям сумм, т.к. нужно записывать отсутствующие протоколы как пустую строку.
 
             foreach (string name in ProtocolTypesAndSums.TYPES_FULL_NAMES)
@@ -91,9 +91,8 @@ class XMLMonthLogger : BaseXMLSumsData
         file.Document_in!.Save(file.Filename_in);
     }
 
-    // * Запись имен протоколов. *
-    // Параметры: тэг записи, список имен.
-
+    // Запись имен протоколов. Параметры: тэг записи, список имен.
+    
     void WriteNames(string tag, List<string>? names = null)
     {
         var current_sector_lcl = Protocol_Names_Sector_in?.Element(tag);

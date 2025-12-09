@@ -3,7 +3,7 @@
 using System.Text.RegularExpressions;
 
 
-class SourceFiles
+sealed class SourceFiles
 {
     readonly FileInfo[]? files_in;  
 
@@ -23,7 +23,7 @@ class SourceFiles
         }
     }
 
-    // * Поиск протоколов по паттерну, из всех найденных ранее по типу файла (в данном случае pdf). *
+    // Поиск протоколов по паттерну, из всех найденных ранее по типу файла (в данном случае pdf).
 
     public List<FileInfo>? GrabMatchedFiles(Regex pattern)
     {

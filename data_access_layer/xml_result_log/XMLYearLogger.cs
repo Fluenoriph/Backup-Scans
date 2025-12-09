@@ -1,6 +1,6 @@
 ﻿// * Файл "XMLYearLogger.cs": логгер отчета за год. *
 
-class XMLYearLogger : BaseXMLSumsData
+sealed class XMLYearLogger : BaseXMLSumsData
 {
     // Параметры: "file" - файл годового отчета, "main_protocols_sums" - главные суммы за год, "simple_protocols_sums" - суммы протоколов по физическим факторам за год. 
 
