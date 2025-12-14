@@ -1,6 +1,6 @@
 ﻿// * Файл "YearBackupProcess.cs": класс для резервного копирования за год. *
 
-class YearBackupProcess : BaseBackupProcess
+sealed class YearBackupProcess : BaseBackupProcess
 {
     // Все найденные протоколы за год.
 
