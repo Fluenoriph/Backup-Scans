@@ -6,7 +6,7 @@ static class ParameterTemplates
 
     public static void ShowParameters(List<string> out_info)
     {
-        Console.WriteLine($" | {string.Join("; ", out_info)} |");
+        Console.WriteLine($" | {string.Join("\n | ", out_info)}");
     }
 
     // Создание параметра цифры по индексу значения.
@@ -14,6 +14,6 @@ static class ParameterTemplates
 
     public static string CreateParameterDigit(List<string> parameters_type, string indexing_value)
     {
-        return $"\"{parameters_type.IndexOf(indexing_value) + 1}\"";
+        return $"[{parameters_type.IndexOf(indexing_value) + 1}]";
     }
 }

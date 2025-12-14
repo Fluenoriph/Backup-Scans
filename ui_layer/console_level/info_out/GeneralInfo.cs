@@ -38,23 +38,26 @@ static class GeneralInfo
     {
         List<string> value_info_lcl = [];
 
+        string SPACE_LINE = $" {Symbols.LINE} ";
+
         // Создание списка параметров по периодам.
 
         foreach (var month in Periods.MONTHES)
         {
-            value_info_lcl.Add(string.Concat(month, Symbols.LINE, ParameterTemplates.CreateParameterDigit(Periods.MONTHES, month)));
+            value_info_lcl.Add(string.Concat(month, SPACE_LINE, ParameterTemplates.CreateParameterDigit(Periods.MONTHES, month)));
         }
-        value_info_lcl.Add(string.Concat(Periods.YEAR, Symbols.LINE, $"\"{CurrentDate.Year_in}\""));
+        value_info_lcl.Add(string.Concat(Periods.YEAR, SPACE_LINE, $"[{CurrentDate.Year_in}]"));
 
         // Вывод.
 
         Console.WriteLine($" {ConsoleSymbols.STAR} МЕНЮ {ConsoleSymbols.STAR}\n");
 
+        Console.WriteLine($"{ConsoleSymbols.FLOW_RIGHT} Чтобы изменить директорию, введите: [{ConsoleSymbols.CHANGE_DIRECTORY_FUNCTION}]\n");
+
         Console.WriteLine($"{ConsoleSymbols.FLOW_RIGHT} Для запуска резервного копирования, введите значение периода {ConsoleSymbols.FLOW_RIGHT}\n");
         ParameterTemplates.ShowParameters(value_info_lcl);
         Console.WriteLine('\n');
-
-        Console.WriteLine($"{ConsoleSymbols.FLOW_RIGHT} Чтобы изменить директорию, введите: \"{ConsoleSymbols.CHANGE_DIRECTORY_FUNCTION}\"\n");
+                
         ShowLine();
     }
 
