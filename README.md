@@ -14,7 +14,7 @@
 ## Использование
 
     Нужно скачать исполняемый файл утилиты и сразу пользоваться.
-    https://github.com/Fluenoriph/Backup-Scans/releases/tag/v.2.0
+    ./releases/tag/v.2.0
 
 ## Информация об исходном коде
     
