@@ -1,97 +1,102 @@
 # Backup "PDF" Protocols Scan Files v.2.0
 
-    Программа для резервного копирования сканированных копий протоколов ЕИАС Роспотребнадзора и обычных внутренних протоколов по "физическим факторам" в формате PDF.
-    Периодичность копирования, реализованная в программе: за месяц или за год.
+    РџСЂРѕРіСЂР°РјРјР° РґР»СЏ СЂРµР·РµСЂРІРЅРѕРіРѕ РєРѕРїРёСЂРѕРІР°РЅРёСЏ СЃРєР°РЅРёСЂРѕРІР°РЅРЅС‹С… РєРѕРїРёР№ РїСЂРѕС‚РѕРєРѕР»РѕРІ Р•РРђРЎ Р РѕСЃРїРѕС‚СЂРµР±РЅР°РґР·РѕСЂР° Рё РѕР±С‹С‡РЅС‹С… РІРЅСѓС‚СЂРµРЅРЅРёС… РїСЂРѕС‚РѕРєРѕР»РѕРІ РїРѕ "С„РёР·РёС‡РµСЃРєРёРј С„Р°РєС‚РѕСЂР°Рј" РІ С„РѕСЂРјР°С‚Рµ PDF.
+    РџРµСЂРёРѕРґРёС‡РЅРѕСЃС‚СЊ РєРѕРїРёСЂРѕРІР°РЅРёСЏ, СЂРµР°Р»РёР·РѕРІР°РЅРЅР°СЏ РІ РїСЂРѕРіСЂР°РјРјРµ: Р·Р° РјРµСЃСЏС† РёР»Рё Р·Р° РіРѕРґ.
 
-    Общий вид шаблона имени протокола.
-        ЕИАС: 12345-01-25-25.01.2025
-        Обычный: 1-ф-25.01.2025; 20-фа-25.01.2025; 35-р-25.01.2025; 400-ра-25.01.2025; 510-м-25.01.2025; 625-ма-25.01.2025
+    РћР±С‰РёР№ РІРёРґ С€Р°Р±Р»РѕРЅР° РёРјРµРЅРё РїСЂРѕС‚РѕРєРѕР»Р°.
+        Р•РРђРЎ: 12345-01-25-25.01.2025
+        РћР±С‹С‡РЅС‹Р№: 1-С„-25.01.2025; 20-С„Р°-25.01.2025; 35-СЂ-25.01.2025; 400-СЂР°-25.01.2025; 510-Рј-25.01.2025; 625-РјР°-25.01.2025
 
-    Реализован рассчет сумм всех типов протоколов. Для обычных протоколов, вычисляются полностью все варианты, а также пропущенные и неизвестные протоколы.
-    Как результат, создается отчет, со всеми суммами и именами протоколов. Штатно, отчет создается в формате XML.
-    По умолчанию, файлы с одинаковыми именами перезаписываются в резервном хранилище.
+    Р РµР°Р»РёР·РѕРІР°РЅ СЂР°СЃСЃС‡РµС‚ СЃСѓРјРј РІСЃРµС… С‚РёРїРѕРІ РїСЂРѕС‚РѕРєРѕР»РѕРІ. Р”Р»СЏ РѕР±С‹С‡РЅС‹С… РїСЂРѕС‚РѕРєРѕР»РѕРІ, РІС‹С‡РёСЃР»СЏСЋС‚СЃСЏ РїРѕР»РЅРѕСЃС‚СЊСЋ РІСЃРµ РІР°СЂРёР°РЅС‚С‹, Р° С‚Р°РєР¶Рµ РїСЂРѕРїСѓС‰РµРЅРЅС‹Рµ Рё РЅРµРёР·РІРµСЃС‚РЅС‹Рµ РїСЂРѕС‚РѕРєРѕР»С‹.
+    РљР°Рє СЂРµР·СѓР»СЊС‚Р°С‚, СЃРѕР·РґР°РµС‚СЃСЏ РѕС‚С‡РµС‚, СЃРѕ РІСЃРµРјРё СЃСѓРјРјР°РјРё Рё РёРјРµРЅР°РјРё РїСЂРѕС‚РѕРєРѕР»РѕРІ. РЁС‚Р°С‚РЅРѕ, РѕС‚С‡РµС‚ СЃРѕР·РґР°РµС‚СЃСЏ РІ С„РѕСЂРјР°С‚Рµ XML.
+    РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, С„Р°Р№Р»С‹ СЃ РѕРґРёРЅР°РєРѕРІС‹РјРё РёРјРµРЅР°РјРё РїРµСЂРµР·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ РІ СЂРµР·РµСЂРІРЅРѕРј С…СЂР°РЅРёР»РёС‰Рµ.
 
-## Информация об исходном коде
+# РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ
+
+    РќСѓР¶РЅРѕ СЃРєР°С‡Р°С‚СЊ РёСЃРїРѕР»РЅСЏРµРјС‹Р№ С„Р°Р№Р» СѓС‚РёР»РёС‚С‹ Рё СЃСЂР°Р·Сѓ РїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ.
+    Release 2.0.
+
+## РРЅС„РѕСЂРјР°С†РёСЏ РѕР± РёСЃС…РѕРґРЅРѕРј РєРѕРґРµ
     
-    Содержание:
+    РЎРѕРґРµСЂР¶Р°РЅРёРµ:
         1. BackupProcess.cs
-            * Класс BaseBackupProcess
-            * Класс MonthBackupProcess
-            * Класс YearBackupProcess
+            * РљР»Р°СЃСЃ BaseBackupProcess
+            * РљР»Р°СЃСЃ MonthBackupProcess
+            * РљР»Р°СЃСЃ YearBackupProcess
         2. CurrentDate.cs
-            * Структура CurrentDate
+            * РЎС‚СЂСѓРєС‚СѓСЂР° CurrentDate
         3. DrivesConfiguration.cs
-            * Класс ConfigurationFile
-            * Класс DrivesConfiguration
+            * РљР»Р°СЃСЃ ConfigurationFile
+            * РљР»Р°СЃСЃ DrivesConfiguration
         4. ErrorLog.cs
-            * Класс BaseErrorReporter
-            * Перечисление ErrorCode            
-            * Класс ProgramCrash
-            * Класс ProgramShutDown
+            * РљР»Р°СЃСЃ BaseErrorReporter
+            * РџРµСЂРµС‡РёСЃР»РµРЅРёРµ ErrorCode            
+            * РљР»Р°СЃСЃ ProgramCrash
+            * РљР»Р°СЃСЃ ProgramShutDown
         5. ExtremeNumbers.cs
-            * Класс BaseExtremeNumbers
-            * Класс MaximumNumbers
-            * Класс MinimumNumbers
+            * РљР»Р°СЃСЃ BaseExtremeNumbers
+            * РљР»Р°СЃСЃ MaximumNumbers
+            * РљР»Р°СЃСЃ MinimumNumbers
         6. ISumsTableCreator.cs
-            * Интерфейс ISumsTableCreator
+            * РРЅС‚РµСЂС„РµР№СЃ ISumsTableCreator
         7. IXmlLevelCreator.cs
-            * Интерфейс IXmlLevelCreator
+            * РРЅС‚РµСЂС„РµР№СЃ IXmlLevelCreator
         8. LogFiles.cs
-            * Класс MonthLogFile
-            * Класс YearLogFile
+            * РљР»Р°СЃСЃ MonthLogFile
+            * РљР»Р°СЃСЃ YearLogFile
         9. MonthBackupSums.cs
-            * Класс MonthBackupSums
+            * РљР»Р°СЃСЃ MonthBackupSums
        10. NameSorter.cs
-            * Класс BaseNameSorter
-            * Класс EIASSort
-            * Класс SimpleSort
+            * РљР»Р°СЃСЃ BaseNameSorter
+            * РљР»Р°СЃСЃ EIASSort
+            * РљР»Р°СЃСЃ SimpleSort
        11. NumberConverter.cs
-            * Класс BaseNumberConverter
-            * Класс EIASConvert
-            * Класс SimpleConvert
+            * РљР»Р°СЃСЃ BaseNumberConverter
+            * РљР»Р°СЃСЃ EIASConvert
+            * РљР»Р°СЃСЃ SimpleConvert
        12. Program.cs
-            * Инструкция верхнего уровня
+            * РРЅСЃС‚СЂСѓРєС†РёСЏ РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ
        13. ProgramData.cs
-           * Структура DrivesConfigFileLocation
-           * Структура FilePatterns
-           * Структура LogFilesNames
-           * Структура PeriodsNames
-           * Структура ProtocolTypesAndSums
-           * Структура Symbols
-           * Структура XmlTags
+           * РЎС‚СЂСѓРєС‚СѓСЂР° DrivesConfigFileLocation
+           * РЎС‚СЂСѓРєС‚СѓСЂР° FilePatterns
+           * РЎС‚СЂСѓРєС‚СѓСЂР° LogFilesNames
+           * РЎС‚СЂСѓРєС‚СѓСЂР° PeriodsNames
+           * РЎС‚СЂСѓРєС‚СѓСЂР° ProtocolTypesAndSums
+           * РЎС‚СЂСѓРєС‚СѓСЂР° Symbols
+           * РЎС‚СЂСѓРєС‚СѓСЂР° XmlTags
        14. ProgramInfoConsoleOut.cs
-            а) Пространство имен InfoOut
-                * Класс BackupInfo
-                * Класс GeneralInfo
-                * Класс ParameterTemplates
-                * Класс WorkDirectoriesInfo
-            б) Пространство имен InputValidate
-                * Класс DriveIndex
-                * Класс InputNoNullText
-            в) Пространство имен ResultLogOut
-                * Класс FullLogPrinter
+            Р°) РџСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјРµРЅ InfoOut
+                * РљР»Р°СЃСЃ BackupInfo
+                * РљР»Р°СЃСЃ GeneralInfo
+                * РљР»Р°СЃСЃ ParameterTemplates
+                * РљР»Р°СЃСЃ WorkDirectoriesInfo
+            Р±) РџСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјРµРЅ InputValidate
+                * РљР»Р°СЃСЃ DriveIndex
+                * РљР»Р°СЃСЃ InputNoNullText
+            РІ) РџСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјРµРЅ ResultLogOut
+                * РљР»Р°СЃСЃ FullLogPrinter
        15. ResultLoggers.cs
-            * Класс BaseSumsData
-            * Класс MonthLogger
-            * Класс YearLogger
+            * РљР»Р°СЃСЃ BaseSumsData
+            * РљР»Р°СЃСЃ MonthLogger
+            * РљР»Р°СЃСЃ YearLogger
        16. SimpleProtocolNames.cs
-            * Класс SimpleProtocolNames
+            * РљР»Р°СЃСЃ SimpleProtocolNames
        17. SourceFiles.cs
-            * Класс SourceFiles
+            * РљР»Р°СЃСЃ SourceFiles
        18. TotalLogSumsToYearCalculator.cs
-            * Класс TotalLogSumsToYearCalculator
+            * РљР»Р°СЃСЃ TotalLogSumsToYearCalculator
        19. BaseXmlDataFile.cs
-            * Класс BaseXmlDataFile
+            * РљР»Р°СЃСЃ BaseXmlDataFile
     
-### Положение об именовании
+### РџРѕР»РѕР¶РµРЅРёРµ РѕР± РёРјРµРЅРѕРІР°РЅРёРё
 
-    1. Именованные константы. Данные, которые не изменяются в программе: VARIABLE_NAME
-    2. Локальные переменные: variable_name_lcl (кроме внутренних переменных цикла и параметров методов и классов)
-    3. Переменные статуса: variable_name_status
-    4. Поля класса: variable_name_in
-    5. Пользовательские объекы: self_obj_variable_name
-    6. Классы и методы, пространства имен: ClassName
-    7. Базовые классы: BaseClassName 
+    1. РРјРµРЅРѕРІР°РЅРЅС‹Рµ РєРѕРЅСЃС‚Р°РЅС‚С‹. Р”Р°РЅРЅС‹Рµ, РєРѕС‚РѕСЂС‹Рµ РЅРµ РёР·РјРµРЅСЏСЋС‚СЃСЏ РІ РїСЂРѕРіСЂР°РјРјРµ: VARIABLE_NAME
+    2. Р›РѕРєР°Р»СЊРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ: variable_name_lcl (РєСЂРѕРјРµ РІРЅСѓС‚СЂРµРЅРЅРёС… РїРµСЂРµРјРµРЅРЅС‹С… С†РёРєР»Р° Рё РїР°СЂР°РјРµС‚СЂРѕРІ РјРµС‚РѕРґРѕРІ Рё РєР»Р°СЃСЃРѕРІ)
+    3. РџРµСЂРµРјРµРЅРЅС‹Рµ СЃС‚Р°С‚СѓСЃР°: variable_name_status
+    4. РџРѕР»СЏ РєР»Р°СЃСЃР°: variable_name_in
+    5. РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёРµ РѕР±СЉРµРєС‹: self_obj_variable_name
+    6. РљР»Р°СЃСЃС‹ Рё РјРµС‚РѕРґС‹, РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІР° РёРјРµРЅ: ClassName
+    7. Р‘Р°Р·РѕРІС‹Рµ РєР»Р°СЃСЃС‹: BaseClassName 
 
-    Примечание. 
-        К инструкции верхнего уровня это не относится.
+    РџСЂРёРјРµС‡Р°РЅРёРµ. 
+        Рљ РёРЅСЃС‚СЂСѓРєС†РёРё РІРµСЂС…РЅРµРіРѕ СѓСЂРѕРІРЅСЏ СЌС‚Рѕ РЅРµ РѕС‚РЅРѕСЃРёС‚СЃСЏ.
